@@ -1,10 +1,13 @@
 """
 Reads to output dumped to screen and plots rendevous frequency etc
+works on the output to std out from MCNP6
+does not work on the MCNP output file
 """
 
 import matplotlib
 import matplotlib.pyplot as plt
 import datetime
+import sys
 
 
 path = "/mnt/hgfs/transfer/10423.log"
