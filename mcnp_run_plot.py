@@ -10,8 +10,6 @@ import datetime
 import sys
 
 
-path = "/mnt/hgfs/transfer/10423.log"
-
 def plot_nps_stats(path):
     """ reads std out file of mcnp run and produces graphs vs nps
         these are useful for identifing any long history issues
@@ -21,11 +19,11 @@ def plot_nps_stats(path):
         lines = f.read().splitlines()
     f.close()
 
-    ctm = []
-    nrn = []
-    nps = []
-    coll = []
-    time = []
+    ctm = []    # computer time
+    nrn = []    # number random numbers
+    nps = []    # number source particles
+    coll = []   # number of collisions
+    time = []   # wall clock time
 
     for l in lines:
         if l[0:4] == " ctm":
