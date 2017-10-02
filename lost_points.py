@@ -1,10 +1,7 @@
 """
-Reads to output file and gets a list of the co-ordinates of the lost particles
+Reads the output file and gets a list of the co-ordinates of the lost particles
 """
 
-import matplotlib
-import matplotlib.pyplot as plt
-import datetime
 import sys
 
 
