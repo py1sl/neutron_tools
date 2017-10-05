@@ -8,6 +8,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import datetime
 import sys
+import argparse
 
 
 def plot_nps_stats(path):
@@ -66,5 +67,9 @@ def plot_nps_stats(path):
 
 
 if __name__ == "__main__":
-    plot_nps_stats(sys.argv[1])
+    parser = argparse.ArgumentParser(description="data about run time and rendevous frequency")
+    parser.add_argument("input", help="path to the input file")
+    args = parser.parse_args()
+
+    plot_nps_stats(args.input)
 
