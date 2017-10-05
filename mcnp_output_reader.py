@@ -9,12 +9,48 @@ import sys
 import argparse
 
 
+class MCNPOutput():
+    """ MCNP output data"""
+    def __init__(self):
+        """ define data"""
+        self.file_name = ""
+        self.version = ""
+        self.date = ""
+        self.start_time = ""
+        self.cell_mass_volume = []
+        self.surface.area = []
+        self.num_tallies = 1
+        self.num_rendevous = 1
+        self.tally_data = []
+        self.summary_data = []
+        self.tfc_data = []
+        
+
+class MCNP_tally_data():
+    """ data for an individual tally """
+    def __init__(self):
+        self.number = 1
+        self.type = 1
+
+
+class MCNP_summary_data():
+    """ data for an individual tally """
+    def __init__(self):
+        self.number = 1
+        self.type = 1
+
+
 def get_version(data):
     """ """
     return 1
 
 
-def get_table_fifty(data):
+def get_cell_mass(data):
+    """ """
+    return 1
+
+
+def get_surface_area(data):
     """ """
     return 1
 
