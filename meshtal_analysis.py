@@ -273,11 +273,4 @@ def read_mesh_tally_file(fpath):
     return meshes
 
 
-meshtal_list = ("r1msht", "r2msht", "r3msht", "r4msht", "r5msht", "r6msht",
-                "r7msht", "r8msht", "r9msht", "r10msht")
-path = "Y:/ts1_instruments/ALF/simulations/proposed/alf_prop10msht"
-meshes = read_mesh_tally_file(path)
-for mesh in meshes:
-    print(mesh.idnum)
-    print(mesh.ptype)
-    plot_slice(mesh, 0)
+
