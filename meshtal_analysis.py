@@ -50,11 +50,12 @@ def plot_slice(mesh, value, plane="XY"):
     plt.clf()
     data = mesh.data
     data = np.array(data).astype(float)
+     
 
-    print(mesh.y_mids)
     if plane == "XZ":
         midx = mesh.x_mids
         midy = mesh.z_mids
+        v_bounds = mesh.y_bounds
         if mesh.ctype == "6col":
             ipos = 1
             jpos = 3
@@ -70,6 +71,7 @@ def plot_slice(mesh, value, plane="XY"):
     elif plane == "XY":
         midx = mesh.x_mids
         midy = mesh.y_mids
+        v_bounds = mesh.z_bounds
         if mesh.ctype == "6col":
             ipos = 1
             jpos = 2
@@ -85,6 +87,7 @@ def plot_slice(mesh, value, plane="XY"):
     elif plane == "YZ":
         midx = mesh.y_mids
         midy = mesh.z_mids
+        v_bounds = mesh.x_bounds
         if mesh.ctype == "6col":
             ipos = 2
             jpos = 3
@@ -100,23 +103,27 @@ def plot_slice(mesh, value, plane="XY"):
 
     # find closest mid point
     pos = 0
-    for i, v in enumerate(mesh.y_bounds):
+    
+    for i, v in enumerate(v_bounds):
         if value > float(v):
             pos = i
-
-    value = (float(mesh.y_bounds[pos]) + float(mesh.y_bounds[pos + 1])) / 2.0
+    
+    value = (float(v_bounds[pos]) + float(v_bounds[pos + 1])) / 2.0
 
     # now find the slice values
     vals = np.zeros((len(midy), len(midx)))
 
     for r in data:
-        if r[vpos] == value:
+        if (r[vpos]) == value:
             i, = np.where(midx == r[ipos])
             j, = np.where(midy == r[jpos])
             vals[j, i] = r[data_pos]
-
+   
     # now plot
-    plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm())
+    # plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm())
+    title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
+    plt.title(title)
+    plt.pcolormesh(midx, midy, vals)
     plt.colorbar()
     plt.xlabel(ilab)
     plt.ylabel(jlab)
@@ -312,4 +319,4 @@ if __name__ == "__main__":
     # meshes=read_mesh_tally_file(args.input)
     meshes = read_mesh_tally_file("C:/work/scarf/profile_monitor/no_tram/mon_only/pmmsht")
     print(meshes[0].idnum)
-    plot_slice(meshes[0], 0.0)
+    plot_slice(meshes[0], 5.0)
