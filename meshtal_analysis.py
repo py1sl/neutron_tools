@@ -117,13 +117,14 @@ def plot_slice(mesh, value, plane="XY"):
         if (r[vpos]) == value:
             i, = np.where(midx == r[ipos])
             j, = np.where(midy == r[jpos])
+
             vals[j, i] = r[data_pos]
-   
+
     # now plot
-    # plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm())
+    plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm())
     title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
     plt.title(title)
-    plt.pcolormesh(midx, midy, vals)
+    # plt.pcolormesh(midx, midy, vals)
     plt.colorbar()
     plt.xlabel(ilab)
     plt.ylabel(jlab)
@@ -204,6 +205,7 @@ def calc_mid_points(bounds):
     i = 0
     while i < len(bounds) - 1:
         val = (bounds[i] + bounds[i+1]) / 2.0
+        val = round(val, 5)
         mids.append(val)
         i = i + 1
 
@@ -285,10 +287,10 @@ def read_mesh(tnum, data, tdict):
             mesh.e_bounds = v.split(" ")[3:]
         elif ("Energy         X         Y         Z     Result" in v):
             in_data = True
-            print("found data with ebin")
+           
         elif "X         Y         Z     Result" in v:
             in_data = True
-            print("found data no ebin")
+           
             mesh.ctype = "5col"
         elif "mesh tally." in v:
             v = " ".join(v.split())
@@ -312,11 +314,8 @@ def read_mesh_tally_file(fpath):
     return meshes
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser(description="Meshtally ploting")
-    # parser.add_argument("input", help="path to the Meshtal file")
-    # args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Meshtally ploting")
+    parser.add_argument("input", help="path to the Meshtal file")
+    args = parser.parse_args()
     
-    # meshes=read_mesh_tally_file(args.input)
-    meshes = read_mesh_tally_file("C:/work/scarf/profile_monitor/no_tram/mon_only/pmmsht")
-    print(meshes[0].idnum)
-    plot_slice(meshes[0], 5.0)
+    meshes=read_mesh_tally_file(args.input)
