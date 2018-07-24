@@ -10,6 +10,7 @@ Created on Fri Apr 20 08:26:06 2018
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
+import argparse
 
 
 class meshtally:
@@ -44,12 +45,13 @@ def rel_err_hist(data):
 
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
-def plot_slice(mesh, value, plane="XZ"):
+def plot_slice(mesh, value, plane="XY"):
     """ """
     plt.clf()
     data = mesh.data
     data = np.array(data).astype(float)
 
+    print(mesh.y_mids)
     if plane == "XZ":
         midx = mesh.x_mids
         midy = mesh.z_mids
@@ -64,6 +66,36 @@ def plot_slice(mesh, value, plane="XZ"):
             vpos = 1
             data_pos = 3
         ilab = "X co-ord (cm)"
+        jlab = "Z co-ord (cm)"
+    elif plane == "XY":
+        midx = mesh.x_mids
+        midy = mesh.y_mids
+        if mesh.ctype == "6col":
+            ipos = 1
+            jpos = 2
+            vpos = 3
+            data_pos = 4
+        elif mesh.ctype == "5col":
+            ipos = 0
+            jpos = 1
+            vpos = 2
+            data_pos = 3
+        ilab = "X co-ord (cm)"
+        jlab = "Y co-ord (cm)"
+    elif plane == "YZ":
+        midx = mesh.y_mids
+        midy = mesh.z_mids
+        if mesh.ctype == "6col":
+            ipos = 2
+            jpos = 3
+            vpos = 1
+            data_pos = 4
+        elif mesh.ctype == "5col":
+            ipos = 1
+            jpos = 2
+            vpos = 0
+            data_pos = 3
+        ilab = "Y co-ord (cm)"
         jlab = "Z co-ord (cm)"
 
     # find closest mid point
@@ -272,5 +304,12 @@ def read_mesh_tally_file(fpath):
         meshes.append(mesh)
     return meshes
 
-
-
+if __name__ == "__main__":
+    # parser = argparse.ArgumentParser(description="Meshtally ploting")
+    # parser.add_argument("input", help="path to the Meshtal file")
+    # args = parser.parse_args()
+    
+    # meshes=read_mesh_tally_file(args.input)
+    meshes = read_mesh_tally_file("C:/work/scarf/profile_monitor/no_tram/mon_only/pmmsht")
+    print(meshes[0].idnum)
+    plot_slice(meshes[0], 0.0)
