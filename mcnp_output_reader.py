@@ -39,7 +39,9 @@ class MCNP_tally_data():
         self.x = None
         self.y = None
         self.z = None
-        cell_scores = None
+        self.cell_scores = None
+        self.uncoll_flux = None
+        self.uncoll_err = None
         # for type 6
         # for type 8
         # general
@@ -179,6 +181,8 @@ def get_tally(lines, tnum, rnum=-1):
              c_count = c_count + 1
      elif tally_data.type == "5":
          print("type 5")
+
+         # read detector position
          loc_line_id=find_line(" detector located", lines, 17)
          loc_line = lines[loc_line_id]
          loc_line = loc_line.split("=")[1]
@@ -187,8 +191,19 @@ def get_tally(lines, tnum, rnum=-1):
          tally_data.y = loc_line[2]
          tally_data.z = loc_line[3]
          res_line = lines[loc_line_id + 1]
+
+         # check if energy dependant
          if res_line == "      energy   ":
              print("energy dependant")
+             loc_line_id2=find_line(" detector located", lines[loc_line_id+1:], 17)
+             erg_lines = lines[loc_line_id + 2:loc_line_id + loc_line_id2-1]
+             for l in erg_lines:
+                 l=l.strip()
+                 l=l.split(" ")
+                 tally_data.eng.append(float(l[0]))
+                 tally_data.result.append(float(l[3]))
+                 tally_data.err.append(float(l[4]))
+             
          else:
              res_line = res_line.split(" ")[-2:]
              tally_data.result.append(res_line[0])
