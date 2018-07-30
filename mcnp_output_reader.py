@@ -161,29 +161,32 @@ def get_tally(lines, tnum, rnum=-1):
      # depending on tally type choose what to do now
      if tally_data.type == "4" or tally_data.type == "6":
          logging.debug("volume")
+         tally_data.vols = []
+         tally_data.cells = []
+         # find cells
+         # find volumes
+         # TODO: if more than a single line of vols or cells
+         vol_line_id = find_line("           volumes ", lines, 19)
+         vol_val_line = lines[vol_line_id + 2]
+         vol_val_line = " ".join(vol_val_line.split())
+         tally_data.vols = vol_val_line.split(" ")
+         cell_val_line = lines[vol_line_id + 1]
+         cell_val_line = " ".join(cell_val_line.split())
+         cell_val_line = cell_val_line.split(":")[1]
+         tally_data.cells = cell_val_line.split(" ")[1:]
 
-         # if volume type, need to find how which cells
-         cells = []
-         vols = []
+         # loop for each cell
+         for cell in tally_data.cells:
+             cline = " cell  " 
+             cell_res_start = find_line(cline + cell, lines, len(cell)+len(cline))
+             data_line = lines[cell_res_start + 1]
+             data_line = " ".join(data_line.split())
+             data_line = data_line.split(" ")
+             tally_data.result.append(data_line[0])
+             tally_data.err.append(data_line[1])
 
-         if "volumes" in lines[3]:
-             for l in lines[3:]:
-                 if l == "":
-                     break
-                  
-                 elif "cell:" in l:
-                     l = l.strip()
-                     l = l.split()
-                     data = l[1:]
-                     for c in data:
-                         cells.append(c)
-         # now need to get actual data
-         c_count = 0
-         while c_count < len(cells):
-             erg = [0.0]
-             ph = []
-             err = [0.0]
-             c_count = c_count + 1
+
+       
      elif tally_data.type == "5":
          logging.debug("type 5")
 

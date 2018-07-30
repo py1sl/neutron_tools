@@ -46,7 +46,7 @@ def rel_err_hist(data):
 
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
-def plot_slice(mesh, value, plane="XY"):
+def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None):
     """ """
     plt.clf()
     data = mesh.data
@@ -122,7 +122,7 @@ def plot_slice(mesh, value, plane="XY"):
             vals[j, i] = r[data_pos]
 
     # now plot
-    plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm(vmin=1e-15, vmax=1e-3))
+    plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
     title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
     plt.title(title)
     # plt.pcolormesh(midx, midy, vals)
@@ -132,7 +132,11 @@ def plot_slice(mesh, value, plane="XY"):
     plt.xlim(xmin=min(midx), xmax=max(midx))
     plt.ylim(ymin=min(midy), ymax=max(midy))
 
-    plt.show()
+    if fname:
+        plt.savefig(fname)
+        logging.info("produced figure: %s", fname)
+    else:
+        plt.show()
 
 
 # TODO:
@@ -257,7 +261,7 @@ def read_mesh(tnum, data, tdict):
     mesh.idnum = tnum
     mesh.data = []
     mesh.ctype = "6col"
-    print(tnum)
+    logging.info("reading mesh number: %s ", str(tnum))
     # reduce data to just the selected mesh tally
     start_pos = tdict[tnum]
     end_pos = find_next_mesh(tnum, tdict)
@@ -306,6 +310,7 @@ def read_mesh(tnum, data, tdict):
 
 def read_mesh_tally_file(fpath):
     """ """
+    logging.info('Reading MCNP meshtal file: %s', fpath)
     all_data = get_lines(fpath)
     tally_dict = find_mesh_tally_numbers(all_data)
     meshes = []
