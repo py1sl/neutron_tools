@@ -46,7 +46,7 @@ def rel_err_hist(data):
 
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
-def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None):
+def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err = True):
     """ """
     plt.clf()
     data = mesh.data
@@ -113,6 +113,7 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None):
 
     # now find the slice values
     vals = np.zeros((len(midy), len(midx)))
+    err_vals = np.zeros((len(midy), len(midx)))
 
     for r in data:
         if (r[vpos]) == value:
@@ -120,12 +121,28 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None):
             j, = np.where(midy == r[jpos])
 
             vals[j, i] = r[data_pos]
+            err_vals[j, i] = r[data_pos + 1]
+
 
     # now plot
+    if err :
+        plt.subplot(2, 1, 2)
+        plt.pcolormesh(midx, midy, err_vals)
+        title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum) + " rel err"
+        plt.title(title)
+        plt.colorbar()
+        plt.xlabel(ilab)
+        plt.ylabel(jlab)
+        plt.xlim(xmin=min(midx), xmax=max(midx))
+        plt.ylim(ymin=min(midy), ymax=max(midy))
+
+        plt.subplot(2, 1, 1)
+        plt.tight_layout()
+    
     plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
     title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
     plt.title(title)
-    # plt.pcolormesh(midx, midy, vals)
+    
     plt.colorbar()
     plt.xlabel(ilab)
     plt.ylabel(jlab)
