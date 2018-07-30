@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 import argparse
+import logging
 
 
 class meshtally:
@@ -121,7 +122,7 @@ def plot_slice(mesh, value, plane="XY"):
             vals[j, i] = r[data_pos]
 
     # now plot
-    plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm())
+    plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm(vmin=1e-15, vmax=1e-3))
     title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
     plt.title(title)
     # plt.pcolormesh(midx, midy, vals)

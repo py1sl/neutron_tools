@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 import datetime
 import sys
 import argparse
+import logging
+import numpy as np
 
 
 class MCNPOutput():
@@ -33,8 +35,12 @@ class MCNP_tally_data():
         self.type = 1
         self.particle = "neutron"
         self.nps = 1 
+        # for type 1 or 2
+        self.surfaces = None
+        self.areas = None
         # for type 4
-
+        self.cells = None
+        self.vols = None
         # for type 5 tallies
         self.x = None
         self.y = None
@@ -142,20 +148,19 @@ def get_tally(lines, tnum, rnum=-1):
 
      write_lines("tally_test.txt", lines) # temp remove
 
-     # debug
-     print("")
-     print(tnum)
-     print(term_line)
-     print(res_start_line)
-     print(tal_end_line)
-     print(tally_data.particle)
-     print(tally_data.nps)
-     print(tally_data.type)
-     print("")
+     # debug 
+     logging.info('Reading tally %s', str(tnum))
+     logging.debug('Run term line number: %s', str(term_line))
+     logging.debug('Result start line number: %s', str(res_start_line))
+     logging.debug('tally end line number: %s', str(tal_end_line))
+     logging.debug(tally_data.particle)
+     logging.debug('tally nps: %s', str(tally_data.nps))
+     logging.debug('tally type: %s', str(tally_data.type))
+    
 
      # depending on tally type choose what to do now
      if tally_data.type == "4" or tally_data.type == "6":
-         print("volume")
+         logging.debug("volume")
 
          # if volume type, need to find how which cells
          cells = []
@@ -180,7 +185,7 @@ def get_tally(lines, tnum, rnum=-1):
              err = [0.0]
              c_count = c_count + 1
      elif tally_data.type == "5":
-         print("type 5")
+         logging.debug("type 5")
 
          # read detector position
          loc_line_id=find_line(" detector located", lines, 17)
@@ -194,7 +199,7 @@ def get_tally(lines, tnum, rnum=-1):
 
          # check if energy dependant
          if res_line == "      energy   ":
-             print("energy dependant")
+             logging.debug("energy dependant")
              loc_line_id2=find_line(" detector located", lines[loc_line_id+1:], 17)
              erg_lines = lines[loc_line_id + 2:loc_line_id + loc_line_id2-1]
              for l in erg_lines:
@@ -210,15 +215,51 @@ def get_tally(lines, tnum, rnum=-1):
              tally_data.err.append(res_line[1])
 
      elif tally_data.type == "1" or tally_data.type == "2":
-         print("surface")
-     elif tally_data.type == "8":
-         print("pulse height tally")
+         logging.debug("surface")
+         tally_data.areas = []
+         tally_data.surfaces = []
 
+         # TODO: if more than a single line of surfaces or areas
+         # find areas
+         area_line_id = find_line("           areas", lines, 16)
+         area_val_line = lines[area_line_id + 2]
+         area_val_line = " ".join(area_val_line.split())
+         tally_data.areas = np.asarray(area_val_line.split(" "))
+         # find surfaces
+         suf_val_line = lines[area_line_id + 1]
+         suf_val_line = " ".join(suf_val_line.split())
+         suf_val_line = suf_val_line.split(":")[1]
+         tally_data.surfaces = suf_val_line.split(" ")[1:]
+         logging.debug(tally_data.areas)
+         logging.debug(tally_data.surfaces)
+
+         first_surface_line_id = find_line(" surface ", lines, 9)
+         if lines[first_surface_line_id +1] == "      energy   ":
+             logging.debug("energy bins")
+             first_tot_line_id = find_line("      total  ", lines[first_surface_line_id:], 13)
+             erg_lines = lines[first_surface_line_id+2:first_surface_line_id+first_tot_line_id]
+             for l in erg_lines:
+                 l = l.strip()
+                 l = l.split(" ")
+                 tally_data.eng.append(float(l[0]))
+                 tally_data.result.append(float(l[3]))
+                 tally_data.err.append(float(l[4]))
+             logging.debug(tally_data.eng)
+             logging.debug(tally_data.result)
+             logging.debug(tally_data.err)
+         else:
+             logging.debug("no energy bins")
+
+     elif tally_data.type == "8":
+         logging.debug("pulse height tally")
+
+     # get statistical test outcomes
      stat_res_line_id = find_line(" passed", lines, 7)
      stat_line = lines[stat_res_line_id]
      stat_line = stat_line.strip()
      stat_line = " ".join(stat_line.split())
      stat_line = stat_line.split(" ")[1:]
+     tally_data.stat_tests = stat_line
     
 
      return tally_data
@@ -226,41 +267,12 @@ def get_tally(lines, tnum, rnum=-1):
 
 def read_output_file(path, tnum):
     """ """
-
+    logging.info('Reading MCNP output file: %s', path)
     ofile_data = get_lines(path)
     mc_data = MCNPOutput()
 
     td1 = get_tally(ofile_data, tnum) # temporary remove later
     return td1
-
-
-def plot_hist(res, ptype, xlog=True, ylog=True, leth=False):
-    """ """
-    a = res[0]
-    w = res[1][1:]
-    w.append(0.0)
-    x = res[0][1:]
-
-    if not leth:
-        n, bins, patches = plt.hist(x, bins=a, weights=w, histtype='step',
-                                    label=ptype)
-    else:
-        leth_v = a[0]
-# TODO : sort lethagy plot out
-        n, bins, patches = plt.hist(leth_v, bins=a, weights=w, histtype='step',
-                                    label=ptype)
-    if xlog:
-        plt.xscale('log')
-    if ylog:
-        plt.yscale('log')
-    plt.xlabel("Energy (MeV)")
-    if not leth:
-        plt.ylabel("Particle flux 1/cm2/s/source proton")
-    if leth:
-        plt.ylabel("Lethargy Particle flux 1/cm2/s/MeV/source proton")
-    plt.legend(loc='upper left')
-
-    plt.show()
 
 
 if __name__ == "__main__":

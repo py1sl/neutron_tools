@@ -2,6 +2,8 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import logging
+
 
 def normalise(data, norm_val):
     norm = []
@@ -17,6 +19,7 @@ def calc_err_abs(res, err):
         abs_err.append(res[i]*float(err[i]))
         i=i+1
     return abs_err
+
 
 def calc_bin_width(bins):
     """ """
@@ -41,6 +44,7 @@ def plot_raw_spectra(data, fname, title):
     plt.yscale('log')
     plt.plot(data.eng, data.result)
     plt.savefig(fname)
+    logging.info("produced figure: %s", fname)
 
 
 def plot_spectra(data, fname, title):
@@ -54,6 +58,7 @@ def plot_spectra(data, fname, title):
     plt.yscale('log')
     plt.plot(data.eng, np.asarray(data.result)/bw)
     plt.savefig(fname)
+    logging.info("produced figure: %s", fname)
 
 def plot_spectra_ratio(data1, data2, fname, title):
     plt.clf()
@@ -63,6 +68,7 @@ def plot_spectra_ratio(data1, data2, fname, title):
     plt.xscale('log')
     plt.plot(data1.eng, np.asarray(data1.result)/np.asarray(data2.result))
     plt.savefig(fname)
+    logging.info("produced figure: %s", fname)
 
 
 def plot_run_comp(data, err, fname, title):
@@ -72,7 +78,36 @@ def plot_run_comp(data, err, fname, title):
     plt.xlabel("Run #")
     plt.ylabel("Dose Rate microSv/h")
     x = [1,2,3,4,5,6]
-    plt.xlim(xmin=0, xmax=7)
+    plt.xlim(xmin=0, xmax=len(x)+1)
     plt.errorbar(x, data, yerr=err, fmt='o')
-
     plt.savefig(fname)
+    logging.info("produced figure: %s", fname)
+
+
+def plot_hist(res, ptype, xlog=True, ylog=True, leth=False):
+    """ """
+    a = res[0]
+    w = res[1][1:]
+    w.append(0.0)
+    x = res[0][1:]
+
+    if not leth:
+        n, bins, patches = plt.hist(x, bins=a, weights=w, histtype='step',
+                                    label=ptype)
+    else:
+        leth_v = a[0]
+    # TODO : sort lethagy plot out
+        n, bins, patches = plt.hist(leth_v, bins=a, weights=w, histtype='step',
+                                    label=ptype)
+    if xlog:
+        plt.xscale('log')
+    if ylog:
+        plt.yscale('log')
+    plt.xlabel("Energy (MeV)")
+    if not leth:
+        plt.ylabel("Particle flux 1/cm2/s/source proton")
+    if leth:
+        plt.ylabel("Lethargy Particle flux 1/cm2/s/MeV/source proton")
+    plt.legend(loc='upper left')
+
+    plt.show()

@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/neutron_tools/v15
+/chip_shut_res
+/__pycache__
+/chip_open_analysis.py
+/chip_shut.py
+/profile_monitor_analysis.py
+/tally_test.txt
+/.vs/slnx.sqlite
