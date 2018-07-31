@@ -36,6 +36,7 @@ def calc_bin_width(bins):
 
 
 def plot_raw_spectra(data, fname, title):
+    """ plots spectra from MCNP tally data object per bin no normalisation """
     plt.clf()
     plt.title("Neutron energy spectra full model " + title)
     plt.xlabel("Energy (MeV)")
@@ -48,19 +49,25 @@ def plot_raw_spectra(data, fname, title):
 
 
 def plot_spectra(data, fname, title):
+    """ plots spectr afrom MCNP tally data object, dividing by bin width """
+    if type(data) is not list: data = [data]
 
-    bw = calc_bin_width(data.eng)
     plt.clf()
     plt.title("Neutron energy spectra full model " + title)
     plt.xlabel("Energy (MeV)")
     plt.ylabel("flux n/cm2/MeV/proton")
     plt.xscale('log')
     plt.yscale('log')
-    plt.plot(data.eng, np.asarray(data.result)/bw)
+    
+    for d in data:
+        bw = calc_bin_width(d.eng)
+        plt.plot(d.eng, np.asarray(d.result)/bw)
+    
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
 
 def plot_spectra_ratio(data1, data2, fname, title):
+    """  plots the ratio of two energy spectra """
     plt.clf()
     plt.title("Comparison of " + title)
     plt.xlabel("Energy (MeV)")
@@ -71,13 +78,14 @@ def plot_spectra_ratio(data1, data2, fname, title):
     logging.info("produced figure: %s", fname)
 
 
-def plot_run_comp(data, err, fname, title):
+def plot_run_comp(data, err, fname, title, xlab = "Run #", ylab = "Dose Rate microSv/h"):
+    """ plot single value tally results with error """
     plt.clf()
-    title = "Comparison of several runs for full model Cu option at " + title
+   
     plt.title(title)
-    plt.xlabel("Run #")
-    plt.ylabel("Dose Rate microSv/h")
-    x = [1,2,3,4,5,6]
+    plt.xlabel(xlab)
+    plt.ylabel(ylab)
+    x = np.arange(1, len(data) + 1)
     plt.xlim(xmin=0, xmax=len(x)+1)
     plt.errorbar(x, data, yerr=err, fmt='o')
     plt.savefig(fname)
