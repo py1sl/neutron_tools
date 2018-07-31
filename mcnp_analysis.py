@@ -92,6 +92,27 @@ def plot_run_comp(data, err, fname, title, xlab = "Run #", ylab = "Dose Rate mic
     logging.info("produced figure: %s", fname)
 
 
+def html_tab_out(data, fname):
+    """ """
+    if type(data) is not list: data = [data]
+    
+    strTable = "<html><table><tr><th>Tally Number</th><th>Cell Number</th><th>Result</th><th>Relative error</th></tr>"
+    for tall in data:
+        for i, cell in enumerate(tall.cells):
+            strTable = strTable + "<tr><td>" + str(tall.number) + "</td>"
+            strTable = strTable + "<td>"+ str(tall.cells[i]) + "</td>"
+            strTable = strTable + "<td>"+ str(tall.result[i]) + "</td>"
+            strTable = strTable + "<td>"+ str(tall.err[i]) + "</td>"
+            strTable = strTable +"</tr>"
+
+
+
+    strTable = strTable+"</table></html>"
+ 
+    hs = open(fname, 'w')
+    hs.write(strTable)
+
+
 def plot_hist(res, ptype, xlog=True, ylog=True, leth=False):
     """ """
     a = res[0]
