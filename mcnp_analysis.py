@@ -6,13 +6,23 @@ import logging
 
 
 def normalise(data, norm_val):
+    """convert raw data to normalised data"""
     norm = []
     for i in data:
        norm.append(float(i) * float(norm_val))
     return norm
 
 
+def write_lines(path, lines):
+    f = open(path, 'w')
+    for l in lines:
+        f.write(l)
+        f.write("\n")
+    f.close()
+
+
 def calc_err_abs(res, err):
+    """ calculates absolute errors"""
     i = 0
     abs_err = []
     while i < len(res):
@@ -22,7 +32,7 @@ def calc_err_abs(res, err):
 
 
 def calc_bin_width(bins):
-    """ """
+    """ calculate energy bin widths """
     bw = []
     # 1st bin is its own width
     bw.append(bins[0])
@@ -93,7 +103,7 @@ def plot_run_comp(data, err, fname, title, xlab = "Run #", ylab = "Dose Rate mic
 
 
 def html_tab_out(data, fname):
-    """ """
+    """ produces f4 tally data as html table output """
     if type(data) is not list: data = [data]
     
     strTable = "<html><table><tr><th>Tally Number</th><th>Cell Number</th><th>Result</th><th>Relative error</th></tr>"
@@ -111,6 +121,25 @@ def html_tab_out(data, fname):
  
     hs = open(fname, 'w')
     hs.write(strTable)
+    logging.info("produced html file: %s", fname)
+
+
+def csv_out(data, fname):
+    """ produces f4 tally data as csv output   """
+    if type(data) is not list: data = [data]
+
+    lines = []
+    for tall in data:
+        for i, cell in enumerate(tall.cells):
+            ltext = str(tall.number) + ", "
+            ltext = ltext + str(tall.cells[i]) + ", "
+            ltext = ltext + str(tall.result[i]) + ", "
+            ltext = ltext + str(tall.err[i])
+            lines.append(ltext)
+
+    write_lines(fname, lines)
+    logging.info("produced csv file: %s", fname)
+
 
 
 def plot_hist(res, ptype, xlog=True, ylog=True, leth=False):

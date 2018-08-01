@@ -11,3 +11,5 @@
 /tally_test.txt
 /.vs/slnx.sqlite
 *.png
+*.html
+*.txt
