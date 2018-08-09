@@ -55,6 +55,7 @@ class MCNP_tally_data():
         self.err = []
         self.eng = []
         self.stat_tests = None
+        self.times = []
 
 
 
@@ -225,7 +226,43 @@ def get_tally(lines, tnum, rnum=-1):
                  tally_data.eng.append(float(l[0]))
                  tally_data.result.append(float(l[3]))
                  tally_data.err.append(float(l[4]))
+         elif "time" in res_line:
+             logging.debug("found time")
+             # add time counter
+             times = []
+             t1_res = []
+             t1_err = []     
+             t2_res = []
+             t2_err = []
+             t3_res = []
+             t3_err = []
+             t4_res = []
+             t4_err = []
+             t5_res = []
+             t5_err = []
+
+
+             t_count= 0
+             loc_line_id2=find_line(" detector located", lines[loc_line_id+2:], 17)
+             erg_lines = lines[loc_line_id + 1 :loc_line_id + loc_line_id2-1]
+             for l in erg_lines:
+                 if "time" in l:
+                     l = l.strip()
+                     l = " ".join(l.split())
+                     l = l.split(" ")
+                     tcount = len(l[1:])
+                     for t in l[1:]:
+                         times.append(t)
+                 elif "energy" in l or "total" in l:
+                     x = 1
+                 else:
+                     l = l.strip()
+                     l = l.split(" ")
+
+
+             tally_data.times = times 
              
+                          
          else:
              res_line = res_line.split(" ")[-2:]
              tally_data.result.append(res_line[0])
