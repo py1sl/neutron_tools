@@ -137,6 +137,7 @@ def get_tally(lines, tnum, rnum=-1):
      # reduce to only the tally results section
      fline = "1tally" + ((9-len(str(tnum)))*" ")
      res_start_line = find_line(fline + str(tnum), lines, 15)
+     # add an error catch
 
      tally_data.particle = lines[res_start_line+2][24:33]
      tally_data.nps = lines[res_start_line][28:40]
@@ -146,7 +147,9 @@ def get_tally(lines, tnum, rnum=-1):
      tal_end_line = find_line("1tally", lines, 6)
      lines = lines[:tal_end_line-1]
 
-     write_lines("tally_test.txt", lines) # temp remove
+     if logging.getLogger().getEffectiveLevel() == 10:
+         logging.debug("writing tally_test.txt")
+         write_lines("tally_test.txt", lines) 
 
      # debug 
      logging.info('Reading tally %s', str(tnum))
@@ -179,11 +182,22 @@ def get_tally(lines, tnum, rnum=-1):
          for cell in tally_data.cells:
              cline = " cell  " 
              cell_res_start = find_line(cline + cell, lines, len(cell)+len(cline))
-             data_line = lines[cell_res_start + 1]
-             data_line = " ".join(data_line.split())
-             data_line = data_line.split(" ")
-             tally_data.result.append(data_line[0])
-             tally_data.err.append(data_line[1])
+             if lines[cell_res_start + 1] == "      energy   ":
+                 logging.debug("noticed energy")
+                 loc_line_id2=find_line("      total    ", lines[cell_res_start + 1:], 15)
+                 erg_lines = lines[cell_res_start + 2:cell_res_start + 1 + loc_line_id2]
+                 for l in erg_lines:
+                     l=l.strip()
+                     l=l.split(" ")
+                     tally_data.eng.append(float(l[0]))
+                     tally_data.result.append(float(l[3]))
+                     tally_data.err.append(float(l[4]))
+             else:
+                 data_line = lines[cell_res_start + 1]
+                 data_line = " ".join(data_line.split())
+                 data_line = data_line.split(" ")
+                 tally_data.result.append(data_line[0])
+                 tally_data.err.append(data_line[1])
 
 
        
