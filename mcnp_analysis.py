@@ -53,7 +53,7 @@ def plot_raw_spectra(data, fname, title):
     plt.ylabel("flux n/cm2/proton/bin")
     plt.xscale('log')
     plt.yscale('log')
-    plt.plot(data.eng, data.result)
+    plt.step(data.eng, data.result)
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
 
@@ -63,7 +63,7 @@ def plot_spectra(data, fname, title):
     if type(data) is not list: data = [data]
 
     plt.clf()
-    plt.title("Neutron energy spectra full model " + title)
+    plt.title(" " + title)
     plt.xlabel("Energy (MeV)")
     plt.ylabel("flux n/cm2/MeV/proton")
     plt.xscale('log')
@@ -71,7 +71,7 @@ def plot_spectra(data, fname, title):
     
     for d in data:
         bw = calc_bin_width(d.eng)
-        plt.plot(d.eng, np.asarray(d.result)/bw)
+        plt.step(d.eng, np.asarray(d.result)/bw)
     
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
@@ -142,30 +142,3 @@ def csv_out(data, fname):
 
 
 
-def plot_hist(res, ptype, xlog=True, ylog=True, leth=False):
-    """ """
-    a = res[0]
-    w = res[1][1:]
-    w.append(0.0)
-    x = res[0][1:]
-
-    if not leth:
-        n, bins, patches = plt.hist(x, bins=a, weights=w, histtype='step',
-                                    label=ptype)
-    else:
-        leth_v = a[0]
-    # TODO : sort lethagy plot out
-        n, bins, patches = plt.hist(leth_v, bins=a, weights=w, histtype='step',
-                                    label=ptype)
-    if xlog:
-        plt.xscale('log')
-    if ylog:
-        plt.yscale('log')
-    plt.xlabel("Energy (MeV)")
-    if not leth:
-        plt.ylabel("Particle flux 1/cm2/s/source proton")
-    if leth:
-        plt.ylabel("Lethargy Particle flux 1/cm2/s/MeV/source proton")
-    plt.legend(loc='upper left')
-
-    plt.show()

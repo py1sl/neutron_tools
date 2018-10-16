@@ -9,6 +9,7 @@ import sys
 import argparse
 import logging
 import numpy as np
+import pandas as pd
 
 
 class MCNPOutput():
@@ -209,10 +210,16 @@ def get_tally(lines, tnum, rnum=-1):
          loc_line_id=find_line(" detector located", lines, 17)
          loc_line = lines[loc_line_id]
          loc_line = loc_line.split("=")[1]
-         loc_line = loc_line.split(" ")
-         tally_data.x = loc_line[1]
-         tally_data.y = loc_line[2]
-         tally_data.z = loc_line[3]
+
+         tally_data.x = loc_line[0:12]
+         tally_data.x = tally_data.x.strip()
+         tally_data.y = loc_line[12:24]
+         tally_data.y = tally_data.y.strip()
+         tally_data.z = loc_line[24:36]
+         tally_data.z = tally_data.z.strip()
+         logging.debug("x: %s",tally_data.x)
+         logging.debug("y: %s",tally_data.y)
+         logging.debug("z: %s",tally_data.z)
          res_line = lines[loc_line_id + 1]
 
          # check if energy dependant
@@ -334,7 +341,7 @@ def get_tally(lines, tnum, rnum=-1):
 
          first_surface_line_id = find_line(" surface ", lines, 9)
          if lines[first_surface_line_id +1] == "      energy   ":
-             logging.debug("energy bins")
+             logging.debug("energy bins only")
              first_tot_line_id = find_line("      total  ", lines[first_surface_line_id:], 13)
              erg_lines = lines[first_surface_line_id+2:first_surface_line_id+first_tot_line_id]
              for l in erg_lines:
@@ -346,8 +353,47 @@ def get_tally(lines, tnum, rnum=-1):
              logging.debug(tally_data.eng)
              logging.debug(tally_data.result)
              logging.debug(tally_data.err)
-         else:
-             logging.debug("no energy bins")
+         if lines[first_surface_line_id +1][:11] == " angle  bin":
+             logging.debug("angle bins")
+
+             if lines[first_surface_line_id +2] == "      energy   ":
+                 logging.debug("energy bins")
+                 angles_bins = []
+                 ebin = []
+                 rel_err = []
+                 res = []
+                 res_df = pd.DataFrame()
+                 in_res = False
+                 for l in lines[first_surface_line_id:]:
+                     if l[:11] ==  " angle  bin":
+                         l=l.strip()
+                         ang_string = l.split(":")[1]
+                         angles_bins.append(ang_string)
+                         logging.debug(ang_string)
+                     if l[:13] == "      total  ":
+                         in_res = False
+                         ebin = np.array(ebin)
+                         rel_err = np.array(rel_err)
+                         res = np.array(res)
+                         s = pd.Series(res, index=ebin, name=ang_string + "_res")
+                         s2 = pd.Series(rel_err, index=ebin, name=ang_string + "_relerr")
+                         res_df[ang_string + "_res"] = s
+                         res_df[ang_string + "_relerr"] = s2
+                         ebin = []
+                         rel_err = []
+                         res = []
+                     if in_res:
+                         l = l.strip()
+                         l = l.split(" ")
+                         ebin.append(float(l[0]))
+                         res.append(float(l[3]))
+                         rel_err.append(float(l[4]))
+                     if l == "      energy   ":
+                         in_res = True
+
+                 tally_data.result = res_df
+             else:
+                 logging.debug("angle bins only")
 
      elif tally_data.type == "8":
          logging.debug("pulse height tally")
