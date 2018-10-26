@@ -27,6 +27,9 @@ class MCNPOutput():
         self.tally_data = []
         self.summary_data = []
         self.tfc_data = []
+        self.t60 = None
+        self.warnings = []
+        self.comments = []
         
 
 class MCNP_tally_data():
@@ -62,7 +65,7 @@ class MCNP_tally_data():
 
 
 class MCNP_summary_data():
-    """ data for an individual tally """
+    """ data for the summary table """
     def __init__(self):
         self.number = 1
         self.type = 1
@@ -95,24 +98,56 @@ def find_line(text, lines, num):
             return i - 1
     # TODO: add a catch if it doesnt find any match
 
-def get_version(data):
+def read_version(lines):
+    """ from 1st line of output ge the MCNP version"""
+    # TODO: add check that it is a version line
+    version = None
+    l = lines[0]
+    if l[:29]=="          Code Name & Version":
+        version = l.split("=")[1]
+    logging.debug("Version: %s", version)
+    return version
+
+
+def read_cell_mass(data):
     """ """
     return 1
 
 
-def get_cell_mass(data):
+def read_surface_area(data):
     """ """
     return 1
 
-
-def get_surface_area(data):
+def read_comments(data):
     """ """
-    return 1
+    comments = []
+    warnings = []
+    for l in data:
+        if l[:10] == "  comment.":
+            comments.append(l)
+        elif l[:10] == "  warning.":
+            warnings.append(l)
+    logging.debug("Comments:")
+    logging.debug(comments)
+    logging.debug("Warnings:")
+    logging.debug(warnings)
+    return comments, warnings
 
 
-def get_num_tallies(data):
-    """ """
-    return 1
+def get_tallY_nums(data):
+    """ finds the tally numbers used in the problem"""
+    # TODO: sort for multiple rendevous
+    tlines = []
+    for l in data:
+        if l[0:11] == "1tally     ":
+            l = l.strip()
+            l = " ".join(l.split())
+            l = l.split(" ")[1]
+            tlines.append(l)
+    logging.debug("tally numbers:")
+    logging.debug(tlines)
+
+    return tlines
 
 
 def get_num_rendevous(data):
@@ -120,12 +155,20 @@ def get_num_rendevous(data):
     return 1
 
 
-def get_summary(data, ptype, rnum):
+def read_summary(data, ptype, rnum):
     """ """
     return 1
 
+def read_table60(lines):
+    """read table 60 """
+    start_line = find_line("1cells", lines, 6)
+    term_line = find_line("    minimum source weight", lines, 25)
+    lines = lines[start_line:term_line]
+    
+    return lines
 
-def get_tally(lines, tnum, rnum=-1):
+
+def read_tally(lines, tnum, rnum=-1):
      """reads the lines and extracts the  tally results"""
      
      tally_data = MCNP_tally_data()
@@ -158,7 +201,7 @@ def get_tally(lines, tnum, rnum=-1):
      logging.debug('Run term line number: %s', str(term_line))
      logging.debug('Result start line number: %s', str(res_start_line))
      logging.debug('tally end line number: %s', str(tal_end_line))
-     logging.debug(tally_data.particle)
+     logging.debug('tally particle: %s', tally_data.particle)
      logging.debug('tally nps: %s', str(tally_data.nps))
      logging.debug('tally type: %s', str(tally_data.type))
     
@@ -321,7 +364,7 @@ def get_tally(lines, tnum, rnum=-1):
              tally_data.err.append(res_line[1])
 
      elif tally_data.type == "1" or tally_data.type == "2":
-         logging.debug("surface")
+         logging.debug("Surface")
          tally_data.areas = []
          tally_data.surfaces = []
 
@@ -336,24 +379,45 @@ def get_tally(lines, tnum, rnum=-1):
          suf_val_line = " ".join(suf_val_line.split())
          suf_val_line = suf_val_line.split(":")[1]
          tally_data.surfaces = suf_val_line.split(" ")[1:]
-         logging.debug(tally_data.areas)
+         logging.debug("Tally surface numbers:")
          logging.debug(tally_data.surfaces)
+         logging.debug("Tally surface areas:")
+         logging.debug(tally_data.areas)
+
 
          first_surface_line_id = find_line(" surface ", lines, 9)
+         loc = 0
+         surface_line_id = first_surface_line_id
+         res_df = pd.DataFrame()
          if lines[first_surface_line_id +1] == "      energy   ":
              logging.debug("energy bins only")
-             first_tot_line_id = find_line("      total  ", lines[first_surface_line_id:], 13)
-             erg_lines = lines[first_surface_line_id+2:first_surface_line_id+first_tot_line_id]
-             for l in erg_lines:
-                 l = l.strip()
-                 l = l.split(" ")
-                 tally_data.eng.append(float(l[0]))
-                 tally_data.result.append(float(l[3]))
-                 tally_data.err.append(float(l[4]))
-             logging.debug(tally_data.eng)
-             logging.debug(tally_data.result)
-             logging.debug(tally_data.err)
-         if lines[first_surface_line_id +1][:11] == " angle  bin":
+            
+             for s in tally_data.surfaces:
+                 # find start and end points
+                 logging.debug(s)
+                 tot_line_id = find_line("      total  ", lines[surface_line_id:], 13)
+                 erg_lines = lines[surface_line_id+2:surface_line_id+tot_line_id]
+                 loc = tot_line_id + 1
+                 surface_line_id = find_line(" surface ", lines[loc:], 9)
+                 surface_line_id = surface_line_id + loc
+                 # set arrays
+                 erg = []
+                 res = []
+                 rel_err = []
+                 for l in erg_lines:
+                     l = l.strip()
+                     l = l.split(" ")
+                     erg.append(float(l[0]))
+                     res.append(float(l[3]))
+                     rel_err.append(float(l[4]))
+                 res_s = pd.Series(res, index=erg, name=s+"_res")
+                 re_s = pd.Series(rel_err, index=erg, name=s+"_relerr")
+                 res_df[s+"_res"] = res_s
+                 res_df[s + "_relerr"] = re_s
+             tally_data.result = res_df
+             tally_data.eng = erg
+             
+         elif lines[first_surface_line_id +1][:11] == " angle  bin":
              logging.debug("angle bins")
 
              if lines[first_surface_line_id +2] == "      energy   ":
@@ -362,7 +426,6 @@ def get_tally(lines, tnum, rnum=-1):
                  ebin = []
                  rel_err = []
                  res = []
-                 res_df = pd.DataFrame()
                  in_res = False
                  for l in lines[first_surface_line_id:]:
                      if l[:11] ==  " angle  bin":
@@ -416,7 +479,11 @@ def read_output_file(path, tnum):
     ofile_data = get_lines(path)
     mc_data = MCNPOutput()
 
-    td1 = get_tally(ofile_data, tnum) # temporary remove later
+    td1 = read_tally(ofile_data, tnum) # temporary remove later
+    mc_data.t60 = read_table60(ofile_data)
+    mc_data.version = read_version(ofile_data)
+    tls = get_tallY_nums(ofile_data)
+    mc_data.comments, mc_data.warnings = read_comments(ofile_data)
     return td1
 
 

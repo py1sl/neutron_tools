@@ -2,6 +2,7 @@
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import logging
 
 
@@ -58,14 +59,33 @@ def plot_raw_spectra(data, fname, title):
     logging.info("produced figure: %s", fname)
 
 
-def plot_spectra(data, fname, title):
+def plot_spectra(data, fname, title, sp="proton"):
     """ plots spectr afrom MCNP tally data object, dividing by bin width """
     if type(data) is not list: data = [data]
 
     plt.clf()
     plt.title(" " + title)
     plt.xlabel("Energy (MeV)")
-    plt.ylabel("flux n/cm2/MeV/proton")
+    plt.ylabel("flux n/cm2/MeV/" + sp)
+    plt.xscale('log')
+    plt.yscale('log')
+    
+    for d in data:
+        bw = calc_bin_width(d.index.values)
+        plt.step(d.index.values, np.asarray(d)/bw)
+    
+    plt.savefig(fname)
+    logging.info("produced figure: %s", fname)
+
+
+def plot_spectra2(data, fname, title, sp="proton"):
+    """ plots spectr afrom MCNP tally data object, dividing by bin width """
+    if type(data) is not list: data = [data]
+
+    plt.clf()
+    plt.title(" " + title)
+    plt.xlabel("Energy (MeV)")
+    plt.ylabel("flux n/cm2/MeV/" + sp)
     plt.xscale('log')
     plt.yscale('log')
     
@@ -75,6 +95,7 @@ def plot_spectra(data, fname, title):
     
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
+
 
 def plot_spectra_ratio(data1, data2, fname, title):
     """  plots the ratio of two energy spectra """
