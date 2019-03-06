@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import logging
 
+import neut_utilities as ut
+
 
 def normalise(data, norm_val):
     """convert raw data to normalised data"""
@@ -11,14 +13,6 @@ def normalise(data, norm_val):
     for i in data:
         norm.append(float(i) * float(norm_val))
     return norm
-
-
-def write_lines(path, lines):
-    f = open(path, 'w')
-    for l in lines:
-        f.write(l)
-        f.write("\n")
-    f.close()
 
 
 def calc_err_abs(res, err):
@@ -89,7 +83,8 @@ def plot_spectra_ratio(data1, data2, fname, title):
     logging.info("produced figure: %s", fname)
 
 
-def plot_run_comp(data, err, fname, title, xlab="Run #", ylab="Dose Rate microSv/h"):
+def plot_run_comp(data, err, fname, title, xlab="Run #",
+                  ylab="Dose Rate microSv/h"):
     """ plot single value tally results with error """
     plt.clf()
 
@@ -136,7 +131,7 @@ def csv_out(data, fname):
             ltext = ltext + str(tall.err[i])
             lines.append(ltext)
 
-    write_lines(fname, lines)
+    ut.write_lines(fname, lines)
     logging.info("produced csv file: %s", fname)
 
 
