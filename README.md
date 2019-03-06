@@ -12,4 +12,10 @@ ofile_reduce :-  reduces mcnp output file to just the last rendevous data, can b
 
 meshtal_analysis :- reads MCNP meshtal file, can plot a slice, do some statistics, plot histogram of the rel err, count zeros etc
 
+mcnp_output_reader :- work in progress, can read some f2, f4 and f5 tally results
 
+mcnp_analysis :- work in progress tools to analyse and plot MCNP output when read by mcnp_output_reader
+
+neut_utilities :- simple functions used by multiple modules
+
+neut_constants :- set of useful constants
