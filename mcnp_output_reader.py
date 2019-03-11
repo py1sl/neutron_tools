@@ -62,8 +62,6 @@ class MCNP_tally_data():
         self.times = []
 
 
-
-
 class MCNP_summary_data():
     """ data for the summary table """
     def __init__(self):
@@ -98,9 +96,9 @@ def find_line(text, lines, num):
             return i - 1
     # TODO: add a catch if it doesnt find any match
 
+
 def read_version(lines):
     """ from 1st line of output ge the MCNP version"""
-    # TODO: add check that it is a version line
     version = None
     l = lines[0]
     if l[:29]=="          Code Name & Version":
@@ -117,6 +115,7 @@ def read_cell_mass(data):
 def read_surface_area(data):
     """ """
     return 1
+
 
 def read_comments(data):
     """ """
@@ -144,6 +143,7 @@ def get_tallY_nums(data):
             l = " ".join(l.split())
             l = l.split(" ")[1]
             tlines.append(l)
+    tlines = set(tlines)
     logging.debug("tally numbers:")
     logging.debug(tlines)
 
@@ -158,6 +158,7 @@ def get_num_rendevous(data):
 def read_summary(data, ptype, rnum):
     """ """
     return 1
+
 
 def read_table60(lines):
     """read table 60 """
@@ -370,7 +371,14 @@ def read_tally(lines, tnum, rnum=-1):
 
          # TODO: if more than a single line of surfaces or areas
          # find areas
-         area_line_id = find_line("           areas", lines, 16)
+         # TODO: sort for type 1 tally without sd card 
+         if tally_data.type == "2":
+             area_line_id = find_line("           areas", lines, 16)
+         else:
+             area_line_id = find_line("           divisors", lines, 19)
+         if area_line_id == None:
+             raise ValueError
+
          area_val_line = lines[area_line_id + 2]
          area_val_line = " ".join(area_val_line.split())
          tally_data.areas = np.asarray(area_val_line.split(" "))
@@ -483,6 +491,9 @@ def read_output_file(path, tnum):
     mc_data.t60 = read_table60(ofile_data)
     mc_data.version = read_version(ofile_data)
     tls = get_tallY_nums(ofile_data)
+
+
+
     mc_data.comments, mc_data.warnings = read_comments(ofile_data)
     return td1
 
