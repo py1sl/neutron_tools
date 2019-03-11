@@ -5,21 +5,15 @@ import numpy as np
 import pandas as pd
 import logging
 
+import neut_utilities as ut
+
 
 def normalise(data, norm_val):
     """convert raw data to normalised data"""
     norm = []
     for i in data:
-       norm.append(float(i) * float(norm_val))
+        norm.append(float(i) * float(norm_val))
     return norm
-
-
-def write_lines(path, lines):
-    f = open(path, 'w')
-    for l in lines:
-        f.write(l)
-        f.write("\n")
-    f.close()
 
 
 def calc_err_abs(res, err):
@@ -28,7 +22,7 @@ def calc_err_abs(res, err):
     abs_err = []
     while i < len(res):
         abs_err.append(res[i]*float(err[i]))
-        i=i+1
+        i = i + 1
     return abs_err
 
 
@@ -69,7 +63,7 @@ def plot_spectra(data, fname, title, sp="proton"):
     plt.ylabel("flux n/cm2/MeV/" + sp)
     plt.xscale('log')
     plt.yscale('log')
-    
+
     for d in data:
         if isinstance(d, pd.Series):
             bw = calc_bin_width(d.index.values)
@@ -94,10 +88,11 @@ def plot_spectra_ratio(data1, data2, fname, title):
     logging.info("produced figure: %s", fname)
 
 
-def plot_run_comp(data, err, fname, title, xlab = "Run #", ylab = "Dose Rate microSv/h"):
+def plot_run_comp(data, err, fname, title, xlab="Run #",
+                  ylab="Dose Rate microSv/h"):
     """ plot single value tally results with error """
     plt.clf()
-   
+
     plt.title(title)
     plt.xlabel(xlab)
     plt.ylabel(ylab)
@@ -111,20 +106,18 @@ def plot_run_comp(data, err, fname, title, xlab = "Run #", ylab = "Dose Rate mic
 def html_tab_out(data, fname):
     """ produces f4 tally data as html table output """
     if type(data) is not list: data = [data]
-    
+
     strTable = "<html><table><tr><th>Tally Number</th><th>Cell Number</th><th>Result</th><th>Relative error</th></tr>"
     for tall in data:
         for i, cell in enumerate(tall.cells):
             strTable = strTable + "<tr><td>" + str(tall.number) + "</td>"
-            strTable = strTable + "<td>"+ str(tall.cells[i]) + "</td>"
-            strTable = strTable + "<td>"+ str(tall.result[i]) + "</td>"
-            strTable = strTable + "<td>"+ str(tall.err[i]) + "</td>"
-            strTable = strTable +"</tr>"
-
-
+            strTable = strTable + "<td>" + str(tall.cells[i]) + "</td>"
+            strTable = strTable + "<td>" + str(tall.result[i]) + "</td>"
+            strTable = strTable + "<td>" + str(tall.err[i]) + "</td>"
+            strTable = strTable + "</tr>"
 
     strTable = strTable+"</table></html>"
- 
+
     hs = open(fname, 'w')
     hs.write(strTable)
     logging.info("produced html file: %s", fname)
@@ -143,7 +136,7 @@ def csv_out(data, fname):
             ltext = ltext + str(tall.err[i])
             lines.append(ltext)
 
-    write_lines(fname, lines)
+    ut.write_lines(fname, lines)
     logging.info("produced csv file: %s", fname)
 
 
