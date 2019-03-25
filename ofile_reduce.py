@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
-
-This is a temporary script file.
+Output file reduce utility
+reduces MCNP output to just the last rendevous
+S Lilley
+March 2019
 """
-
-import numpy as np
-import matplotlib.pyplot as plt
 import sys
 import argparse
 import neut_utilities as ut
