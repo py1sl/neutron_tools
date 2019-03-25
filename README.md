@@ -19,3 +19,5 @@ mcnp_analysis :- work in progress tools to analyse and plot MCNP output when rea
 neut_utilities :- simple functions used by multiple modules
 
 neut_constants :- set of useful constants
+
+geom_utils :- set of geometry functions, distance between planes etc
