@@ -33,3 +33,10 @@ def find_line(text, lines, num):
         if l[0:num] == text:
             return i - 1
     # TODO: add a catch if it doesnt find any match
+    
+    
+def string_cleaner(text):
+    """ returns cleaned up line"""
+    text = text.strip()
+    text = " ".join(text.split())
+    return text

@@ -1,8 +1,8 @@
 """ """
-import matplotlib
+import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
+#import pandas as pd
 import logging
 
 import neut_utilities as ut
@@ -65,12 +65,12 @@ def plot_spectra(data, fname, title, sp="proton"):
     plt.yscale('log')
 
     for d in data:
-        if isinstance(d, pd.Series):
-            bw = calc_bin_width(d.index.values)
-            plt.step(d.index.values, np.asarray(d)/bw)
-        else:
-            bw = calc_bin_width(d.eng)
-            plt.step(d.eng, np.asarray(d.result)/bw)
+        #if isinstance(d, pd.Series):
+            #bw = calc_bin_width(d.index.values)
+            #plt.step(d.index.values, np.asarray(d)/bw)
+        #else:
+        bw = calc_bin_width(d.eng)
+        plt.step(d.eng, np.asarray(d.result)/bw)
     
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
@@ -102,6 +102,25 @@ def plot_run_comp(data, err, fname, title, xlab="Run #",
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
 
+    
+def plot_en_time(data, fname):
+    """ plotting energy time data"""
+    plt.clf()
+    if data.times == None:
+        logging.info("Error - no time bins")
+    if data.eng == None:
+        logging.info("Error - no energy bins")
+    plt.xlabel("time")
+    plt.ylabel("energy")
+    
+    
+    masked_vals = np.ma.masked_where(data.result[1] < 1e-50, data.result[1])
+    
+    plt.pcolormesh(masked_vals.T, norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()), cmap="PuBu_r")
+    plt.colorbar()
+    logging.info(data.result[1].shape)
+    logging.info(len(data.user_bins))
+    plt.savefig(fname)
 
 def html_tab_out(data, fname):
     """ produces f4 tally data as html table output """
@@ -124,7 +143,7 @@ def html_tab_out(data, fname):
 
 
 def csv_out(data, fname):
-    """ produces f4 tally data as csv output   """
+    """ produces  tally data as csv output   """
     if type(data) is not list: data = [data]
 
     lines = []
