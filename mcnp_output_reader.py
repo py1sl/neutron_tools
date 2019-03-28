@@ -36,8 +36,6 @@ class MCNPOutput():
 class MCNP_tally_data():
     """ data for an individual tally """
     def __init__(self):
-        # for type 6
-        # for type 8
         # general
         self.number = 1
         self.type = 1
@@ -79,7 +77,16 @@ class MCNP_cell_tally(MCNP_tally_data):
         MCNP_tally_data.__init__(self)
         # for type 4
         self.cells = None
-        self.vols = None    
+        self.vols = None 
+
+        
+class MCNP_pulse_tally(MCNP_tally_data):
+    """ """
+    def __init__(self):
+        MCNP_tally_data.__init__(self)
+        # for type 8
+        self.cells = None
+        self.vols = None         
   
     
 class MCNP_summary_data():
@@ -99,6 +106,24 @@ def read_version(lines):
     logging.debug("Version: %s", version)
     return version
 
+    
+def read_run_date(lines):
+    """ finds the start date and time of the run """
+    date = None
+    time = None
+    if len(lines) > 101:
+        lines = lines[:100]
+    data_line = lines[ut.find_line("1mcnp", lines, 5)]
+    data_line = ut.string_cleaner(data_line)
+    data_line = data_line.split(" ")
+    date = data_line[-2]
+    time = data_line[-1]
+    
+    logging.debug("Start date: %s", date)
+    logging.debug("Start time: %s", time)    
+    
+    return date, time
+    
 
 def read_cell_mass(data):
     """ """
@@ -227,70 +252,71 @@ def process_e_t_userbin(data):
 
 
 def read_tally(lines, tnum, rnum=-1):
-     """reads the lines and extracts the  tally results"""
-     
-     # todo add ability to do all rendevous
-     # reduce to only the final result set
-     term_line = ut.find_line("      run terminated when", lines, 25)
-     lines = lines[term_line:]
+    """reads the lines and extracts the  tally results"""
+    
+    # todo add ability to do all rendevous
+    # reduce to only the final result set
+    term_line = ut.find_line("      run terminated when", lines, 25)
+    lines = lines[term_line:]
 
-     # reduce to only the tally results section
-     fline = "1tally" + ((9-len(str(tnum)))*" ")
-     res_start_line = ut.find_line(fline + str(tnum), lines, 15)
-     # add an error catch
+    # reduce to only the tally results section
+    fline = "1tally" + ((9-len(str(tnum)))*" ")
+    res_start_line = ut.find_line(fline + str(tnum), lines, 15)
+    # add an error catch
 
-     # find tally type and create appropriate class
-     type = lines[res_start_line + 1][22]
-     if type == '5':
-         tally_data = MCNP_type5_tally()
-     elif type == '4':
-         tally_data = MCNP_cell_tally()
-     elif type == '1' or type == '2':
-         tally_data = MCNP_surface_tally()
-     else:
-         tally_data = MCNP_tally_data()
-         
-     # get basic common tally data    
-     tally_data.number = tnum
-     tally_data.particle = lines[res_start_line+2][24:33]
-     tally_data.nps = lines[res_start_line][28:40]
-     tally_data.type = type
-     
-     lines = lines[res_start_line + 1:]
-     tal_end_line = ut.find_line("1tally", lines, 6)
-     lines = lines[:tal_end_line-1]
+    # find tally type and create appropriate class
+    type = lines[res_start_line + 1][22]
+    if type == '5':
+        tally_data = MCNP_type5_tally()
+    elif type == '4' or type == '6':
+        tally_data = MCNP_cell_tally()
+    elif type == '1' or type == '2':
+        tally_data = MCNP_surface_tally()
+    elif type == '8':
+        tally_data = MCNP_pulse_tally()
+    else:
+        tally_data = MCNP_tally_data()
+        
+    # get basic common tally data    
+    tally_data.number = tnum
+    tally_data.particle = lines[res_start_line+2][24:33]
+    tally_data.nps = lines[res_start_line][28:40]
+    tally_data.type = type
+    
+    lines = lines[res_start_line + 1:]
+    tal_end_line = ut.find_line("1tally", lines, 6)
+    lines = lines[:tal_end_line-1]
 
-     if logging.getLogger().getEffectiveLevel() == 10:
-         logging.debug("writing tally_test.txt")
-         ut.write_lines("tally_test.txt", lines) 
+    if logging.getLogger().getEffectiveLevel() == 10:
+        logging.debug("writing tally_test.txt")
+        ut.write_lines("tally_test.txt", lines) 
 
-     # debug 
-     logging.info('Reading tally %s', str(tnum))
-     logging.debug('Run term line number: %s', str(term_line))
-     logging.debug('Result start line number: %s', str(res_start_line))
-     logging.debug('tally end line number: %s', str(tal_end_line))
-     logging.debug('tally particle: %s', tally_data.particle)
-     logging.debug('tally nps: %s', str(tally_data.nps))
-     logging.debug('tally type: %s', str(tally_data.type))
+    # debug 
+    logging.info('Reading tally %s', str(tnum))
+    logging.debug('Run term line number: %s', str(term_line))
+    logging.debug('Result start line number: %s', str(res_start_line))
+    logging.debug('tally end line number: %s', str(tal_end_line))
+    logging.debug('tally particle: %s', tally_data.particle)
+    logging.debug('tally nps: %s', str(tally_data.nps))
+    logging.debug('tally type: %s', str(tally_data.type))
     
 
-     # depending on tally type choose what to do now
-     if tally_data.type == "4" or tally_data.type == "6":
-         tally_data = read_type_cell(tally_data, lines)
-    
-     elif tally_data.type == "5":
-          tally_data = read_type_5(tally_data, lines)
-         
-     elif tally_data.type == "1" or tally_data.type == "2":
-          tally_data = read_type_surface(tally_data, lines)
-         
-     elif tally_data.type == "8":
-          tally_data = read_type_8(tally_data, lines)
-         
-     # get statistical test outcomes
-     tally_data.stat_tests = read_stat_tests(lines)
+    # depending on tally type choose what to do now
+    if tally_data.type == "4" or tally_data.type == "6":
+        tally_data = read_type_cell(tally_data, lines)   
+    elif tally_data.type == "5":
+        tally_data = read_type_5(tally_data, lines)        
+    elif tally_data.type == "1" or tally_data.type == "2":
+        tally_data = read_type_surface(tally_data, lines)
+    elif tally_data.type == "8":
+        tally_data = read_type_8(tally_data, lines)
+    else:
+        logging.info("Tally type not recognised or supported")
+        
+    # get statistical test outcomes
+    tally_data.stat_tests = read_stat_tests(lines)
 
-     return tally_data
+    return tally_data
 
 def read_type_8(tally_data, lines):
     """ """
@@ -611,6 +637,7 @@ def read_output_file(path, tnum):
     td1 = read_tally(ofile_data, tnum) # temporary remove later
     mc_data.t60 = read_table60(ofile_data)
     mc_data.version = read_version(ofile_data)
+    mc_data.date, mc_data.start_time = read_run_date(ofile_data)
     tls = get_tally_nums(ofile_data)
 
 
