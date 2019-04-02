@@ -65,13 +65,15 @@ def plot_spectra(data, fname, title, sp="proton"):
     plt.yscale('log')
 
     for d in data:
-        #if isinstance(d, pd.Series):
-            #bw = calc_bin_width(d.index.values)
-            #plt.step(d.index.values, np.asarray(d)/bw)
-        #else:
         bw = calc_bin_width(d.eng)
-        plt.step(d.eng, np.asarray(d.result)/bw)
-    
+        if d.type == '2':
+            y_vals = np.asarray(d.result[0])/bw         
+        else:   
+            y_vals = np.asarray(d.result)/bw         
+            
+    plt.step(np.asarray(d.eng),  y_vals)
+    non_zero_loc = ut.find_first_non_zero(y_vals)
+    plt.xlim(xmin = d.eng[non_zero_loc])
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
 

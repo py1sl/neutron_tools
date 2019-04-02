@@ -32,6 +32,7 @@ def find_line(text, lines, num):
         i = i + 1
         if l[0:num] == text:
             return i - 1
+    raise ValueError
     # TODO: add a catch if it doesnt find any match
     
     
@@ -40,3 +41,11 @@ def string_cleaner(text):
     text = text.strip()
     text = " ".join(text.split())
     return text
+ 
+ 
+def find_first_non_zero(val_list):
+    """ """
+    for i, val in enumerate(val_list):
+        if val > 0:
+            return i
+            break
