@@ -135,7 +135,7 @@ def read_surface_area(data):
     return 1
 
 
-def read_comments(lines):
+def read_comments_warnings(lines):
     """ """
     comments = []
     warnings = []
@@ -144,10 +144,6 @@ def read_comments(lines):
             comments.append(l)
         elif l[:10] == "  warning.":
             warnings.append(l)
-    logging.debug("Comments:")
-    logging.debug(comments)
-    logging.debug("Warnings:")
-    logging.debug(warnings)
     return comments, warnings
 
 
@@ -333,7 +329,7 @@ def read_type_surface(tally_data, lines):
     # TODO: if more than a single line of surfaces or areas
     # find areas
     # TODO: sort for type 1 tally without sd card 
-    """if tally_data.type == "2":
+    if tally_data.type == "2":
         area_line_id = ut.find_line("           areas", lines, 16)
     else:
         area_line_id = ut.find_line("           divisors", lines, 19)
@@ -355,20 +351,23 @@ def read_type_surface(tally_data, lines):
     
     
     first_surface_line_id = ut.find_line(" surface ", lines, 9)
+    logging.debug("first surface id %s", first_surface_line_id)
     loc = 0
     surface_line_id = first_surface_line_id
-    res_df = pd.DataFrame()
+    res_df = []
     if lines[first_surface_line_id +1] == "      energy   ":
         logging.debug("energy bins only")
        
         for s in tally_data.surfaces:
             # find start and end points
-            logging.debug(s)
+            logging.debug("Reading Surface: %s", s)
             tot_line_id = ut.find_line("      total  ", lines[surface_line_id:], 13)
             erg_lines = lines[surface_line_id+2:surface_line_id+tot_line_id]
-            loc = tot_line_id + 1
+
             surface_line_id = ut.find_line(" surface ", lines[loc:], 9)
             surface_line_id = surface_line_id + loc
+            
+            loc = tot_line_id + 1
             # set arrays
             erg = []
             res = []
@@ -379,10 +378,9 @@ def read_type_surface(tally_data, lines):
                 erg.append(float(l[0]))
                 res.append(float(l[3]))
                 rel_err.append(float(l[4]))
-            res_s = pd.Series(res, index=erg, name=s+"_res")
-            re_s = pd.Series(rel_err, index=erg, name=s+"_relerr")
-            res_df[s+"_res"] = res_s
-            res_df[s + "_relerr"] = re_s
+
+            res_df.append(res)
+            
         tally_data.result = res_df
         tally_data.eng = erg
         
@@ -407,10 +405,7 @@ def read_type_surface(tally_data, lines):
                     ebin = np.array(ebin)
                     rel_err = np.array(rel_err)
                     res = np.array(res)
-                    s = pd.Series(res, index=ebin, name=ang_string + "_res")
-                    s2 = pd.Series(rel_err, index=ebin, name=ang_string + "_relerr")
-                    res_df[ang_string + "_res"] = s
-                    res_df[ang_string + "_relerr"] = s2
+                    res_df.append(res)
                     ebin = []
                     rel_err = []
                     res = []
@@ -425,7 +420,7 @@ def read_type_surface(tally_data, lines):
     
             tally_data.result = res_df
         else:
-            logging.debug("angle bins only") """
+            logging.debug("angle bins only") 
     return tally_data
 
     
@@ -628,22 +623,26 @@ def read_stat_tests(lines):
     return stat_line
 
 
-def read_output_file(path, tnum):
+def read_output_file(path):
     """ """
     logging.info('Reading MCNP output file: %s', path)
     ofile_data = ut.get_lines(path)
     mc_data = MCNPOutput()
-
-    td1 = read_tally(ofile_data, tnum) # temporary remove later
-    mc_data.t60 = read_table60(ofile_data)
+   
+    # general 
     mc_data.version = read_version(ofile_data)
     mc_data.date, mc_data.start_time = read_run_date(ofile_data)
+    mc_data.comments, mc_data.warnings = read_comments_warnings(ofile_data)
+    
+    # read specific tables
+    mc_data.t60 = read_table60(ofile_data)
+    
+    # tallies
     tls = get_tally_nums(ofile_data)
+    for tnum in tls:
+        mc_data.tally_data.append(read_tally(ofile_data, tnum))
 
-
-
-    # mc_data.comments, mc_data.warnings = read_comments(ofile_data)
-    return td1
+    return mc_data
 
 
 if __name__ == "__main__":

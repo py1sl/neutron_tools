@@ -71,7 +71,7 @@ def plot_spectra(data, fname, title, sp="proton"):
         else:   
             y_vals = np.asarray(d.result)/bw         
             
-    plt.step(np.asarray(d.eng),  y_vals)
+        plt.step(np.asarray(d.eng),  y_vals)
     non_zero_loc = ut.find_first_non_zero(y_vals)
     plt.xlim(xmin = d.eng[non_zero_loc])
     plt.savefig(fname)
