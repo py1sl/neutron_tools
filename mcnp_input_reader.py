@@ -18,8 +18,27 @@ class mcnp_cell():
         self.imp_n = 1.0
         self.geom = ""
         self.surfaces = []
-        
-        
+
+
+def read_mode_card(lines):
+    """ """
+    mode = None
+    for l in lines:
+        if l[0:4].lower() == "mode":
+           l = ut.string_cleaner(l)
+           mode = l.split(" ")[1:]
+    return mode
+    
+    
+def check_mode_valid(mode):
+    """ """
+    particle_list = ["n", "p", "h", "e"]
+    for particle in mode:
+        if particle.lower() not in particle_list:
+            return False
+    return True
+  
+  
 def get_full_line_comments(lines):
     """ """
     comments = []
