@@ -21,3 +21,5 @@ neut_utilities :- simple functions used by multiple modules
 neut_constants :- set of useful constants
 
 geom_utils :- set of geometry functions, distance between planes etc
+
+[![Build Status](https://travis-ci.org/py1sl/neutron_tools.svg?branch=master)](https://travis-ci.org/py1sl/neutron_tools)
