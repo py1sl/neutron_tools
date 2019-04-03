@@ -4,3 +4,9 @@ python:
 script:
  - export PYTHONPATH=$PYTHONPATH:$(pwd)
  - python tests/test_mcnp_input_reader.py
+ - python tests/test_mcnp_output_reader.py 
+ - python tests/test_fispact_input_reader.py
+ - python tests/test_fispact_output_reader.py
+ - python tests/test_neut_util.py
+ - python tests/test_geom_util.py
+ - python tests/test_mcnp_analyis.py
