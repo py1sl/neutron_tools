@@ -1,6 +1,8 @@
 language: python
 python:
  - "3.5" 
+install:
+ - pip install matplotlib
 script:
  - export PYTHONPATH=$PYTHONPATH:$(pwd)
  - python tests/test_mcnp_input_reader.py
