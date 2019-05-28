@@ -10,19 +10,20 @@ import numpy as np
 def dist_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
     """ calculate distance between two planes"""
 
+    # check planes are not identical
+    if x1==x2 and y1==y2 and z1==z2 and d1==d2:
+        return 0.0
+        
+    x = 0.0
+    y = 0.0
+    z = 0.0 
     if y1 != 0.0:
-        x = 0.0
         y = d1 / y1
-        z = 0.0
     elif z1 != 0.0:
-        x = 0.0
-        y = 0.0
         z = d1 / z1
     elif x1 != 0.0:
         x = d1 / x1
-        y = 0.0
-        z = 0.0
-
+     
     check = evaluate_plane_eq(x, y, z, x1, y1, z1, d1)
     if check != 0.0:
         print("warning check not equal to 0.0")
@@ -158,3 +159,4 @@ def find_sense_plane(x, y, z, coeff_X, coeff_Y, coeff_Z, d):
         return 1
     elif val == 0.0:
         print("on the plane")
+        
