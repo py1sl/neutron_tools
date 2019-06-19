@@ -40,15 +40,18 @@ def calc_bin_width(bins):
     return bw
 
 
-def plot_raw_spectra(data, fname, title):
+def plot_raw_spectra(data, fname, title, sp="proton"):
     """ plots spectra from MCNP tally data object per bin no normalisation """
     plt.clf()
     plt.title("Neutron energy spectra full model " + title)
     plt.xlabel("Energy (MeV)")
-    plt.ylabel("flux n/cm2/proton/bin")
+    plt.ylabel("flux n/cm2/"+sp+"/bin")
     plt.xscale('log')
     plt.yscale('log')
-    plt.step(data.eng, data.result)
+    if type(data) is not list: data = [data]
+    
+    for d in data:
+             plt.step(np.asarray(d.eng), np.asarray(d.result))
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
 
@@ -124,6 +127,7 @@ def plot_en_time(data, fname):
     logging.info(len(data.user_bins))
     plt.savefig(fname)
 
+    
 def html_tab_out(data, fname):
     """ produces f4 tally data as html table output """
     if type(data) is not list: data = [data]

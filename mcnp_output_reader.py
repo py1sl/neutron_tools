@@ -258,10 +258,21 @@ def read_tally(lines, tnum, rnum=-1):
     # reduce to only the tally results section
     fline = "1tally" + ((9-len(str(tnum)))*" ")
     res_start_line = ut.find_line(fline + str(tnum), lines, 15)
+    
     # add an error catch
-
+    
+    # check if tally comment
+    if lines[res_start_line +1][0] == "+":
+       tal_comment_bool = True
+    else:
+       tal_comment_bool = False
+       
     # find tally type and create appropriate class
-    type = lines[res_start_line + 1][22]
+    if tal_comment_bool:
+        type = lines[res_start_line + 2][22]
+    else:
+        type = lines[res_start_line + 1][22]
+    
     if type == '5':
         tally_data = MCNP_type5_tally()
     elif type == '4' or type == '6':
@@ -275,7 +286,12 @@ def read_tally(lines, tnum, rnum=-1):
         
     # get basic common tally data    
     tally_data.number = tnum
-    tally_data.particle = lines[res_start_line+2][24:33]
+    
+    if tal_comment_bool:
+        tally_data.particle = lines[res_start_line+3][24:33]
+    else:
+        tally_data.particle = lines[res_start_line+2][24:33]
+        
     tally_data.nps = lines[res_start_line][28:40]
     tally_data.type = type
     
@@ -322,7 +338,7 @@ def read_type_8(tally_data, lines):
 
 def read_type_surface(tally_data, lines):
     """"""
-    logging.debug("Surface")
+    logging.debug("Surface Tally")
     tally_data.areas = []
     tally_data.surfaces = []
     
@@ -426,7 +442,7 @@ def read_type_surface(tally_data, lines):
     
 def read_type_cell(tally_data, lines):     
     """ """
-    logging.debug("volume")
+    logging.debug("Volume tally")
     tally_data.vols = []
     tally_data.cells = []
     # find cells
@@ -447,6 +463,7 @@ def read_type_cell(tally_data, lines):
         cell_res_start = ut.find_line(cline + cell, lines, len(cell)+len(cline))
         if lines[cell_res_start + 1] == "      energy   ":
             logging.debug("noticed energy")
+            tally_data.eng = []
             loc_line_id2=ut.find_line("      total    ", lines[cell_res_start + 1:], 15)
             erg_lines = lines[cell_res_start + 2:cell_res_start + 1 + loc_line_id2]
             for l in erg_lines:
