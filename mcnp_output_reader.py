@@ -326,7 +326,9 @@ def read_tally(lines, tnum, rnum=-1):
         logging.info("Tally type not recognised or supported")
         
     # get statistical test outcomes
-    tally_data.stat_tests = read_stat_tests(lines)
+    # first check not all zeros
+    if np.array(tally_data.result).any():
+        tally_data.stat_tests = read_stat_tests(lines)
 
     return tally_data
 
@@ -344,36 +346,44 @@ def read_type_surface(tally_data, lines):
     
     # TODO: if more than a single line of surfaces or areas
     # find areas
-    # TODO: sort for type 1 tally without sd card 
+    # TODO: sort for type 1 tally with sd card 
     if tally_data.type == "2":
         area_line_id = ut.find_line("           areas", lines, 16)
+        area_val_line = lines[area_line_id + 2]
+        area_val_line = " ".join(area_val_line.split())
+        tally_data.areas = np.asarray(area_val_line.split(" "))
+        # find surfaces
+        suf_val_line = lines[area_line_id + 1]
+        suf_val_line = " ".join(suf_val_line.split())
+        suf_val_line = suf_val_line.split(":")[1]
+        tally_data.surfaces = suf_val_line.split(" ")[1:]
+        logging.debug("Tally surface numbers:")
+        logging.debug(tally_data.surfaces)
+        logging.debug("Tally surface areas:")
+        logging.debug(tally_data.areas)
+    
+     
+
+    """     
     else:
         area_line_id = ut.find_line("           divisors", lines, 19)
     if area_line_id == None:
         raise ValueError
+    """
+
     
-    area_val_line = lines[area_line_id + 2]
-    area_val_line = " ".join(area_val_line.split())
-    tally_data.areas = np.asarray(area_val_line.split(" "))
-    # find surfaces
-    suf_val_line = lines[area_line_id + 1]
-    suf_val_line = " ".join(suf_val_line.split())
-    suf_val_line = suf_val_line.split(":")[1]
-    tally_data.surfaces = suf_val_line.split(" ")[1:]
-    logging.debug("Tally surface numbers:")
-    logging.debug(tally_data.surfaces)
-    logging.debug("Tally surface areas:")
-    logging.debug(tally_data.areas)
     
     
     first_surface_line_id = ut.find_line(" surface ", lines, 9)
     logging.debug("first surface id %s", first_surface_line_id)
+    tally_data.surfaces = lines[first_surface_line_id].strip()[-1]
+    print(tally_data.surfaces)
     loc = 0
     surface_line_id = first_surface_line_id
     res_df = []
     if lines[first_surface_line_id +1] == "      energy   ":
         logging.debug("energy bins only")
-       
+        
         for s in tally_data.surfaces:
             # find start and end points
             logging.debug("Reading Surface: %s", s)
@@ -399,6 +409,7 @@ def read_type_surface(tally_data, lines):
             
         tally_data.result = res_df
         tally_data.eng = erg
+        tally_data.err = rel_err
         
     elif lines[first_surface_line_id +1][:11] == " angle  bin":
         logging.debug("angle bins")
@@ -502,8 +513,9 @@ def read_type_5(tally_data, lines):
      if res_line == "      energy   ":
          logging.debug("energy dependant")
          tally_data.eng = []
-         loc_line_id2=ut.find_line(" detector located", lines[loc_line_id+1:], 17)
-         erg_lines = lines[loc_line_id + 2:loc_line_id + loc_line_id2-1]
+         total_line_id2=ut.find_line("      total", lines[loc_line_id+1:], 11)
+         erg_lines = lines[loc_line_id + 2:loc_line_id + total_line_id2+1]
+         
          for l in erg_lines:
              l=l.strip()
              l=l.split(" ")
@@ -647,6 +659,7 @@ def read_output_file(path):
     mc_data = MCNPOutput()
    
     # general 
+    mc_data.filename = path 
     mc_data.version = read_version(ofile_data)
     mc_data.date, mc_data.start_time = read_run_date(ofile_data)
     mc_data.comments, mc_data.warnings = read_comments_warnings(ofile_data)

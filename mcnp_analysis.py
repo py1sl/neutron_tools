@@ -20,6 +20,8 @@ def calc_err_abs(res, err):
     """ calculates absolute errors"""
     i = 0
     abs_err = []
+    print(len(res))
+    print(len(err))
     while i < len(res):
         abs_err.append(res[i]*float(err[i]))
         i = i + 1
@@ -56,7 +58,7 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
     logging.info("produced figure: %s", fname)
 
 
-def plot_spectra(data, fname, title, sp="proton"):
+def plot_spectra(data, fname, title, sp="proton", err = False):
     """ plots spectr afrom MCNP tally data object, dividing by bin width """
     if type(data) is not list: data = [data]
 
@@ -75,8 +77,14 @@ def plot_spectra(data, fname, title, sp="proton"):
             y_vals = np.asarray(d.result)/bw         
             
         plt.step(np.asarray(d.eng),  y_vals)
+        if err == True:
+            abs_err = calc_err_abs(y_vals, d.err)
+            plt.fill_between(np.asarray(d.eng), y_vals-abs_err, y_vals+abs_err,
+            alpha=0.5)
+        
     non_zero_loc = ut.find_first_non_zero(y_vals)
     plt.xlim(xmin = d.eng[non_zero_loc])
+    
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
 
