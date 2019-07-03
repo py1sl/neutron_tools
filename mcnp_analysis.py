@@ -20,8 +20,6 @@ def calc_err_abs(res, err):
     """ calculates absolute errors"""
     i = 0
     abs_err = []
-    print(len(res))
-    print(len(err))
     while i < len(res):
         abs_err.append(res[i]*float(err[i]))
         i = i + 1
@@ -41,7 +39,19 @@ def calc_bin_width(bins):
     bw = np.asarray(bw)
     return bw
 
+    
+def calc_mid_points(bounds):
+    """ calculate the mid points of a list"""
+    mids = []
+    bounds = np.array(bounds).astype(float)
+    i = 0
+    while i < len(bounds) - 1:
+        val = (bounds[i] + bounds[i+1]) / 2.0
+        mids.append(val)
+        i = i + 1
+    return mids
 
+    
 def plot_raw_spectra(data, fname, title, sp="proton"):
     """ plots spectra from MCNP tally data object per bin no normalisation """
     plt.clf()
@@ -58,7 +68,7 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
     logging.info("produced figure: %s", fname)
 
 
-def plot_spectra(data, fname, title, sp="proton", err = False):
+def plot_spectra(data, fname, title, sp="proton", err = False, xlow = None):
     """ plots spectr afrom MCNP tally data object, dividing by bin width """
     if type(data) is not list: data = [data]
 
@@ -76,14 +86,19 @@ def plot_spectra(data, fname, title, sp="proton", err = False):
         else:   
             y_vals = np.asarray(d.result)/bw         
             
-        plt.step(np.asarray(d.eng),  y_vals)
+        splot = plt.step(np.asarray(d.eng),  y_vals)
         if err == True:
             abs_err = calc_err_abs(y_vals, d.err)
-            plt.fill_between(np.asarray(d.eng), y_vals-abs_err, y_vals+abs_err,
-            alpha=0.5)
-        
-    non_zero_loc = ut.find_first_non_zero(y_vals)
-    plt.xlim(xmin = d.eng[non_zero_loc])
+            mids = calc_mid_points(d.eng)
+            ecol = splot[0].get_color()
+            plt.errorbar(mids, y_vals[1:], yerr=abs_err[:-1], fmt="none", ecolor=ecol,
+            markeredgewidth=1, capsize=2)
+    
+    if xlow == None:    
+        non_zero_loc = ut.find_first_non_zero(y_vals)
+        plt.xlim(xmin = d.eng[non_zero_loc])
+    else:
+        plt.xlim(xmin = xlow)
     
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
@@ -125,15 +140,23 @@ def plot_en_time(data, fname):
         logging.info("Error - no energy bins")
     plt.xlabel("time")
     plt.ylabel("energy")
+
     
-    
-    masked_vals = np.ma.masked_where(data.result[1] < 1e-50, data.result[1])
-    
-    plt.pcolormesh(masked_vals.T, norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()), cmap="PuBu_r")
+    masked_vals = np.asarray(data.result)
+    masked_vals = masked_vals[:-1,:-1]
+    #np.ma.masked_where(data.result[1] < 1e-50, data.result[1])
+
+    plt.pcolormesh( masked_vals.T, 
+                   norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()), 
+                   cmap="PuBu_r")
+    """               
+    plt.pcolormesh(data.times[:-3], data.eng, masked_vals.T, 
+                   norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()), 
+                   cmap="PuBu_r")
+    """
     plt.colorbar()
-    logging.info(data.result[1].shape)
-    logging.info(len(data.user_bins))
     plt.savefig(fname)
+    logging.info("produced figure: %s", fname)
 
     
 def html_tab_out(data, fname):
