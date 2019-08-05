@@ -7,6 +7,26 @@ This is a temporary script file.
 import numpy as np
 
 
+def angle_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
+    """ calculate angle between planes cartesian form """
+    # check planes are not identical or parrellel
+    if x1==x2 and y1==y2 and z1==z2:
+        return 0.0
+        
+    numerator = (x1 * x2) + (y1 * y2) + (z1 * z2)
+    numerator = np.sqrt(numerator * numerator)
+    
+    denom1 = np.sqrt((x1 * x1) + (y1 * y1) + (z1 * z1))
+    denom2 = np.sqrt((x2 * x2) + (y2 * y2) + (z2 * z2))
+    
+    denom = denom1 * denom2
+    
+    cos_theta = numerator / denom
+    theta = np.arccos(cos_theta)
+    
+    return theta
+
+    
 def dist_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
     """ calculate distance between two planes"""
 

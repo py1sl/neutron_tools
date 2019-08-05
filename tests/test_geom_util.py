@@ -44,6 +44,10 @@ class geom_planes_test_case(unittest.TestCase):
     
     def test_dist_is_zero(self):
         self.assertEqual(geom_utils.dist_between_planes(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),0.0)
+      
+      
+    def test_angle_is_zero(self):
+        self.assertEqual(geom_utils.angle_between_planes(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),0.0)
        
         
 class geom_points_test_case(unittest.TestCase):
