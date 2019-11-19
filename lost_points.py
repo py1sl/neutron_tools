@@ -6,7 +6,7 @@ import sys
 import argparse
 
 
-def output_lost_points(path, outpath=path):
+def output_lost_points(path, outpath="lost"):
     """ """
     with open(path) as f:
         lines = f.read().splitlines()
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="extract location of lost particles from MCNP output  file and output to a .3d file compatible with VisIt")
     parser.add_argument("input", help="path to the input file")
     parser.add_argument("-o", "--output", action="store", dest="output",  help="path to the output file")
-    args = parser.parse_args()
+    args = parser.parse_args()  
 
     if args.output:
         output_lost_points(args.input, args.output)
