@@ -69,6 +69,7 @@ class MCNP_surface_tally(MCNP_tally_data):
         # for type 1 or 2
         self.surfaces = None
         self.areas = None
+        self.ang_bins = None
  
  
 class MCNP_cell_tally(MCNP_tally_data):
@@ -85,8 +86,7 @@ class MCNP_pulse_tally(MCNP_tally_data):
     def __init__(self):
         MCNP_tally_data.__init__(self)
         # for type 8
-        self.cells = None
-        self.vols = None         
+        self.cells = None         
   
     
 class MCNP_summary_data():
@@ -165,7 +165,13 @@ def get_tally_nums(lines):
 def get_num_rendevous(data):
     """ """
     return 1
-
+    
+def process_ang_string(line):
+    """ """
+    line=line.strip()
+    ang_string = line.split(":")[1]
+    ang_float = float(ang_string.split()[-2])
+    return ang_float
 
 def read_summary(data, ptype, rnum):
     """ """
@@ -174,7 +180,10 @@ def read_summary(data, ptype, rnum):
 
 def read_table60(lines):
     """read table 60 """
-    start_line = ut.find_line("1cells", lines, 6)
+    try:
+        start_line = ut.find_line("1cells", lines, 6)
+    except ValueError:
+        return None
     term_line = ut.find_line("    minimum source weight", lines, 25)
     lines = lines[start_line:term_line]
     
@@ -285,14 +294,15 @@ def read_tally(lines, tnum, rnum=-1):
         tally_data = MCNP_tally_data()
         
     # get basic common tally data    
-    tally_data.number = tnum
+    tally_data.number = int(tnum)
     
     if tal_comment_bool:
         tally_data.particle = lines[res_start_line+3][24:33]
     else:
         tally_data.particle = lines[res_start_line+2][24:33]
         
-    tally_data.nps = lines[res_start_line][28:40]
+    tally_data.nps = ut.string_cleaner(lines[res_start_line][28:40])
+    tally_data.nps = int(tally_data.nps)
     tally_data.type = type
     
     lines = lines[res_start_line + 1:]
@@ -335,7 +345,27 @@ def read_tally(lines, tnum, rnum=-1):
 def read_type_8(tally_data, lines):
     """ """
     logging.debug("pulse height tally")
-    logging.debug("type 8 tallies not currently supported")
+    tally_data.cells = ["2"]
+    
+    
+    # loop for each cell
+    for cell in tally_data.cells:
+        cline = " cell  " 
+        cell_res_start = ut.find_line(cline + cell, lines, len(cell)+len(cline))
+        if lines[cell_res_start + 1] == "      energy   ":
+            logging.debug("noticed energy")
+            tally_data.eng = []
+            loc_line_id2=ut.find_line("      total    ", lines[cell_res_start + 1:], 15)
+            erg_lines = lines[cell_res_start + 2:cell_res_start + 1 + loc_line_id2]
+            for l in erg_lines:
+                l=l.strip()
+                l=l.split(" ")
+                tally_data.eng.append(float(l[0]))
+                tally_data.result.append(float(l[3]))
+                tally_data.err.append(float(l[4]))
+                
+    logging.debug('tally e bin count: %s', len(tally_data.eng))
+
     return tally_data
 
 def read_type_surface(tally_data, lines):
@@ -357,6 +387,7 @@ def read_type_surface(tally_data, lines):
         suf_val_line = " ".join(suf_val_line.split())
         suf_val_line = suf_val_line.split(":")[1]
         tally_data.surfaces = suf_val_line.split(" ")[1:]
+
         logging.debug("Tally surface numbers:")
         logging.debug(tally_data.surfaces)
         logging.debug("Tally surface areas:")
@@ -376,11 +407,12 @@ def read_type_surface(tally_data, lines):
     
     first_surface_line_id = ut.find_line(" surface ", lines, 9)
     logging.debug("first surface id %s", first_surface_line_id)
-    tally_data.surfaces = lines[first_surface_line_id].strip()[-1]
-    print(tally_data.surfaces)
+    #tally_data.surfaces = lines[first_surface_line_id].strip() 
+    #tally_data.surfaces= tally_data.surfaces.split()[-1]
     loc = 0
     surface_line_id = first_surface_line_id
     res_df = []
+    rel_err_df = []
     if lines[first_surface_line_id +1] == "      energy   ":
         logging.debug("energy bins only")
         
@@ -416,21 +448,23 @@ def read_type_surface(tally_data, lines):
     
         if lines[first_surface_line_id +2] == "      energy   ":
             logging.debug("energy bins")
-            angles_bins = []
+            angles_bins = [-1.0]
+            
             ebin = []
             rel_err = []
             res = []
             in_res = False
             for l in lines[first_surface_line_id:]:
                 if l[:11] ==  " angle  bin":
-                    l=l.strip()
-                    ang_string = l.split(":")[1]
-                    angles_bins.append(ang_string)
-                    logging.debug(ang_string)
+                    ang_float = process_ang_string(l)
+                    angles_bins.append(ang_float)
+                    logging.debug(ang_float)
                 if l[:13] == "      total  ":
                     in_res = False
                     ebin = np.array(ebin)
+                    tally_data.eng=ebin
                     rel_err = np.array(rel_err)
+                    rel_err_df.append(rel_err)
                     res = np.array(res)
                     res_df.append(res)
                     ebin = []
@@ -446,6 +480,9 @@ def read_type_surface(tally_data, lines):
                     in_res = True
     
             tally_data.result = res_df
+            tally_data.rel_err = rel_err_df
+            tally_data.ang_bins = angles_bins
+            
         else:
             logging.debug("angle bins only") 
     return tally_data
@@ -487,7 +524,7 @@ def read_type_cell(tally_data, lines):
             data_line = lines[cell_res_start + 1]
             data_line = " ".join(data_line.split())
             data_line = data_line.split(" ")
-            tally_data.result.append(data_line[0])
+            tally_data.result.append(float(data_line[0]))
             tally_data.err.append(data_line[1])
     return tally_data
     
@@ -596,8 +633,7 @@ def read_type_5(tally_data, lines):
                  l = " ".join(l.split())
                  l = l.split(" ")
                  tcount = len(l[1:])
-                 print(l)
-                 print(tcount)
+
                  for t in l[1:]:
                      times.append(t)
 
