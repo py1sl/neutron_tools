@@ -34,7 +34,7 @@ class MCNPOutput():
         
 
 class MCNP_tally_data():
-    """ data for an individual tally """
+    """ generic tally object for data common to all tally types """
     def __init__(self):
         # general
         self.number = 1
@@ -50,7 +50,7 @@ class MCNP_tally_data():
 
         
 class MCNP_type5_tally(MCNP_tally_data):
-    """ """
+    """ specific tally object for a type 5 point detector tally """
     def __init__(self):
         MCNP_tally_data.__init__(self)
         # for type 5 tallies
@@ -63,7 +63,7 @@ class MCNP_type5_tally(MCNP_tally_data):
 
         
 class MCNP_surface_tally(MCNP_tally_data):
-    """ """
+    """ specific tally object for a type 1 or 2 surface tally"""
     def __init__(self):
         MCNP_tally_data.__init__(self)
         # for type 1 or 2
@@ -73,7 +73,7 @@ class MCNP_surface_tally(MCNP_tally_data):
  
  
 class MCNP_cell_tally(MCNP_tally_data):
-    """ """
+    """ specific tally object for a type 4 cell tally"""
     def __init__(self):
         MCNP_tally_data.__init__(self)
         # for type 4
@@ -82,7 +82,7 @@ class MCNP_cell_tally(MCNP_tally_data):
 
         
 class MCNP_pulse_tally(MCNP_tally_data):
-    """ """
+    """ specific tally object for a type 8 pulse height tally"""
     def __init__(self):
         MCNP_tally_data.__init__(self)
         # for type 8
@@ -97,7 +97,7 @@ class MCNP_summary_data():
 
 
 def read_version(lines):
-    """ from 1st line of output ge the MCNP version"""
+    """ from 1st line of output get the MCNP version"""
     version = None
     l = lines[0]
     if l[:29]=="          Code Name & Version":
@@ -136,7 +136,7 @@ def read_surface_area(data):
 
 
 def read_comments_warnings(lines):
-    """ """
+    """ extracts all comments and warnings in the output file """
     comments = []
     warnings = []
     for l in lines:
@@ -163,34 +163,41 @@ def get_tally_nums(lines):
 
 
 def get_num_rendevous(data):
-    """ """
+    """ counts the number of rendevous in the file """
     return 1
     
 def process_ang_string(line):
-    """ """
+    """ converts the tally string describing the angualr bin edges into 
+        a single float value for the angle """
     line=line.strip()
     ang_string = line.split(":")[1]
     ang_float = float(ang_string.split()[-2])
     return ang_float
 
 def read_summary(data, ptype, rnum):
-    """ """
+    """ reads the summary tables in the output file """
     return 1
 
 
 def read_table60(lines):
-    """read table 60 """
+    """read table 60 
+       input a list of strings
+       returns a reduced list with just the lines in table 60
+    """
+    
+    # first check there is a table 60,  might not be if it is a continue run
     try:
         start_line = ut.find_line("1cells", lines, 6)
     except ValueError:
         return None
+        
     term_line = ut.find_line("    minimum source weight", lines, 25)
     lines = lines[start_line:term_line]
     
     return lines
     
 def process_e_t_userbin(data):
-    """ """
+    """processes energy time bins in a tally"""
     time_bins = []
     erg_bins = []
     
@@ -257,7 +264,7 @@ def process_e_t_userbin(data):
 
 
 def read_tally(lines, tnum, rnum=-1):
-    """reads the lines and extracts the  tally results"""
+    """reads the lines and extracts the tally results"""
     
     # todo add ability to do all rendevous
     # reduce to only the final result set
@@ -321,7 +328,6 @@ def read_tally(lines, tnum, rnum=-1):
     logging.debug('tally particle: %s', tally_data.particle)
     logging.debug('tally nps: %s', str(tally_data.nps))
     logging.debug('tally type: %s', str(tally_data.type))
-    
 
     # depending on tally type choose what to do now
     if tally_data.type == "4" or tally_data.type == "6":
@@ -343,11 +349,11 @@ def read_tally(lines, tnum, rnum=-1):
     return tally_data
 
 def read_type_8(tally_data, lines):
-    """ """
+    """ process type 8 tally output data """
     logging.debug("pulse height tally")
-    tally_data.cells = ["2"]
-    
-    
+    # TODO: fix this hard coded part
+    tally_data.cells = ["2"] # this should not be hard coded
+        
     # loop for each cell
     for cell in tally_data.cells:
         cline = " cell  " 
@@ -369,7 +375,7 @@ def read_type_8(tally_data, lines):
     return tally_data
 
 def read_type_surface(tally_data, lines):
-    """"""
+    """ process type 1 or type 2 tally output data"""
     logging.debug("Surface Tally")
     tally_data.areas = []
     tally_data.surfaces = []
@@ -391,19 +397,7 @@ def read_type_surface(tally_data, lines):
         logging.debug("Tally surface numbers:")
         logging.debug(tally_data.surfaces)
         logging.debug("Tally surface areas:")
-        logging.debug(tally_data.areas)
-    
-     
-
-    """     
-    else:
-        area_line_id = ut.find_line("           divisors", lines, 19)
-    if area_line_id == None:
-        raise ValueError
-    """
-
-    
-    
+        logging.debug(tally_data.areas)    
     
     first_surface_line_id = ut.find_line(" surface ", lines, 9)
     logging.debug("first surface id %s", first_surface_line_id)
@@ -489,7 +483,7 @@ def read_type_surface(tally_data, lines):
 
     
 def read_type_cell(tally_data, lines):     
-    """ """
+    """ process type 4 or type 6 tally output data """
     logging.debug("Volume tally")
     tally_data.vols = []
     tally_data.cells = []
@@ -530,6 +524,7 @@ def read_type_cell(tally_data, lines):
     
     
 def read_type_5(tally_data, lines):
+     """ processes a type 5 (point detector tally output) """
     # read detector position
      loc_line_id=ut.find_line(" detector located", lines, 17)
      loc_line = lines[loc_line_id]
@@ -689,7 +684,10 @@ def read_stat_tests(lines):
 
 
 def read_output_file(path):
-    """ """
+    """ reads an mcnp output file
+        input is a path the to an ouput file
+        output is an mcnp output object
+    """
     logging.info('Reading MCNP output file: %s', path)
     ofile_data = ut.get_lines(path)
     mc_data = MCNPOutput()
