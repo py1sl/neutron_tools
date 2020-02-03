@@ -490,10 +490,17 @@ def read_type_cell(tally_data, lines):
     # find cells
     # find volumes
     # TODO: if more than a single line of vols or cells
-    vol_line_id = ut.find_line("           volumes ", lines, 19)
-    vol_val_line = lines[vol_line_id + 2]
-    vol_val_line = " ".join(vol_val_line.split())
-    tally_data.vols = vol_val_line.split(" ")
+    
+    if tally_data.type == "4":
+        vol_line_id = ut.find_line("           volumes ", lines, 19)
+        vol_val_line = lines[vol_line_id + 2]
+        vol_val_line = " ".join(vol_val_line.split())
+        tally_data.vols = vol_val_line.split(" ")
+    elif  tally_data.type == "6":
+        vol_line_id = ut.find_line("           masses ", lines, 18)
+        vol_val_line = lines[vol_line_id + 2]
+        vol_val_line = " ".join(vol_val_line.split())
+        tally_data.vols = vol_val_line.split(" ")
     cell_val_line = lines[vol_line_id + 1]
     cell_val_line = " ".join(cell_val_line.split())
     cell_val_line = cell_val_line.split(":")[1]
