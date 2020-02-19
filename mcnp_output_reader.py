@@ -198,7 +198,7 @@ def read_table60(lines):
     
     
 def print_tally_lines_to_file(lines, fname, tnum):    
-    """ prints  """
+    """ prints tally section to a file for debugging """
     if logging.getLogger().getEffectiveLevel() == 10:
         fname = fname + str(tnum)+".txt"
         logging.debug("writing " + fname)
@@ -247,15 +247,9 @@ def process_e_t_userbin(data):
                 in_data = False
             
             l = " ".join(l.split())
-            #logging.debug(l)
             l = l.split(" ")[1:]
-            #logging.debug(j)
-            #logging.debug(l)
-            #logging.debug(erow)
-            #logging.debug(tcol)
             tvals = l[::2]
             ervals = l[1::2]
-            #logging.debug(tvals)
             len_tcol=0
             for i, val in enumerate(tvals):
                 res_data[tcol+len_tcol, erow] = val
@@ -317,8 +311,8 @@ def read_tally(lines, tnum, rnum=-1):
         tally_data.particle = lines[res_start_line+3][24:33]
     else:
         tally_data.particle = lines[res_start_line+2][24:33]
-    tally_data.particle = ut.string_cleaner(tally_data.particle)
         
+    tally_data.particle = ut.string_cleaner(tally_data.particle)
     tally_data.nps = ut.string_cleaner(lines[res_start_line][28:40])
     tally_data.nps = int(tally_data.nps)
     tally_data.type = type
@@ -508,7 +502,7 @@ def read_type_surface(tally_data, lines):
                     in_res = True
     
             tally_data.result = res_df
-            tally_data.rel_err = rel_err_df
+            tally_data.err = rel_err_df
             tally_data.ang_bins = angles_bins
             
         else:
@@ -519,7 +513,7 @@ def read_type_surface(tally_data, lines):
         l = l.strip()
         l = l.split(" ")
         tally_data.result = [float(l[0])]
-        tally_data.rel_err = [float(l[1])]
+        tally_data.err = [float(l[1])]
             
     return tally_data
 
@@ -568,7 +562,7 @@ def read_type_cell(tally_data, lines):
             data_line = " ".join(data_line.split())
             data_line = data_line.split(" ")
             tally_data.result.append(float(data_line[0]))
-            tally_data.err.append(data_line[1])
+            tally_data.err.append(float(data_line[1]))
     return tally_data
     
     
@@ -580,11 +574,11 @@ def read_type_5(tally_data, lines):
      loc_line = loc_line.split("=")[1]
 
      tally_data.x = loc_line[0:12]
-     tally_data.x = tally_data.x.strip()
+     tally_data.x = float(tally_data.x.strip())
      tally_data.y = loc_line[12:24]
-     tally_data.y = tally_data.y.strip()
+     tally_data.y = float(tally_data.y.strip())
      tally_data.z = loc_line[24:36]
-     tally_data.z = tally_data.z.strip()
+     tally_data.z = float(tally_data.z.strip())
      logging.debug("x: %s",tally_data.x)
      logging.debug("y: %s",tally_data.y)
      logging.debug("z: %s",tally_data.z)

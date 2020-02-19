@@ -54,9 +54,9 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
                 self.assertEqual(len(tn.result), 1)
-                self.assertEqual(len(tn.rel_err), 1)
+                self.assertEqual(len(tn.err), 1)
                 self.assertEqual(tn.result[0], 1.16486E+00)
-                self.assertEqual(tn.rel_err[0], 0.0006)
+                self.assertEqual(tn.err[0], 0.0006)
                 
     def test_ebined_t1_tally(self):
         single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
@@ -71,7 +71,7 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
                 self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.rel_err), 14)
+                self.assertEqual(len(tn.err), 14)
                 self.assertEqual(tn.result[0], 2.92000E-02)
    
    
@@ -90,9 +90,9 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
                 self.assertEqual(len(tn.result), 1)
-                self.assertEqual(len(tn.rel_err), 1)
+                self.assertEqual(len(tn.err), 1)
                 self.assertEqual(tn.result[0], 4.31795E-03)  
-                self.assertEqual(tn.rel_err[0], 0.0015)
+                self.assertEqual(tn.err[0], 0.0015)
 
     def test_ebined_t2_tally(self):
         single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
@@ -107,7 +107,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
                 self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.rel_err), 14)
+                self.assertEqual(len(tn.err), 14)
                 self.assertEqual(tn.result[0], 1.92767E-04)
 
 class tally_type4_tests(unittest.TestCase):
@@ -123,9 +123,12 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.eng, None)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
-                
+                self.assertEqual(len(tn.err), 1)
                 self.assertEqual(len(tn.result), 1)
                 self.assertEqual(tn.result[0], 1.91076E-03)
+                self.assertEqual(tn.err[0], 0.0006)
+                self.assertEqual(tn.cells, ['2'])
+                self.assertEqual(tn.vols, ['3.66519E+03'])
 
     def test_ebined_t4_tally(self):
         single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
@@ -139,7 +142,11 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.result), 14)
-                self.assertEqual(tn.result[0], 1.20226E-04)                
+                self.assertEqual(len(tn.err), 14)
+                self.assertEqual(tn.result[0], 1.20226E-04)   
+                self.assertEqual(tn.cells, ['2']) 
+                self.assertEqual(tn.vols, ['3.66519E+03'])                
+                
 
 class tally_type5_tests(unittest.TestCase):
     """ tests for type 5 tally """
@@ -154,9 +161,14 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.eng, None)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
-                
                 self.assertEqual(len(tn.result), 1)
+                self.assertEqual(len(tn.err), 1)
                 self.assertEqual(tn.result[0], 3.42950E-04)
+                self.assertEqual(tn.err[0], 0.0025)
+                self.assertEqual(tn.x, 15)
+                self.assertEqual(tn.x, 15.0)
+                self.assertEqual(tn.y, 0.00)
+                self.assertEqual(tn.z, 0.00)
 
     def test_ebined_t5_tally(self):
         single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
@@ -170,7 +182,11 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.result), 14)
-                self.assertEqual(tn.result[0], 1.20831E-05)                
+                self.assertEqual(len(tn.err), 14)
+                self.assertEqual(tn.result[0], 1.20831E-05)
+                self.assertEqual(tn.x, 15)
+                self.assertEqual(tn.y, 0.00)
+                self.assertEqual(tn.z, 0.00)                
 
 class tally_type6_tests(unittest.TestCase):
     """ tests for type 6 tally """
@@ -186,7 +202,11 @@ class tally_type6_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.result), 1)
+                self.assertEqual(len(tn.err), 1)
                 self.assertEqual(tn.result[0], 4.30567E-05) 
+                self.assertEqual(tn.err[0], 0.0002)
+                self.assertEqual(tn.cells, ['2'])
+                self.assertEqual(tn.vols, ['9.89602E+03'])
                 
     def test_ebined_t6_tally(self):
         single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
@@ -200,7 +220,10 @@ class tally_type6_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.result), 14)
-                self.assertEqual(tn.result[0], 5.60997E-07)                
+                self.assertEqual(len(tn.err), 14)
+                self.assertEqual(tn.result[0], 5.60997E-07) 
+                self.assertEqual(tn.cells, ['2'])                
+                self.assertEqual(tn.vols, ['9.89602E+03'])
 
                 
 class tally_type8_tests(unittest.TestCase):
@@ -217,7 +240,9 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.result), 1)
+                self.assertEqual(len(tn.err), 1)
                 self.assertEqual(tn.result[0], 1.00000E+00)                
+                self.assertEqual(tn.err[0], 0.00)
   
     def test_ebined_t8_tally(self):
         single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
@@ -231,6 +256,7 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.result), 14)
+                self.assertEqual(len(tn.err), 14)
                 self.assertEqual(tn.result[0],  5.16461E-01)
   
 if __name__ == '__main__':
