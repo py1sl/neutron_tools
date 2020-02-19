@@ -196,6 +196,15 @@ def read_table60(lines):
     
     return lines
     
+    
+def print_tally_lines_to_file(lines, fname, tnum):    
+    """ prints  """
+    if logging.getLogger().getEffectiveLevel() == 10:
+        fname = fname + str(tnum)+".txt"
+        logging.debug("writing " + fname)
+        ut.write_lines(fname, lines) 
+    
+    
 def process_e_t_userbin(data):
     """processes energy time bins in a tally"""
     time_bins = []
@@ -268,7 +277,7 @@ def read_tally(lines, tnum, rnum=-1):
     
     # todo add ability to do all rendevous
     # reduce to only the final result set
-    term_line = ut.find_line("      run terminated when", lines, 25)
+    term_line = ut.find_line("      run terminated ", lines, 21)
     lines = lines[term_line:]
 
     # reduce to only the tally results section
@@ -303,22 +312,25 @@ def read_tally(lines, tnum, rnum=-1):
     # get basic common tally data    
     tally_data.number = int(tnum)
     
+    # get particle type
     if tal_comment_bool:
         tally_data.particle = lines[res_start_line+3][24:33]
     else:
         tally_data.particle = lines[res_start_line+2][24:33]
+    tally_data.particle = ut.string_cleaner(tally_data.particle)
         
     tally_data.nps = ut.string_cleaner(lines[res_start_line][28:40])
     tally_data.nps = int(tally_data.nps)
     tally_data.type = type
     
+    
+    # limit lines to just the tally data
     lines = lines[res_start_line + 1:]
     tal_end_line = ut.find_line("1tally", lines, 6)
     lines = lines[:tal_end_line-1]
 
-    if logging.getLogger().getEffectiveLevel() == 10:
-        logging.debug("writing tally_test.txt")
-        ut.write_lines("tally_test.txt", lines) 
+    # print tally test file
+    print_tally_lines_to_file(lines, "tally_test", tnum)
 
     # debug 
     logging.info('Reading tally %s', str(tnum))
@@ -339,12 +351,12 @@ def read_tally(lines, tnum, rnum=-1):
     elif tally_data.type == "8":
         tally_data = read_type_8(tally_data, lines)
     else:
-        logging.info("Tally type not recognised or supported")
-        
+        logging.info("Tally type not recognised or supported")       
+    
     # get statistical test outcomes
     # first check not all zeros
-    if np.array(tally_data.result).any():
-        tally_data.stat_tests = read_stat_tests(lines)
+    # if np.array(tally_data.result).any():
+       # tally_data.stat_tests = read_stat_tests(lines)
 
     return tally_data
 
@@ -369,8 +381,17 @@ def read_type_8(tally_data, lines):
                 tally_data.eng.append(float(l[0]))
                 tally_data.result.append(float(l[3]))
                 tally_data.err.append(float(l[4]))
-                
-    logging.debug('tally e bin count: %s', len(tally_data.eng))
+        else:
+            # single value result
+            logging.debug('tally e bin count = 1')
+            l = lines[cell_res_start + 1]
+            l=l.strip()
+            l=l.split(" ")
+            tally_data.result.append(float(l[0]))
+            tally_data.err.append(float(l[1]))
+    
+    if tally_data.eng != None:    
+        logging.debug('tally e bin count: %s', len(tally_data.eng))
 
     return tally_data
 
@@ -401,8 +422,12 @@ def read_type_surface(tally_data, lines):
     
     first_surface_line_id = ut.find_line(" surface ", lines, 9)
     logging.debug("first surface id %s", first_surface_line_id)
-    #tally_data.surfaces = lines[first_surface_line_id].strip() 
-    #tally_data.surfaces= tally_data.surfaces.split()[-1]
+    if tally_data.type =="1":    
+        tally_data.surfaces = lines[first_surface_line_id].strip() 
+        tally_data.surfaces = [tally_data.surfaces.split()[-1]]
+        logging.debug("Tally surface numbers:")
+        logging.debug(tally_data.surfaces)
+        
     loc = 0
     surface_line_id = first_surface_line_id
     res_df = []
@@ -432,10 +457,19 @@ def read_type_surface(tally_data, lines):
                 rel_err.append(float(l[4]))
 
             res_df.append(res)
-            
-        tally_data.result = res_df
+            rel_err_df.append(rel_err)
+        
+        # simplfy if only one surface
+        if len(res_df)==1:
+            tally_data.result = res
+            tally_data.err = rel_err
+        else:
+            tally_data.result = res_df
+            tally_data.err = rel_err_df
+        
+        # add energy data to tally object
         tally_data.eng = erg
-        tally_data.err = rel_err
+        
         
     elif lines[first_surface_line_id +1][:11] == " angle  bin":
         logging.debug("angle bins")
@@ -478,7 +512,15 @@ def read_type_surface(tally_data, lines):
             tally_data.ang_bins = angles_bins
             
         else:
-            logging.debug("angle bins only") 
+            logging.debug("angle bins only")
+    else:
+        logging.debug("single value only")
+        l = lines[first_surface_line_id+1]
+        l = l.strip()
+        l = l.split(" ")
+        tally_data.result = [float(l[0])]
+        tally_data.rel_err = [float(l[1])]
+            
     return tally_data
 
     
@@ -675,8 +717,8 @@ def read_type_5(tally_data, lines):
      else:
          # single value and error result
          res_line = res_line.split(" ")[-2:]
-         tally_data.result.append(res_line[0])
-         tally_data.err.append(res_line[1])  
+         tally_data.result.append(float(res_line[0]))
+         tally_data.err.append(float(res_line[1]))  
 
      return tally_data         
          
@@ -706,7 +748,7 @@ def read_output_file(path):
     mc_data.comments, mc_data.warnings = read_comments_warnings(ofile_data)
     
     # read specific tables
-    mc_data.t60 = read_table60(ofile_data)
+    # mc_data.t60 = read_table60(ofile_data)
     
     # tallies
     tls = get_tally_nums(ofile_data)
