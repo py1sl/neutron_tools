@@ -3,7 +3,7 @@ import mcnp_input_reader
 
 """
 class cell_card_tests(unittest.TestCase):
-    """ test for reading the cells part of input file"""
+    #test for reading the cells part of input file
     
     def test_1_line_mat_cells(self):
         # for mcnp input reader tests
