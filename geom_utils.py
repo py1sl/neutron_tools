@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
+Geometry utility functions
+Part of neutron tools
 
-This is a temporary script file.
 """
 import numpy as np
 
@@ -66,12 +66,16 @@ def dist_bet_points(x1,y1,z1, x2, y2, z2):
         xd = x1 - x2
         yd = y1 - y2
         zd = z1 - z2
+
         dist = np.sqrt((xd*xd)+(yd*yd)+(zd*zd))
         return dist
 
         
 def pythag_h(l1, l2):
     """ calculate length of hypotenuse """
+    if l1 == 0.0 or l2 == 0.0:
+        return 0.0
+    
     hyp = np.sqrt((l1*l1)+(l2*l2))
     return hyp
     
@@ -90,6 +94,9 @@ def area_circle(r):
     
 def area_cyl(r, h):
     """ calculate surface area of cylinder """
+    if r == 0.0 or h == 0.0:
+        return 0.0
+    
     end_area = area_circle(r)
     side_area = perim_circle(r) * h
     area = (2 * end_area) + side_area
@@ -112,6 +119,9 @@ def area_sphere(r):
     
 def area_cone_surf(r, h):
     """calculate surface area of conical surface"""
+    if r == 0.0 or h == 0.0:
+        return 0.0
+        
     t1 = np.sqrt((r*r)+(h*h))
     area = np.pi * r * t1
     return area
@@ -119,6 +129,7 @@ def area_cone_surf(r, h):
     
 def volume_sphere(r):
     """ calculate volume of sphere """
+    
     volume = (4.0/3.0)*np.pi*r*r*r
     return volume
 
@@ -133,6 +144,9 @@ def volume_spherical_shell(r1, r2):
     
 def volume_cyl(r, h):
     """ calculate volume of cylinder """
+    if r == 0.0 or h == 0.0:
+        return 0.0
+    
     area = area_circle(r) 
     volume = area * h     
     return volume 
@@ -147,6 +161,9 @@ def volume_cyl_shell(r1, r2, h):
     
 def volume_cone(r, h):
     """ calculate volume cone """
+    if r == 0.0 or h == 0.0:
+        return 0.0
+    
     volume = volume_cyl(r, h) * (1.0/3.0)
     return volume
         

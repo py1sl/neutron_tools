@@ -8,8 +8,24 @@ import sys
 import argparse
 import neut_utilities as ut
 
-def read_fispact_input(fpath):
+
+def get_irrad_profile(lines):
     """ """
+    return None
+    
+    
+def get_cool_times(lines):
+    """ """
+    return None
+
+    
+def get_comments(lines):
+    """ extract comment lines from the file """
+    return None
+
+    
+def read_fispact_input(fpath):
+    """  processes a fispact input file """
     ifile = ut.get_lines(fpath)
     return ifile
 

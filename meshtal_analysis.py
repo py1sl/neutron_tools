@@ -46,11 +46,12 @@ def rel_err_hist(data):
 
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
-def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err = True):
+def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=False, norm=1.0):
     """ """
     plt.clf()
     data = mesh.data
     data = np.array(data).astype(float)
+    data = data * norm 
      
 
     if plane == "XZ":
@@ -110,12 +111,16 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err =
             pos = i
     
     value = (float(v_bounds[pos]) + float(v_bounds[pos + 1])) / 2.0
-
+    print(pos)
+    print(v_bounds[pos])
+    print(v_bounds[pos+1])
+    print(value)
     # now find the slice values
     vals = np.zeros((len(midy), len(midx)))
     err_vals = np.zeros((len(midy), len(midx)))
 
     for r in data:
+        
         if (r[vpos]) == value:
             i, = np.where(midx == r[ipos])
             j, = np.where(midy == r[jpos])
@@ -139,7 +144,8 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err =
         plt.subplot(2, 1, 1)
         plt.tight_layout()
     
-    plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
+    #plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
+    plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm())
     title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
     plt.title(title)
     

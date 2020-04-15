@@ -68,7 +68,7 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
     logging.info("produced figure: %s", fname)
 
 
-def plot_spectra(data, fname, title, sp="proton", err = False, xlow = None):
+def plot_spectra(data, fname, title, sp="proton", err = False, xlow = None, legend = None):
     """ plots spectr afrom MCNP tally data object, dividing by bin width """
     if type(data) is not list: data = [data]
 
@@ -94,11 +94,14 @@ def plot_spectra(data, fname, title, sp="proton", err = False, xlow = None):
             plt.errorbar(mids, y_vals[1:], yerr=abs_err[:-1], fmt="none", ecolor=ecol,
             markeredgewidth=1, capsize=2)
     
-    if xlow == None:    
+    if xlow is None:    
         non_zero_loc = ut.find_first_non_zero(y_vals)
         plt.xlim(xmin = d.eng[non_zero_loc])
     else:
         plt.xlim(xmin = xlow)
+        
+    if legend is not None:
+        plt.legend(legend)
     
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
@@ -111,7 +114,13 @@ def plot_spectra_ratio(data1, data2, fname, title):
     plt.xlabel("Energy (MeV)")
     plt.ylabel("ratio")
     plt.xscale('log')
-    plt.plot(data1.eng, np.asarray(data1.result)/np.asarray(data2.result))
+    if data1.type == '2':
+        ratio = np.asarray(data1.result[0])/np.asarray(data2.result[0])
+    else:
+        ratio = np.asarray(data1.result)/np.asarray(data2.result)
+    
+    
+    plt.plot(data1.eng, ratio)
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
 

@@ -736,7 +736,7 @@ def read_output_file(path):
     mc_data = MCNPOutput()
    
     # general 
-    mc_data.filename = path 
+    mc_data.file_name = path 
     mc_data.version = read_version(ofile_data)
     mc_data.date, mc_data.start_time = read_run_date(ofile_data)
     mc_data.comments, mc_data.warnings = read_comments_warnings(ofile_data)

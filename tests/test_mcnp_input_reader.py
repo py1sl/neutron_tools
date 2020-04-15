@@ -4,15 +4,77 @@ import mcnp_input_reader
 class cell_card_tests(unittest.TestCase):
     """ test for reading the cells part of input file"""
     
-    def test_is_version(self):
-        self.assertTrue(True)
+    def test_1_line_mat_cells(self):
+        # for mcnp input reader tests
+        # test simple 1 line cell with material
+        self.assertEqual(cell.num, 1)
+        self.assertEqual(cell.mat, 2)
+        self.assertEqual(cell.density, -2.3)
+        self.assertEqual(cell.imp_n, 1.0)
+
+        
+    def test_1_line_void_cell(self):
+        # test simple 1 line void cell
+        self.assertEqual(cell.mat, 0)
+        self.assertIsNone(cell.density)
+
+        
+    def test_multiline_mat_cell(self):
+        # test multiple line cell
+        self.assertEqual(cell.num, 1)
+        self.assertEqual(cell.mat, 2)
+        self.assertEqual(cell.density, -2.3)
+        self.assertEqual(cell.imp_n, 1.0)
+
   
   
 class surface_card_tests(unittest.TestCase):
     """ test for reading the surfaces part of input file"""
     
-    def test_is_version(self):
+    # test simple surface card
+    def test_single_line_surface(self):
         self.assertTrue(True)
+    
+    
+    # test multi line surface card
+    def test_multi_line_surface(self):
+        self.assertTrue(True)
+        
+        
+    def test_is_surface(self):
+        # test check surface type validity
+        self.assertTrue(True)
+        self.assertFalse(False)
+      
+      
+    def test_plane_valid(self):
+        # test plane validity
+        self.assertTrue(True)
+        self.assertFalse(False)
+
+        
+    def test_sphere_valid(self): 
+        # test sphere validity
+        self.assertTrue(True)
+        self.assertFalse(False)
+
+        
+    def test_cyl_valid(self):
+        # test cylinder validity
+        self.assertTrue(True)
+        self.assertFalse(False)
+       
+       
+    def test_cone_valid(self):  
+        # test cone validity
+        self.assertTrue(True)
+        self.assertFalse(False)
+        
+        
+    def test_gq_valid(self):
+        # test general quadratic validity
+        self.assertTrue(True)
+        self.assertFalse(False)
 
        
 class data_card_tests(unittest.TestCase):
@@ -58,7 +120,7 @@ class data_card_tests(unittest.TestCase):
         self.assertEqual(len(mode), 2)      # check multipe particles else added
         
         mode = mcnp_input_reader.read_mode_card(["m23 1001.21c 1", "m34 32000"])
-        self.assertIsNone(mode)  # test for upper case mode
+        self.assertIsNone(mode)  # test for not including any line starting with m
        
        
     def test_mode_valid(self):
