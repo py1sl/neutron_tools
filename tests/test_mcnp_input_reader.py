@@ -1,6 +1,7 @@
 import unittest
 import mcnp_input_reader
 
+"""
 class cell_card_tests(unittest.TestCase):
     """ test for reading the cells part of input file"""
     
@@ -25,7 +26,7 @@ class cell_card_tests(unittest.TestCase):
         self.assertEqual(cell.mat, 2)
         self.assertEqual(cell.density, -2.3)
         self.assertEqual(cell.imp_n, 1.0)
-
+"""
   
   
 class surface_card_tests(unittest.TestCase):
