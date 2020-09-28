@@ -115,9 +115,45 @@ def plot_spectra(timestep, fname=None):
         plt.show()  
     
     
-def plot_pie(time_step, quantity, fname):
+def plot_pie(dom_data, title, fname=none, thres=1.0 ):
     """ """
+    n = 0
+    act_nuc2 = []
+    act_per2 = []
+    act2 = []
+
+    while n < len(dom_data[1]) - 1:
+        if float(dom_data[2][n]) < thres:
+            dom_data[1][-1] = dom_data[1][-1] + dom_data[1][n]
+            dom_data[2][-1] = float(dom_data[2][-1]) + float(dom_data[2][n])
+        else:
+            act_nuc2.append(dom_data[0][n])
+            act2.append(dom_data[1][n])
+            act_per2.append(dom_data[2][n])
+        n = n + 1
+    act_nuc2.append(dom_data[0][-1])
+    act2.append(dom_data[1][-1])
+    act_per2.append(dom_data[2][-1])
+
+    dom_data[1] = act2
+    dom_data[0] = act_nuc2
+    dom_data[2] = act_per2
+
+    # cmap = plt.cm.prism
+    colors = plt.cm.Set1(np.arange(len(dom_data[0]))/len(dom_data[0]))
     plt.clf()
+    fig = plt.figure(figsize=[10, 10])
+    ax = fig.add_subplot(111)
+
+    pie_wedge_collection = ax.pie(dom_data[2], labels=dom_data[0],
+                                  colors=colors, labeldistance=1.1,
+                                  startangle=90)
+
+    for pie_wedge in pie_wedge_collection[0]:
+        pie_wedge.set_edgecolor('white')
+
+    ax.set_title("Dominant nuclides for activity at " + '%02d' % title +
+                 "hours after irradiation")
     
     
     
