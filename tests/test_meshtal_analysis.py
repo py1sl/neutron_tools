@@ -7,6 +7,7 @@ Created on Tue Sep 29 12:58:31 2020
 """
 
 import unittest
+import numpy as np
 
 class count_zeros_test(unittest.TestCase):
     
@@ -18,4 +19,4 @@ class count_zeros_test(unittest.TestCase):
 class calc_midpoints_test(unittest.TestCase):
     
     def test_calc_midpoints(self):
-        test_midpoint_data =
+        test_midpoint_data = 
