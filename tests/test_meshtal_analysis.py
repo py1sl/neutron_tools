@@ -23,3 +23,7 @@ class calc_mid_points_test(unittest.TestCase):
         
         self.assertEqual(calc_mid_points(test_midpoint_data), 5)
         
+
+if __name__ == '__main__':
+    unittest.main()
+    
