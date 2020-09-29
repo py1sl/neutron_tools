@@ -16,7 +16,10 @@ class count_zeros_test(unittest.TestCase):
         
         self.assertEqual(count_zeros(test_zeros_data), 2)
         
-class calc_midpoints_test(unittest.TestCase):
+class calc_mid_points_test(unittest.TestCase):
     
-    def test_calc_midpoints(self):
-        test_midpoint_data = 
+    def test_calc_mid_points(self):
+        test_midpoint_data = np.array[1, 9]
+        
+        self.assertEqual(calc_mid_points(test_midpoint_data), 5)
+        
