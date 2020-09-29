@@ -5,7 +5,7 @@ Created on Tue Sep 29 12:58:31 2020
 
 @author: oliviatindle
 """
-
+import meshtal_analysis
 import unittest
 import numpy as np
 
@@ -26,4 +26,5 @@ class calc_mid_points_test(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+    
     
