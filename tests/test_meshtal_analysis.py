@@ -19,9 +19,10 @@ class count_zeros_test(unittest.TestCase):
 class calc_mid_points_test(unittest.TestCase):
     
     def test_calc_mid_points(self):
-        test_midpoint_data = [1, 9]
+        test_midpoint_data = [1.0, 9.0]
         
-        self.assertEqual(meshtal_analysis.calc_mid_points(test_midpoint_data), 5)
+        self.assertEqual(meshtal_analysis.calc_mid_points(test_midpoint_data), [5.0])
+        
         
 #to do       
 #class find_mesh_tally_no_test(unittest.TestCase):
