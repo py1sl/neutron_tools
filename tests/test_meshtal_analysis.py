@@ -25,10 +25,11 @@ class count_zeros_test(unittest.TestCase):
    
     def test_count_zeros(self):
         meshtally_test = meshtal_analysis.meshtally()
-        meshtally_test.data = ['0.00', '5.00', '3.00', '6.00', '-1.00', '0.00', '8.00']
+        meshtally_test.data = [['1.00', '3.00', '-2.00', '5.00', '0.00', '1.00'],
+                               ['1.00', '5.00', '3.00', '6.00', '0.00', '9.00']]
             
-        self.assertEqual(meshtal_analysis.count_zeros(meshtally_test.data), 2)
-  
+        self.assertEqual(meshtal_analysis.count_zeros(meshtally_test), 2)
+        #looks for zeros in 5th column as thats the 'results' 
 
 class read_mesh_file_test(unittest.TestCase):  
     
