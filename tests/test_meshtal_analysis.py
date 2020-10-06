@@ -28,6 +28,17 @@ class count_zeros_test(unittest.TestCase):
          self.assertEqual(meshtal_analysis.count_zeros(meshtally_test.data, 2)
   
 
+class read_mesh_file_test(unittest.TestCase):  
+    Mesh = meshtal_analysis.read_mesh_tally_file("/Users/oliviatindle/Desktop/Placement /neutron_tools/tests/test_output/cup_low_res.imsht")
+    
+    def test_read_mesh_file(self):
+        
+        self.assertEqual(Mesh[0].x_bounds[1], -8.00)
+        self.assertEqual(Mesh[0].x_bounds[4], -2.00)
+        self.assertEqual(Mesh[0].ptype, photon)
+        self.assertEqual(Mesh[0].x_mids[2], -5.0)
+        
+
 if __name__ == '__main__':
     unittest.main()
     
