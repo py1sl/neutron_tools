@@ -48,22 +48,24 @@ class find_mesh_tally_no_test(unittest.TestCase):
         data = meshtal_analysis.get_lines("/Users/oliviatindle/Desktop/Placement /neutron_tools/tests/test_output/cup_low_res.imsht")
         
         self.assertEqual(meshtal_analysis.find_mesh_tally_numbers(data), {214: 4})
+ 
         
+class read_mesh_test(unittest.TestCase): 
     
+    def test_read_mesh(self):
+        data = meshtal_analysis.get_lines("/Users/oliviatindle/Desktop/Placement /neutron_tools/tests/test_output/cup_low_res.imsht")
+        read_mesh = meshtal_analysis.read_mesh(214, data, {214: 4})
+        
+        self.assertEqual(read_mesh.ptype, 'photon')
+        self.assertEqual(read_mesh.idnum, 214)
+        self.assertEqual(read_mesh.ctype, '6col')
+                
 
 if __name__ == '__main__':
     unittest.main()
     
     
                        
-   
-#to do       
-#class find_mesh_tally_no_test(unittest.TestCase):
-    
-    #def test_find_mest_tally_no(self):
-
-#class read_mesh_test(unittest.TestCase):     
-    #def test_read_mest(self):
          
         
 
