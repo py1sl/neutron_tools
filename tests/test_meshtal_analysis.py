@@ -7,7 +7,10 @@ Created on Tue Sep 29 12:58:31 2020
 """
 import meshtal_analysis
 import unittest
+import os
 
+path = "/Users/oliviatindle/Desktop/Placement /neutron_tools/tests/test_output/cup_low_res.imsht"
+relative_path = os.path.relpath(path)
     
 class calc_mid_points_test(unittest.TestCase):
     
@@ -34,18 +37,26 @@ class count_zeros_test(unittest.TestCase):
 class read_mesh_file_test(unittest.TestCase):  
     
     def test_read_mesh_file(self):
-        Mesh = meshtal_analysis.read_mesh_tally_file("/Users/oliviatindle/Desktop/Placement /neutron_tools/tests/test_output/cup_low_res.imsht")
+        Mesh = meshtal_analysis.read_mesh_tally_file(relative_path)
+        Len = len(Mesh[0].data)
         
         self.assertEqual(Mesh[0].x_bounds[1], '-8.00')
-        self.assertEqual(Mesh[0].x_bounds[4], '-2.00')
-        self.assertEqual(Mesh[0].ptype, 'photon')
         self.assertEqual(Mesh[0].x_mids[2], -5.0)
-        
+        self.assertEqual(Mesh[0].e_bounds[1], '1.00E+36')
+        self.assertEqual(Mesh[0].y_bounds[2], '-6.00')
+        self.assertEqual(Mesh[0].y_mids[3], -3.00)
+        self.assertEqual(Mesh[0].z_bounds[2], '2.20')
+        self.assertEqual(Mesh[0].z_mids[1], 1.4)
+        self.assertEqual(Mesh[0].ptype, 'photon')
+        self.assertEqual(Mesh[0].idnum, 214)
+        self.assertEqual(Len, 1000)
+        self.assertEqual(Mesh[0].data[0],[ '1.000E+36', '-9.000', '-9.000', '-0.200', '6.38182E-07', '1.89545E-02'])
+        self.assertEqual(Mesh[0].data[-1], ['1.000E+36', '9.000', '9.000', '14.200', '3.03275E-07', '2.57182E-02'])
         
 class find_mesh_tally_no_test(unittest.TestCase):
     
     def test_find_mesh_tally_no(self):
-        data = meshtal_analysis.get_lines("/Users/oliviatindle/Desktop/Placement /neutron_tools/tests/test_output/cup_low_res.imsht")
+        data = meshtal_analysis.get_lines(relative_path)
         
         self.assertEqual(meshtal_analysis.find_mesh_tally_numbers(data), {214: 4})
  
@@ -53,7 +64,7 @@ class find_mesh_tally_no_test(unittest.TestCase):
 class read_mesh_test(unittest.TestCase): 
     
     def test_read_mesh(self):
-        data = meshtal_analysis.get_lines("/Users/oliviatindle/Desktop/Placement /neutron_tools/tests/test_output/cup_low_res.imsht")
+        data = meshtal_analysis.get_lines(relative_path)
         read_mesh = meshtal_analysis.read_mesh(214, data, {214: 4})
         
         self.assertEqual(read_mesh.ptype, 'photon')
@@ -63,6 +74,7 @@ class read_mesh_test(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+ 
     
     
     
