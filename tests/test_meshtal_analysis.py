@@ -4,7 +4,7 @@
 import meshtal_analysis
 import unittest
 
-path = "/tests/test_output/cup_low_res.imsht"
+path = "test_output/cup_low_res.imsht"
     
 class calc_mid_points_test(unittest.TestCase):
     
