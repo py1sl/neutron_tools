@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import meshtal_analysis
+import neut_utilities as ut
 import unittest
 
 path = "test_output/cup_low_res.imsht"
@@ -28,9 +29,10 @@ class count_zeros_test(unittest.TestCase):
    
     def test_count_zeros(self):
         meshtally_test = meshtal_analysis.meshtally()
+        meshtally_test.ctype="6col"
         meshtally_test.data = [['1.00', '3.00', '-2.00', '5.00', '0.00', '1.00'],
                                ['1.00', '5.00', '3.00', '6.00', '0.00', '9.00']]
-            
+        meshtally_test.data = meshtal_analysis.convert_to_df(meshtally_test)    
         self.assertEqual(meshtal_analysis.count_zeros(meshtally_test), 2)
         #looks for zeros in 5th column as thats the 'results' 
 
@@ -50,12 +52,11 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(mesh[0].ptype, 'photon')
         self.assertEqual(mesh[0].idnum, 214)
         self.assertEqual(length, 1000)
-        self.assertEqual(mesh[0].data[0],['1.000E+36', '-9.000', '-9.000', '-0.200', '6.38182E-07', '1.89545E-02'])
-        self.assertEqual(mesh[0].data[-1], ['1.000E+36', '9.000', '9.000', '14.200', '3.03275E-07', '2.57182E-02'])
+
         
         
     def test_read_mesh(self):
-        data = meshtal_analysis.get_lines(path)
+        data = ut.get_lines(path)
         read_mesh = meshtal_analysis.read_mesh(214, data, {214: 4})
         
         self.assertEqual(read_mesh.ptype, 'photon')
@@ -66,7 +67,7 @@ class read_mesh_file_tests(unittest.TestCase):
 class find_mesh_tally_num_test(unittest.TestCase):
     
     def test_find_mesh_tally_num(self):
-        data = meshtal_analysis.get_lines(path)
+        data = ut.get_lines(path)
         
         self.assertEqual(meshtal_analysis.find_mesh_tally_numbers(data), {214: 4})
             
