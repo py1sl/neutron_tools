@@ -36,6 +36,7 @@ class count_zeros_test(unittest.TestCase):
         self.assertEqual(meshtal_analysis.count_zeros(meshtally_test), 2)
         #looks for zeros in 5th column as thats the 'results' 
 
+
 class read_mesh_file_tests(unittest.TestCase):  
     
     def test_read_mesh_file(self):
@@ -71,7 +72,22 @@ class find_mesh_tally_num_test(unittest.TestCase):
         
         self.assertEqual(meshtal_analysis.find_mesh_tally_numbers(data), {214: 4})
             
-
+class add_mesh_test(unittest.TestCase):
+    
+    def test_add_mesh(self):
+        mesh1_test = meshtal_analysis.meshtally()
+        mesh1_test.ctype="6col"
+        mesh2_test = meshtal_analysis.meshtally()
+        mesh2_test.ctype="6col"
+        
+        mesh1_test.data = [['1.000E+36', '-9.0', '-9.0', '1.4', '7.329430e-07', '0.017765']]
+        mesh2_test.data = [['1.000E+36', '9.0', '9.0', '7.8', '6.566330e-07', '0.018680']]
+        mesh1_test.data = meshtal_analysis.convert_to_df(mesh1_test)
+        mesh2_test.data = meshtal_analysis.convert_to_df(mesh2_test)
+        
+        self.assertEqual(meshtal_analysis.add_mesh(mesh1_test, mesh2_test), 'Bounds not equal')
+        
+        
 if __name__ == '__main__':
     unittest.main()
  
