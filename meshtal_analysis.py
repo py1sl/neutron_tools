@@ -212,8 +212,14 @@ def pick_point(x, y, z, mesh, erg):
 
 # TODO:
 def add_mesh(mesh1, mesh2):
-    """ """
-    print("not ready yet")
+    if mesh1.x_bounds != mesh2.x_bounds and mesh1.y_bounds != mesh2.y_bounds and mesh1.z_bounds != mesh2.z_bounds:
+        print ('Bounds not equal')
+    
+    else:
+        new_val = mesh1.data + mesh2.data
+        print ('new value =', new_val)
+        new_err = np.sqrt((mesh1.rel_err)**2+(mesh2.rel_err)**2)
+        print ('error in quadrature =', new_err)
 
 
 # TODO: need to deal with energy bins
