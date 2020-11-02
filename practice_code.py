@@ -18,10 +18,21 @@ meshes = meshtal_analysis.read_mesh_tally_file("/Users/oliviatindle/Desktop/Plac
 df = meshes[0].data
 print(df)      #this is a dataframe
 
-mesha = df.iloc[1]
-meshb = df.iloc[5]
+#data = df.rel_err.to_string(index = False) 
+#df.hist(data, bins = 15)
 
-    
+
+data = [df.rel_err]
+print (data)
+rel_errs = []
+for r in data:
+    if r !=0:
+        rel_errs.append(r)
+
+df.hist(data, bins = 15)
+
+
+"""    
 def add_mesh_(mesha, meshb):
     if mesha.x != meshb.x and mesha.y != meshb.y and mesha.z != meshb.z:
         print ('Bounds not equal')
@@ -32,24 +43,6 @@ def add_mesh_(mesha, meshb):
         new_err = np.sqrt((mesha.rel_err)**2+(meshb.rel_err)**2)
         print ('error in quadrature =', new_err)
        
-
-
-
-"""
-
-for i, row in df.iterrows():
-    
-    if df.row[1] != df.row[1] and df.row[2] != df.row[2] and df.row[3] != df.row[3]:
-        #need to specify a and b but dont know how
-        print('bounds not equal')
-    else:
-        print (i, row[4], row[5])
-        new_val = row[4]a + row[4]b
-        new_err = np.sqrt((row[5]a)^2 + (row[5]b)^2)
-        print ('new value =', new_val)
-        print ('error in quadrature = ', new_err)
-        #again dont know how to specify the two vals 
-        
 """
 
 
