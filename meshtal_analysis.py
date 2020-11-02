@@ -216,9 +216,9 @@ def add_mesh(mesh1, mesh2):
         print ('Bounds not equal')
     
     else:
-        new_val = mesh1.data + mesh2.data
+        new_val = mesh1[4] + mesh2[4]   #needs corrections here 
         print ('new value =', new_val)
-        new_err = np.sqrt((mesh1.rel_err)**2+(mesh2.rel_err)**2)
+        new_err = np.sqrt((mesh1[5])**2+(mesh2[5])**2)
         print ('error in quadrature =', new_err)
 
 
