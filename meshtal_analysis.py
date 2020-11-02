@@ -45,7 +45,23 @@ def rel_err_hist(data):
     plt.ylabel("Number of voxels")
     plt.show()
 
+    #data = df.rel_err.to_string(index = False) 
+    #df.hist(data, bins = 15)
+    #this error is KeyError: "None of [Index(dtype='object')] are in the [columns]"
+    
+    
+    #data = [df.rel_err]
+    #print(data)
+    #rel_errs = []
+    #for r in data:
+        #if r !=0:
+            #rel_errs.append(r)
 
+    #df.hist(data, bins = 15)
+    # this error is ValueError: The truth value of a Series is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all().
+  
+  #df is meshes[0].data where meshes is the read mesh file of the cuplowres  
+  
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
 def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=False, norm=1.0, erg=None):
