@@ -17,6 +17,10 @@ meshes = meshtal_analysis.read_mesh_tally_file("/Users/oliviatindle/Desktop/Plac
 
 df = meshes[0].data
 print(df)      #this is a dataframe
+
+
+plot = df.hist(column = 'rel_err', bins = 15)
+
 '''
 data = df.rel_err.to_string(index = False) 
 df.hist(data, bins = 15)
