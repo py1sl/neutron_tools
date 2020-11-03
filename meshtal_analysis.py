@@ -225,16 +225,14 @@ def pick_point(x, y, z, mesh, erg):
     return v
      
 
-
-# TODO:
 def add_mesh(mesh1, mesh2):
     if mesh1.x_bounds != mesh2.x_bounds and mesh1.y_bounds != mesh2.y_bounds and mesh1.z_bounds != mesh2.z_bounds:
         print ('Bounds not equal')
     
     else:
-        new_val = mesh1[4] + mesh2[4]   #needs corrections here 
+        new_val = mesh1.data['value'] + mesh2.data['value']
         print ('new value =', new_val)
-        new_err = np.sqrt((mesh1[5])**2+(mesh2[5])**2)
+        new_err = np.sqrt((mesh1.data['rel_err'])**2+(mesh2.data['rel_err'])**2)
         print ('error in quadrature =', new_err)
 
 
