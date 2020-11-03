@@ -17,7 +17,7 @@ meshes = meshtal_analysis.read_mesh_tally_file("/Users/oliviatindle/Desktop/Plac
 
 df = meshes[0].data
 print(df)      #this is a dataframe
-
+'''
 data = df.rel_err.to_string(index = False) 
 df.hist(data, bins = 15)
 
@@ -30,7 +30,7 @@ for r in data:
         rel_errs.append(r)
 
 df.hist(data, bins = 15)
-
+'''
 
 """    
 def add_mesh_(mesha, meshb):
