@@ -30,38 +30,13 @@ class meshtally:
     ctype = None
 
 
-def rel_err_hist(data):
+def rel_err_hist(df, fname = None):
     """ Plots a histogram of the relative errors"""
-    data = np.array(data).astype(float)
-    rel_errs = []
-    for r in data:
-        if r[5] != 0:
-            rel_errs.append(r[5])
-
-    bins = (0, 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-            0.7, 0.8, 0.9, 1)
-    plt.hist(rel_errs, bins)
-    plt.xlabel("Relative error")
-    plt.ylabel("Number of voxels")
-    plt.show()
-
-    #data = df.rel_err.to_string(index = False) 
-    #df.hist(data, bins = 15)
-    #this error is KeyError: "None of [Index(dtype='object')] are in the [columns]"
     
+    df.hist(column = 'rel_err', bins = 15) 
+    plt.savefig(fname)
+  
     
-    #data = [df.rel_err]
-    #print(data)
-    #rel_errs = []
-    #for r in data:
-        #if r !=0:
-            #rel_errs.append(r)
-
-    #df.hist(data, bins = 15)
-    # this error is ValueError: The truth value of a Series is ambiguous. Use a.empty, a.bool(), a.item(), a.any() or a.all().
-  
-  #df is meshes[0].data where meshes is the read mesh file of the cuplowres  
-  
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
 def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=False, norm=1.0, erg=None):
