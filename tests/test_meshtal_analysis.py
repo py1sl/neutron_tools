@@ -85,7 +85,7 @@ class add_mesh_test(unittest.TestCase):
         mesh1_test.data = meshtal_analysis.convert_to_df(mesh1_test)
         mesh2_test.data = meshtal_analysis.convert_to_df(mesh2_test)
         
-        self.assertEqual(meshtal_analysis.add_mesh(mesh1_test, mesh2_test), 'Bounds not equal')
+        self.assertEqual(meshtal_analysis.add_mesh(mesh1_test, mesh2_test), ValueError('bounds not equal'))
         
          
 if __name__ == '__main__':
