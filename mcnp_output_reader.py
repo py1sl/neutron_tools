@@ -162,9 +162,22 @@ def get_tally_nums(lines):
     return tal_num_list
 
 
-def get_num_rendevous(data):
+def get_rendevous_index(data):
+    """ returns the line index of the rendevous line """
+    indexes = []
+    for i, line in enumerate(data):
+        if "master set rendezvous nps" in line:
+            indexes.append(i)
+            
+    return indexes
+    
+        
+def count_rendevous(data):
     """ counts the number of rendevous in the file """
-    return 1
+    indexes = get_rendevous_index(data)
+    count = len(indexes)
+    return count
+    
     
 def process_ang_string(line):
     """ converts the tally string describing the angualr bin edges into 
@@ -265,13 +278,19 @@ def process_e_t_userbin(data):
         
     return time_bins, erg_bins, res_data, err_data
 
+    
+def find_term_line(lines):
+    """ finds the term line or last dump """
+    term_line = ut.find_line("      run terminated ", lines, 21)
+    return term_line   
+
 
 def read_tally(lines, tnum, rnum=-1):
     """reads the lines and extracts the tally results"""
     
     # todo add ability to do all rendevous
     # reduce to only the final result set
-    term_line = ut.find_line("      run terminated ", lines, 21)
+    term_line = find_term_line(lines)
     lines = lines[term_line:]
 
     # reduce to only the tally results section
@@ -524,28 +543,39 @@ def read_type_cell(tally_data, lines):
     tally_data.vols = []
     tally_data.cells = []
     # find cells
-    # find volumes
-    # TODO: if more than a single line of vols or cells
+    # find volumes/ masses
     
+    # find line that the volumes or masses start at
     if tally_data.type == "4":
-        vol_line_id = ut.find_line("           volumes ", lines, 19)
-        vol_val_line = lines[vol_line_id + 2]
-        vol_val_line = " ".join(vol_val_line.split())
-        tally_data.vols = vol_val_line.split(" ")
+        line_id = ut.find_line("           volumes ", lines, 19)    
     elif  tally_data.type == "6":
-        vol_line_id = ut.find_line("           masses ", lines, 18)
-        vol_val_line = lines[vol_line_id + 2]
-        vol_val_line = " ".join(vol_val_line.split())
-        tally_data.vols = vol_val_line.split(" ")
-    cell_val_line = lines[vol_line_id + 1]
-    cell_val_line = " ".join(cell_val_line.split())
-    cell_val_line = cell_val_line.split(":")[1]
-    tally_data.cells = cell_val_line.split(" ")[1:]
+        line_id = ut.find_line("           masses ", lines, 18)
+    
+    # extract the values of cell number and volumes 
+    while True:
+        line_id = line_id + 1
+        line = lines[line_id]
+        if (line == " "):
+            break
+        elif "cell:" in line:
+            cell_line = " ".join(line.split())
+            cell_line = cell_line.split(":")[1]
+            cell_line = cell_line.split(" ")[1:]
+            for cell in cell_line:
+                tally_data.cells.append(cell)
+        else:
+            vol_line = " ".join(line.split())
+            vol_line = vol_line.split(" ")
+            for vol in vol_line:
+                tally_data.vols.append(vol)
 
     # loop for each cell
     for cell in tally_data.cells:
+        results = []
+        errs = []
         cline = " cell  " 
         cell_res_start = ut.find_line(cline + cell, lines, len(cell)+len(cline))
+        # energy binned data
         if lines[cell_res_start + 1] == "      energy   ":
             logging.debug("noticed energy")
             tally_data.eng = []
@@ -555,14 +585,18 @@ def read_type_cell(tally_data, lines):
                 l=l.strip()
                 l=l.split(" ")
                 tally_data.eng.append(float(l[0]))
-                tally_data.result.append(float(l[3]))
-                tally_data.err.append(float(l[4]))
+                results.append(float(l[3]))
+                errs.append(float(l[4]))
+            tally_data.result.append(results)
+            tally_data.err.append(errs)
+        # single value per cell data
         else:
             data_line = lines[cell_res_start + 1]
             data_line = " ".join(data_line.split())
             data_line = data_line.split(" ")
             tally_data.result.append(float(data_line[0]))
             tally_data.err.append(float(data_line[1]))
+           
     return tally_data
     
     
