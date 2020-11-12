@@ -34,7 +34,11 @@ def rel_err_hist(df, fname = None):
     """ Plots a histogram of the relative errors"""
     
     df.hist(column = 'rel_err', bins = 15) 
-    plt.savefig(fname)
+    if fname:
+        plt.savefig(fname)
+        logging.info("produced figure: %s", fname)
+    else:
+        plt.show()
   
     
 # TODO: need to deal with energy bins
@@ -138,13 +142,8 @@ def output_as_vtk():
     
     
 def find_nearest_mid(value, mids):
-    """ """
-    for i, v in enumerate(mids):
-        if value > float(v):
-            pos = i
-            mid = v
-         
-    return mid
+    """ """   
+    return mids[min(range(len(mids)), key = lambda i: abs(mids[i]-value))]
 
 
 def convert_to_df(mesh):
@@ -200,16 +199,27 @@ def pick_point(x, y, z, mesh, erg):
     return v
      
 
-def add_mesh(mesh1, mesh2):
+def add_mesh(mesh1, mesh2): 
+    """ checks if boundaries of two meshes are equal and adds their values and errors  """
     if mesh1.x_bounds != mesh2.x_bounds and mesh1.y_bounds != mesh2.y_bounds and mesh1.z_bounds != mesh2.z_bounds:
         raise ValueError('bounds not equal')
     
     else:
         new_val = mesh1.data['value'] + mesh2.data['value']
-        return ('new value =', new_val)
-    
         new_err = np.sqrt((mesh1.data['rel_err'])**2+(mesh2.data['rel_err'])**2)
-        return ('error in quadrature =', new_err)
+        
+        new_mesh = meshtally()
+        cols = ("Energy","x", "y", "z", "value", "rel_err")
+        new_mesh.data = pd.DataFrame(columns = cols)
+        new_mesh.ctype = "6col"
+        new_mesh.x_bounds = mesh1.x_bounds
+        new_mesh.y_bounds = mesh1.y_bounds
+        new_mesh.z_bounds = mesh1.z_bounds
+        new_mesh.data['value'] = new_val 
+        new_mesh.data['rel_err'] = new_err
+        new_mesh.data['Energy'] = mesh1.data['Energy']
+        
+        return(new_mesh) 
 
 
 # TODO: need to deal with energy bins
