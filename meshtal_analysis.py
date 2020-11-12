@@ -142,7 +142,7 @@ def output_as_vtk():
     
     
 def find_nearest_mid(value, mids):
-    """ """   
+    """ finds the midpoint with the shortest absoloute distance to the value """   
     return mids[min(range(len(mids)), key = lambda i: abs(mids[i]-value))]
 
 
