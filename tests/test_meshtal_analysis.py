@@ -73,7 +73,7 @@ class find_mesh_tally_num_test(unittest.TestCase):
  
           
 class add_mesh_test(unittest.TestCase):
-    
+     
     def test_add_mesh_error(self):
         mesh1_test = meshtal_analysis.meshtally()
         mesh1_test.ctype="6col"
