@@ -40,7 +40,7 @@ def rel_err_hist(df, fname = None):
     else:
         plt.show()
   
-    
+     
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
 def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=False, norm=1.0, erg=None):
