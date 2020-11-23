@@ -101,25 +101,21 @@ class add_mesh_test(unittest.TestCase):
         mesh3_test.data = meshtal_analysis.convert_to_df(mesh3_test)
         mesh4_test.data = meshtal_analysis.convert_to_df(mesh4_test)
         
-        mesh3_test.x_bounds = (-9, -9.1)
-        mesh3_test.y_bounds = (-9, -9.1)
-        mesh3_test.z_bounds = (1.4, 1.5)
-        mesh4_test.x_bounds = (-9, -9.1)
-        mesh4_test.y_bounds = (-9, -9.1)
-        mesh4_test.z_bounds = (1.4, 1.5)
+        mesh3_test.x_bounds = (-8.9, -9.1)
+        mesh3_test.y_bounds = (-8.9, -9.1)
+        mesh3_test.z_bounds = (1.3, 1.5)
+        mesh4_test.x_bounds = (-8.9, -9.1)
+        mesh4_test.y_bounds = (-8.9, -9.1)
+        mesh4_test.z_bounds = (1.3, 1.5)
         
-        mesh3_test.data['value'] = 7.329430e-07
-        mesh3_test.data['rel_err'] = 0.017765
-        mesh4_test.data['value'] = 6.566330e-07
-        mesh4_test.data['rel_err'] = 0.018680
         
         new_mesh_test = meshtal_analysis.add_mesh(mesh3_test, mesh4_test)
         
         self.assertEqual(new_mesh_test.x_bounds, (-9, -9.1))
         self.assertEqual(new_mesh_test.y_bounds, (-9, -9.1))
         self.assertEqual(new_mesh_test.z_bounds, (1.4, 1.5))
-        self.assertEqual(new_mesh_test.data['value'].item(), 1.389576e-06)
-        self.assertEqual(new_mesh_test.data['rel_err'].item(),  0.025778627290839205)
+        self.assertEqual(new_mesh_test.data['value'].item(), 1.3895760275772773e-06)
+        self.assertEqual(new_mesh_test.data['rel_err'].item(),  0.025778627023100853) 
         
          
         
@@ -130,7 +126,7 @@ class find_nearest_mid_test(unittest.TestCase):
         test_val_1 = 4.6
         test_mids_1 = [4, 5]
         test_val_2 = 10
-        test_mids_2 = [2, 12, 11]
+        test_mids_2 = [2, 11, 12]
         test_val_3 = 3.2
         test_mids_3 = [3.1, 3.35]
         test_val_4 = 2
