@@ -34,6 +34,8 @@ def rel_err_hist(df, fname = None):
     """ Plots a histogram of the relative errors"""
     
     df.hist(column = 'rel_err', bins = 15) 
+    plt.xlabel("Relative error")
+    plt.ylabel("Number of voxels")
     if fname:
         plt.savefig(fname)
         logging.info("produced figure: %s", fname)
@@ -201,7 +203,7 @@ def pick_point(x, y, z, mesh, erg):
 
 def add_mesh(mesh1, mesh2): 
     """ checks if boundaries of two meshes are equal and adds their values and errors  """
-    if mesh1.x_bounds != mesh2.x_bounds and mesh1.y_bounds != mesh2.y_bounds and mesh1.z_bounds != mesh2.z_bounds:
+    if mesh1.x_bounds != mesh2.x_bounds or mesh1.y_bounds != mesh2.y_bounds or mesh1.z_bounds != mesh2.z_bounds:
         raise ValueError('bounds not equal')
     
     else:
@@ -215,9 +217,17 @@ def add_mesh(mesh1, mesh2):
         new_mesh.x_bounds = mesh1.x_bounds
         new_mesh.y_bounds = mesh1.y_bounds
         new_mesh.z_bounds = mesh1.z_bounds
+        
+        new_mesh.x_mids = mesh1.x_mids
+        new_mesh.y_mids = mesh1.y_mids
+        new_mesh.z_mids = mesh1.z_mids
+        
         new_mesh.data['value'] = new_val 
         new_mesh.data['rel_err'] = new_err
         new_mesh.data['Energy'] = mesh1.data['Energy']
+        new_mesh.data['x'] = new_mesh.x_mids
+        new_mesh.data['y'] = new_mesh.y_mids
+        new_mesh.data['z'] = new_mesh.z_mids
         
         return(new_mesh) 
 
