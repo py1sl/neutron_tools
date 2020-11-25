@@ -225,9 +225,9 @@ def add_mesh(mesh1, mesh2):
         new_mesh.data['value'] = new_val 
         new_mesh.data['rel_err'] = new_err
         new_mesh.data['Energy'] = mesh1.data['Energy']
-        new_mesh.data['x'] = new_mesh.x_mids
-        new_mesh.data['y'] = new_mesh.y_mids
-        new_mesh.data['z'] = new_mesh.z_mids
+        new_mesh.data['x'] = mesh1.data['x']
+        new_mesh.data['y'] = mesh1.data['y']
+        new_mesh.data['z'] = mesh1.data['z']
         
         return(new_mesh) 
 
