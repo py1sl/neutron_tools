@@ -30,22 +30,19 @@ class meshtally:
     ctype = None
 
 
-def rel_err_hist(data):
+def rel_err_hist(df, fname = None):
     """ Plots a histogram of the relative errors"""
-    data = np.array(data).astype(float)
-    rel_errs = []
-    for r in data:
-        if r[5] != 0:
-            rel_errs.append(r[5])
-
-    bins = (0, 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6,
-            0.7, 0.8, 0.9, 1)
-    plt.hist(rel_errs, bins)
+    
+    df.hist(column = 'rel_err', bins = 15) 
     plt.xlabel("Relative error")
     plt.ylabel("Number of voxels")
-    plt.show()
-
-
+    if fname:
+        plt.savefig(fname)
+        logging.info("produced figure: %s", fname)
+    else:
+        plt.show()
+  
+     
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
 def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=False, norm=1.0, erg=None):
@@ -147,13 +144,8 @@ def output_as_vtk():
     
     
 def find_nearest_mid(value, mids):
-    """ """
-    for i, v in enumerate(mids):
-        if value > float(v):
-            pos = i
-            mid = v
-         
-    return mid
+    """ finds the midpoint with the shortest absoloute distance to the value """   
+    return mids[min(range(len(mids)), key = lambda i: abs(mids[i]-value))]
 
 
 def convert_to_df(mesh):
@@ -209,11 +201,35 @@ def pick_point(x, y, z, mesh, erg):
     return v
      
 
-
-# TODO:
-def add_mesh(mesh1, mesh2):
-    """ """
-    print("not ready yet")
+def add_mesh(mesh1, mesh2): 
+    """ checks if boundaries of two meshes are equal and adds their values and errors  """
+    if mesh1.x_bounds != mesh2.x_bounds or mesh1.y_bounds != mesh2.y_bounds or mesh1.z_bounds != mesh2.z_bounds:
+        raise ValueError('bounds not equal')
+    
+    else:
+        new_val = mesh1.data['value'] + mesh2.data['value']
+        new_err = np.sqrt((mesh1.data['rel_err'])**2+(mesh2.data['rel_err'])**2)
+        
+        new_mesh = meshtally()
+        cols = ("Energy","x", "y", "z", "value", "rel_err")
+        new_mesh.data = pd.DataFrame(columns = cols)
+        new_mesh.ctype = "6col"
+        new_mesh.x_bounds = mesh1.x_bounds
+        new_mesh.y_bounds = mesh1.y_bounds
+        new_mesh.z_bounds = mesh1.z_bounds
+        
+        new_mesh.x_mids = mesh1.x_mids
+        new_mesh.y_mids = mesh1.y_mids
+        new_mesh.z_mids = mesh1.z_mids
+        
+        new_mesh.data['value'] = new_val 
+        new_mesh.data['rel_err'] = new_err
+        new_mesh.data['Energy'] = mesh1.data['Energy']
+        new_mesh.data['x'] = mesh1.data['x']
+        new_mesh.data['y'] = mesh1.data['y']
+        new_mesh.data['z'] = mesh1.data['z']
+        
+        return(new_mesh) 
 
 
 # TODO: need to deal with energy bins
