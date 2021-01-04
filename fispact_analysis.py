@@ -115,7 +115,7 @@ def plot_spectra(timestep, fname=None):
         plt.show()  
     
     
-def plot_pie(dom_data, title, fname=none, thres=1.0 ):
+def plot_pie(dom_data, title, fname=None, thres=1.0 ):
     """ """
     n = 0
     act_nuc2 = []

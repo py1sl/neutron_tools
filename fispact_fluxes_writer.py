@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jan 14 09:19:42 2020
+Created on Tue Jan 2020
 Functions for writing fispact fluxes files
 @author: S Lilley
 """
