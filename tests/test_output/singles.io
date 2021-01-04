@@ -30,8 +30,8 @@
   | PRIVATELY OWNED RIGHTS.                                             |
   +---------------------------------------------------------------------+
   
-1mcnp     version 6.mpi ld=04/01/16                     02/04/20 11:52:08 
- *************************************************************************                 probid =  02/04/20 11:52:08 
+1mcnp     version 6.mpi ld=04/01/16                     04/15/20 16:44:23 
+ *************************************************************************                 probid =  04/15/20 16:44:23 
  n=singles.i XSDIR=/home/vol03/scarf473/my_mcnp/mcnpx_data/xsdir                 
 
  
@@ -126,8 +126,8 @@
 1problem summary                                                                                                           
 
       run terminated when     1000000  particle histories were done.
-+                                                                                                    02/04/20 11:52:42 
-      c test input to generate output for MCNP output reader                               probid =  02/04/20 11:52:08 
++                                                                                                    04/15/20 16:44:35 
+      c test input to generate output for MCNP output reader                               probid =  04/15/20 16:44:23 
 
  photon creation     tracks      weight        energy            photon loss         tracks      weight        energy
                                  (per source particle)                                           (per source particle)
@@ -162,9 +162,9 @@
    total photon collisions                   1690804          capture or escape 7.0887E-02          wc1   0.0000E+00
                                                               any termination   7.0855E-02          wc2   0.0000E+00
 
- computer time so far in this run     0.56 minutes            maximum number ever in bank         3
- computer time in mcrun               0.55 minutes            bank overflows to backup file       0
- source particles per minute            1.8345E+06
+ computer time so far in this run     0.18 minutes            maximum number ever in bank         3
+ computer time in mcrun               0.18 minutes            bank overflows to backup file       0
+ source particles per minute            5.6626E+06
  random numbers generated                 32635054            most random numbers used was         444 in history      582379
 
  range of sampled source weights = 1.0000E+00 to 1.0000E+00
@@ -232,13 +232,13 @@
       relative error                  5.79258E-04             5.79372E-04                     0.000197
       variance of the variance        3.25935E-05             3.27415E-05                     0.004540
       shifted center                  1.16486E+00             1.16486E+00                     0.000000
-      figure of merit                 5.46733E+06             5.46517E+06                    -0.000394
+      figure of merit                 1.68761E+07             1.68695E+07                    -0.000394
 
  the estimated inverse power slope of the  48 largest  tallies starting at 1.07561E+01 is 3.5468
  the history score probability density function appears to have an unsampled region at the largest  history scores:
  please examine. see print table 161.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (1.835E+06)*( 1.726E+00)**2 = (1.835E+06)*(2.980E+00) = 5.467E+06
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (5.663E+06)*( 1.726E+00)**2 = (5.663E+06)*(2.980E+00) = 1.688E+07
 
 1tally        2        nps =     1000000
            tally type 2    particle flux averaged over a surface.       units   1/cm**2        
@@ -296,14 +296,14 @@
       relative error                  1.50974E-03             1.51088E-03                     0.000751
       variance of the variance        2.48237E-04             2.50061E-04                     0.007345
       shifted center                  4.31799E-03             4.31799E-03                     0.000000
-      figure of merit                 8.04846E+05             8.03639E+05                    -0.001499
+      figure of merit                 2.48434E+06             2.48062E+06                    -0.001499
 
  the estimated inverse power slope of the 200 largest  tallies starting at 4.60254E+01 is 4.6137
  the empirical history score probability density function appears to be increasing at the largest  history scores:
  please examine. see print table 161.
  the large score tail of the empirical history score probability density function appears to have no unsampled regions.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (1.835E+06)*( 6.624E-01)**2 = (1.835E+06)*(4.387E-01) = 8.048E+05
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (5.663E+06)*( 6.624E-01)**2 = (5.663E+06)*(4.387E-01) = 2.484E+06
 
 1tally        4        nps =     1000000
            tally type 4    track length estimate of particle flux.      units   1/cm**2        
@@ -361,12 +361,12 @@
       relative error                  5.80540E-04             5.80573E-04                     0.000057
       variance of the variance        1.00262E-05             1.00399E-05                     0.001367
       shifted center                  1.91076E-03             1.91076E-03                     0.000000
-      figure of merit                 5.44320E+06             5.44258E+06                    -0.000114
+      figure of merit                 1.68017E+07             1.67998E+07                    -0.000114
 
  the estimated slope of the 198 largest  tallies starting at  3.60772E+01 appears to be decreasing at least exponentially.
  the large score tail of the empirical history score probability density function appears to have no unsampled regions.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (1.835E+06)*( 1.723E+00)**2 = (1.835E+06)*(2.967E+00) = 5.443E+06
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (5.663E+06)*( 1.723E+00)**2 = (5.663E+06)*(2.967E+00) = 1.680E+07
 
 1tally        5        nps =     1000000
            tally type 5    particle flux at a point detector.           units   1/cm**2        
@@ -448,12 +448,12 @@
       relative error                  2.52536E-03             2.61358E-03                     0.034935
       variance of the variance        8.68971E-03             1.21291E-02                     0.395806
       shifted center                  3.42971E-04             3.42977E-04                     0.000019
-      figure of merit                 2.87655E+05             2.68563E+05                    -0.066371
+      figure of merit                 8.87913E+05             8.28981E+05                    -0.066371
 
  the estimated inverse power slope of the 200 largest  tallies starting at 1.44973E-02 is 2.1397
  the large score tail of the empirical history score probability density function appears to have no unsampled regions.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (1.835E+06)*( 3.960E-01)**2 = (1.835E+06)*(1.568E-01) = 2.877E+05
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (5.663E+06)*( 3.960E-01)**2 = (5.663E+06)*(1.568E-01) = 8.879E+05
 
 1unnormed tally density for tally        5          nonzero tally mean(m) = 3.429E-04   nps =     1000000  print table 161
 
@@ -549,14 +549,14 @@
       relative error                  1.82801E-04             1.82813E-04                     0.000062
       variance of the variance        6.67501E-06             6.68982E-06                     0.002219
       shifted center                  4.30567E-05             4.30567E-05                     0.000000
-      figure of merit                 5.48983E+07             5.48916E+07                    -0.000123
+      figure of merit                 1.69456E+08             1.69435E+08                    -0.000123
 
  the estimated slope of the 200 largest  tallies starting at  8.54882E-01 appears to be decreasing at least exponentially.
  the empirical history score probability density function appears to be increasing at the largest  history scores:
  please examine. see print table 161.
  the large score tail of the empirical history score probability density function appears to have no unsampled regions.
 
- fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (1.835E+06)*( 5.470E+00)**2 = (1.835E+06)*(2.993E+01) = 5.490E+07
+ fom = (histories/minute)*(f(x) signal-to-noise ratio)**2 = (5.663E+06)*( 5.470E+00)**2 = (5.663E+06)*(2.993E+01) = 1.695E+08
 
 1tally        8        nps =     1000000
            tally type 8    pulse height distribution.                   units   number         
@@ -615,7 +615,7 @@
  the 100 largest  history tallies appear to have a  maximum value of about 1.00000E+00
  the large score tail of the empirical history score probability density function appears to have no unsampled regions.
 
- relative error is 0! fom and f(x) signal-to-noise ratio are both undefined. histories/minute = 1.835E+06
+ relative error is 0! fom and f(x) signal-to-noise ratio are both undefined. histories/minute = 5.663E+06
 
 1status of the statistical checks used to form confidence intervals for the mean for each tally bin
 
@@ -648,46 +648,46 @@
 
                             tally        1                          tally        2                          tally        4
           nps      mean     error   vov  slope    fom      mean     error   vov  slope    fom      mean     error   vov  slope    fom
-        64000   1.1666E+00 0.0023 0.0005 10.0 5383874   4.3110E-03 0.0059 0.0035 10.0  830652   1.9098E-03 0.0023 0.0002 10.0 5460112
-       128000   1.1668E+00 0.0016 0.0003  2.6 5389230   4.3154E-03 0.0042 0.0017 10.0  828930   1.9098E-03 0.0016 0.0001 10.0 5459612
-       192000   1.1662E+00 0.0013 0.0002  2.7 5400528   4.3119E-03 0.0034 0.0012 10.0  827465   1.9103E-03 0.0013 0.0001 10.0 5452060
-       256000   1.1654E+00 0.0011 0.0001  3.4 5423277   4.3118E-03 0.0030 0.0010  8.3  813941   1.9091E-03 0.0011 0.0000  9.8 5459619
-       320000   1.1655E+00 0.0010 0.0001  3.8 5425454   4.3178E-03 0.0027 0.0008  5.9  803406   1.9100E-03 0.0010 0.0000 10.0 5455973
-       384000   1.1650E+00 0.0009 0.0001  3.8 5441742   4.3133E-03 0.0024 0.0007  5.9  806133   1.9104E-03 0.0009 0.0000 10.0 5458856
-       448000   1.1650E+00 0.0009 0.0001  4.0 5457029   4.3124E-03 0.0022 0.0006  3.5  812299   1.9100E-03 0.0009 0.0000 10.0 5461889
-       512000   1.1644E+00 0.0008 0.0001 10.0 5474243   4.3099E-03 0.0021 0.0005  4.2  813194   1.9101E-03 0.0008 0.0000 10.0 5458901
-       576000   1.1646E+00 0.0008 0.0001  3.1 5465687   4.3124E-03 0.0020 0.0004  4.4  812638   1.9101E-03 0.0008 0.0000 10.0 5454052
-       640000   1.1649E+00 0.0007 0.0001  3.0 5462461   4.3192E-03 0.0019 0.0004  4.8  801948   1.9104E-03 0.0007 0.0000 10.0 5446704
-       704000   1.1650E+00 0.0007 0.0000  3.0 5456193   4.3183E-03 0.0018 0.0004  4.0  801073   1.9102E-03 0.0007 0.0000 10.0 5453610
-       768000   1.1650E+00 0.0007 0.0000  3.3 5452192   4.3162E-03 0.0017 0.0003  3.6  806830   1.9106E-03 0.0007 0.0000 10.0 5449538
-       832000   1.1651E+00 0.0006 0.0000  3.3 5447004   4.3164E-03 0.0017 0.0003  3.8  807498   1.9107E-03 0.0006 0.0000 10.0 5447619
-       896000   1.1650E+00 0.0006 0.0000  3.6 5459213   4.3162E-03 0.0016 0.0003  4.2  807349   1.9107E-03 0.0006 0.0000 10.0 5447181
-       960000   1.1649E+00 0.0006 0.0000  3.6 5464813   4.3171E-03 0.0015 0.0003  4.7  805475   1.9107E-03 0.0006 0.0000 10.0 5445097
-      1000000   1.1649E+00 0.0006 0.0000  3.5 5467327   4.3179E-03 0.0015 0.0002  4.6  804846   1.9108E-03 0.0006 0.0000 10.0 5443199
+        64000   1.1666E+00 0.0023 0.0005 10.0 1.7E+07   4.3110E-03 0.0059 0.0035 10.0 2655849   1.9098E-03 0.0023 0.0002 10.0 1.7E+07
+       128000   1.1668E+00 0.0016 0.0003  2.6 1.7E+07   4.3154E-03 0.0042 0.0017 10.0 2556231   1.9098E-03 0.0016 0.0001 10.0 1.7E+07
+       192000   1.1662E+00 0.0013 0.0002  2.7 1.7E+07   4.3119E-03 0.0034 0.0012 10.0 2573256   1.9103E-03 0.0013 0.0001 10.0 1.7E+07
+       256000   1.1654E+00 0.0011 0.0001  3.4 1.7E+07   4.3118E-03 0.0030 0.0010  8.3 2520515   1.9091E-03 0.0011 0.0000  9.8 1.7E+07
+       320000   1.1655E+00 0.0010 0.0001  3.8 1.7E+07   4.3178E-03 0.0027 0.0008  5.9 2485242   1.9100E-03 0.0010 0.0000 10.0 1.7E+07
+       384000   1.1650E+00 0.0009 0.0001  3.8 1.7E+07   4.3133E-03 0.0024 0.0007  5.9 2501186   1.9104E-03 0.0009 0.0000 10.0 1.7E+07
+       448000   1.1650E+00 0.0009 0.0001  4.0 1.7E+07   4.3124E-03 0.0022 0.0006  3.5 2505624   1.9100E-03 0.0009 0.0000 10.0 1.7E+07
+       512000   1.1644E+00 0.0008 0.0001 10.0 1.7E+07   4.3099E-03 0.0021 0.0005  4.2 2520238   1.9101E-03 0.0008 0.0000 10.0 1.7E+07
+       576000   1.1646E+00 0.0008 0.0001  3.1 1.7E+07   4.3124E-03 0.0020 0.0004  4.4 2511082   1.9101E-03 0.0008 0.0000 10.0 1.7E+07
+       640000   1.1649E+00 0.0007 0.0001  3.0 1.7E+07   4.3192E-03 0.0019 0.0004  4.8 2482003   1.9104E-03 0.0007 0.0000 10.0 1.7E+07
+       704000   1.1650E+00 0.0007 0.0000  3.0 1.7E+07   4.3183E-03 0.0018 0.0004  4.0 2484151   1.9102E-03 0.0007 0.0000 10.0 1.7E+07
+       768000   1.1650E+00 0.0007 0.0000  3.3 1.7E+07   4.3162E-03 0.0017 0.0003  3.6 2493689   1.9106E-03 0.0007 0.0000 10.0 1.7E+07
+       832000   1.1651E+00 0.0006 0.0000  3.3 1.7E+07   4.3164E-03 0.0017 0.0003  3.8 2495592   1.9107E-03 0.0006 0.0000 10.0 1.7E+07
+       896000   1.1650E+00 0.0006 0.0000  3.6 1.7E+07   4.3162E-03 0.0016 0.0003  4.2 2491151   1.9107E-03 0.0006 0.0000 10.0 1.7E+07
+       960000   1.1649E+00 0.0006 0.0000  3.6 1.7E+07   4.3171E-03 0.0015 0.0003  4.7 2481268   1.9107E-03 0.0006 0.0000 10.0 1.7E+07
+      1000000   1.1649E+00 0.0006 0.0000  3.5 1.7E+07   4.3179E-03 0.0015 0.0002  4.6 2484340   1.9108E-03 0.0006 0.0000 10.0 1.7E+07
  
 
                             tally        5                          tally        6                          tally        8
           nps      mean     error   vov  slope    fom      mean     error   vov  slope    fom      mean     error   vov  slope    fom
-        64000   3.4556E-04 0.0109 0.0622  3.4  240169   4.3057E-05 0.0007 0.0001 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       128000   3.4293E-04 0.0070 0.0243  3.6  292606   4.3006E-05 0.0005 0.0001 10.0 5.4E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       192000   3.4266E-04 0.0055 0.0130  3.7  319528   4.3037E-05 0.0004 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       256000   3.4218E-04 0.0047 0.0087  3.2  322229   4.3038E-05 0.0004 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       320000   3.4293E-04 0.0042 0.0059  2.8  324682   4.3048E-05 0.0003 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       384000   3.4349E-04 0.0039 0.0054  2.8  313464   4.3049E-05 0.0003 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       448000   3.4298E-04 0.0036 0.0043  2.8  322954   4.3053E-05 0.0003 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       512000   3.4306E-04 0.0036 0.0221  2.5  283928   4.3055E-05 0.0003 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       576000   3.4274E-04 0.0033 0.0185  2.3  291293   4.3058E-05 0.0002 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       640000   3.4278E-04 0.0032 0.0168  2.3  281050   4.3058E-05 0.0002 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       704000   3.4281E-04 0.0030 0.0144  2.2  281404   4.3053E-05 0.0002 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       768000   3.4310E-04 0.0030 0.0132  2.1  274160   4.3058E-05 0.0002 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       832000   3.4283E-04 0.0028 0.0117  2.2  279192   4.3056E-05 0.0002 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       896000   3.4277E-04 0.0027 0.0105  2.1  284827   4.3053E-05 0.0002 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-       960000   3.4303E-04 0.0026 0.0093  2.1  285653   4.3055E-05 0.0002 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
-      1000000   3.4295E-04 0.0025 0.0087  2.1  287655   4.3057E-05 0.0002 0.0000 10.0 5.5E+07   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+        64000   3.4556E-04 0.0109 0.0622  3.4  767893   4.3057E-05 0.0007 0.0001 10.0 1.8E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       128000   3.4293E-04 0.0070 0.0243  3.6  902332   4.3006E-05 0.0005 0.0001 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       192000   3.4266E-04 0.0055 0.0130  3.7  993670   4.3037E-05 0.0004 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       256000   3.4218E-04 0.0047 0.0087  3.2  997840   4.3038E-05 0.0004 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       320000   3.4293E-04 0.0042 0.0059  2.8 1004365   4.3048E-05 0.0003 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       384000   3.4349E-04 0.0039 0.0054  2.8  972584   4.3049E-05 0.0003 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       448000   3.4298E-04 0.0036 0.0043  2.8  996185   4.3053E-05 0.0003 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       512000   3.4306E-04 0.0036 0.0221  2.5  879944   4.3055E-05 0.0003 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       576000   3.4274E-04 0.0033 0.0185  2.3  900107   4.3058E-05 0.0002 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       640000   3.4278E-04 0.0032 0.0168  2.3  869839   4.3058E-05 0.0002 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       704000   3.4281E-04 0.0030 0.0144  2.2  872642   4.3053E-05 0.0002 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       768000   3.4310E-04 0.0030 0.0132  2.1  847354   4.3058E-05 0.0002 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       832000   3.4283E-04 0.0028 0.0117  2.2  862850   4.3056E-05 0.0002 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       896000   3.4277E-04 0.0027 0.0105  2.1  878860   4.3053E-05 0.0002 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+       960000   3.4303E-04 0.0026 0.0093  2.1  879956   4.3055E-05 0.0002 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
+      1000000   3.4295E-04 0.0025 0.0087  2.1  887913   4.3057E-05 0.0002 0.0000 10.0 1.7E+08   1.0000E+00 0.0000 0.0000 10.0 1.0E+30
 
  ***********************************************************************************************************************
 
- dump no.    2 on file singles.ir     nps =     1000000     coll =        1690804     ctm =        0.55   nrn =         
+ dump no.    2 on file singles.ir     nps =     1000000     coll =        1690804     ctm =        0.18   nrn =         
  32635054
 
          6 warning messages so far.
@@ -695,6 +695,6 @@
 
  run terminated when     1000000  particle histories were done.
 
- computer time =    0.56 minutes
+ computer time =    0.18 minutes
 
- mcnp     version 6.mpi 04/01/16                     02/04/20 11:52:42                     probid =  02/04/20 11:52:08 
+ mcnp     version 6.mpi 04/01/16                     04/15/20 16:44:35                     probid =  04/15/20 16:44:23 

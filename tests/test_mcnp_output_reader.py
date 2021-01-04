@@ -1,5 +1,6 @@
 import unittest
 import mcnp_output_reader
+import neut_utilities as ut
 
 class version_test_case(unittest.TestCase):
     """ test for reading the version of output file"""
@@ -30,7 +31,29 @@ class version_test_case(unittest.TestCase):
         string_a = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         self.assertEqual(mcnp_output_reader.read_version(string_a), None)
         
- 
+        
+class rendevous_test_case(unittest.TestCase):
+    """ test for reading the version of output file"""
+     
+    def test_count_rendevous_tests(self):
+        
+        # test with a single core job count should be 0
+        data = ut.get_lines("test_output/singles.io")
+        count= mcnp_output_reader.count_rendevous(data)
+        self.assertEqual(count, 0) 
+        
+        # need to add test for multicore job
+        
+    def test_index_rendevous_tests(self):
+        
+        # test with a single core job should be 0
+        data = ut.get_lines("test_output/singles.io")
+        index= mcnp_output_reader.get_rendevous_index(data)
+        self.assertEqual(index, []) 
+        
+        # need to add test for multicore job
+
+        
 class stat_test_case(unittest.TestCase):
     """ test for reading the version of output file"""
      
