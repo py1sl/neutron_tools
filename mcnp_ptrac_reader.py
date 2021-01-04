@@ -31,6 +31,7 @@ class event():
         self.wgt = 1.0
         self.energy = 1
         self.par = 1
+        self.cell = None
         
 
 def remove_header(lines):
@@ -64,6 +65,7 @@ def process_event(event_data):
     event_data = [float(i) for i in event_data]    
     cur_event = event()
     cur_event.type = event_data[0]
+    cur_event.cell = event_data[3]
     cur_event.x = event_data[8]
     cur_event.y = event_data[9]
     cur_event.z = event_data[10]
@@ -100,7 +102,7 @@ def process_tracks(tracks):
             cur_history.nps = line[0]
         
         # check length of line to determine if it is a new event or a continuation         
-        elif len(line) == 7:    # first event line of a history is shorter
+        elif len(line) == 7 or len(line) == 6 :    # first event line of a history is shorter
             temp_line = line
             temp_line.append("0")
             

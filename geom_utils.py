@@ -56,6 +56,12 @@ def dist_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
     D = top / bottom
 
     return D
+    
+    
+def dist_between_point_plane():
+    """ """
+    dist = 0
+    return dist
 
     
 def dist_bet_points(x1,y1,z1, x2, y2, z2):
@@ -69,7 +75,20 @@ def dist_bet_points(x1,y1,z1, x2, y2, z2):
 
         dist = np.sqrt((xd*xd)+(yd*yd)+(zd*zd))
         return dist
-
+        
+ 
+def midpoint_bet_points(x1,y1,z1, x2, y2, z2):
+    """ calculate the mid point between 2 points
+        returns a tuple of the x, y, z co-ords of the mid point
+    """
+    if (x1 == x2) and (y1 == y2) and (z1 == z2) :
+        return 0.0
+    else:
+        x = (x1 + x2)/2.0
+        y = (y1 + y2)/2.0
+        z = (z1 + z2)/2.0
+        return (x, y, z)
+    
         
 def pythag_h(l1, l2):
     """ calculate length of hypotenuse """
@@ -93,7 +112,7 @@ def area_circle(r):
 
     
 def area_cyl(r, h):
-    """ calculate surface area of cylinder """
+    """ calculate surface area of closed cylinder """
     if r == 0.0 or h == 0.0:
         return 0.0
     
@@ -175,7 +194,7 @@ def evaluate_plane_eq(x, y, z, coeff_X, coeff_Y, coeff_Z, d):
     
     
 def evaluate_sphere_eq(x1, y1, z1, x2, y2, z2, r):
-    """calc sphere equation
+    """ calc sphere equation
        x1, y1, z1 are the co-ords of the point being evaluated
        x2, y2, z2 are the centre point of the sphere surface
        r is the radius
@@ -184,6 +203,15 @@ def evaluate_sphere_eq(x1, y1, z1, x2, y2, z2, r):
     y = y1 - y2
     z = z1 - z2
     val = (x*x) + (y*y) + (z*z) - (r*r)
+    return val
+    
+    
+def evaluate_gq_eq(x, y, z, coeffs):
+    """ calculate gq equation
+        x, y, z are the co-ords of the point of interest
+        coeff is a dict of co-effieicents A-H
+    """
+    val = 0
     return val
 
 
@@ -196,4 +224,17 @@ def find_sense_plane(x, y, z, coeff_X, coeff_Y, coeff_Z, d):
         return 1
     elif val == 0.0:
         print("on the plane")
+        return 0
+        
+        
+def find_sense_sphere(x1, y1, z1, x2, y2, z2, r):
+    """ determine if a point is inside or outside the sphere"""
+    val = evaluate_sphere_eq(x1, y1, z1, x2, y2, z2, r)
+    if val > 0.0:
+        return -1
+    elif val < 0.0:
+        return 1
+    elif val == 0.0:
+        print("on the sphere")
+        return 0
         

@@ -281,9 +281,23 @@ def process_e_t_userbin(data):
     
 def find_term_line(lines):
     """ finds the term line or last dump """
-    term_line = ut.find_line("      run terminated ", lines, 21)
+    try:
+        term_line = ut.find_line("      run terminated ", lines, 21)
+    except ValueError:
+        logging.debug("Term line not found ")
+        term_line = None   
     return term_line   
 
+    
+def find_last_rendevous(lines):
+    """ finds line index of last rendevous """
+    indexes = get_rendevous_index(lines)
+    
+    # the last one is generally at the end of the file, if not a complete run
+    # therefore index of last complete set is the second last one
+    logging.debug("last index: %s", str(indexes[-2]))
+    return indexes[-2]
+    
 
 def read_tally(lines, tnum, rnum=-1):
     """reads the lines and extracts the tally results"""
@@ -291,6 +305,10 @@ def read_tally(lines, tnum, rnum=-1):
     # todo add ability to do all rendevous
     # reduce to only the final result set
     term_line = find_term_line(lines)
+    if term_line == None:
+        logging.debug("trying to find last complete rendevous")
+        term_line = find_last_rendevous(lines)
+        
     lines = lines[term_line:]
 
     # reduce to only the tally results section
