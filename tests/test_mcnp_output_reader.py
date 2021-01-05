@@ -39,7 +39,7 @@ class rendevous_test_case(unittest.TestCase):
         
         # test with a single core job count should be 0
         data = ut.get_lines("test_output/singles.io")
-        count= mcnp_output_reader.count_rendevous(data)
+        count = mcnp_output_reader.count_rendevous(data)
         self.assertEqual(count, 0) 
         
         # need to add test for multicore job
@@ -48,7 +48,7 @@ class rendevous_test_case(unittest.TestCase):
         
         # test with a single core job should be 0
         data = ut.get_lines("test_output/singles.io")
-        index= mcnp_output_reader.get_rendevous_index(data)
+        index = mcnp_output_reader.get_rendevous_index(data)
         self.assertEqual(index, []) 
         
         # need to add test for multicore job
@@ -164,9 +164,9 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(len(tn.eng), 14)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
-                self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[0], 1.20226E-04)   
+                self.assertEqual(len(tn.result[0]), 14)
+                self.assertEqual(len(tn.err[0]), 14)
+                self.assertEqual(tn.result[0][0], 1.20226E-04)   
                 self.assertEqual(tn.cells, ['2']) 
                 self.assertEqual(tn.vols, ['3.66519E+03'])                
                 
@@ -242,9 +242,9 @@ class tally_type6_tests(unittest.TestCase):
                 self.assertEqual(len(tn.eng), 14)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
-                self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[0], 5.60997E-07) 
+                self.assertEqual(len(tn.result[0]), 14)
+                self.assertEqual(len(tn.err[0]), 14)
+                self.assertEqual(tn.result[0][0], 5.60997E-07) 
                 self.assertEqual(tn.cells, ['2'])                
                 self.assertEqual(tn.vols, ['9.89602E+03'])
 
