@@ -16,6 +16,10 @@ class fluxes_writer_test_case(unittest.TestCase):
     def test_correct_gs_length(self):
         self.assertEqual(len(fw.get_group_struct("709")), 709)
     
+    def test_gs_check(self):
+        self.assertEqual(fw.check_group_struct("709"), True)
+        self.assertEqual(fw.check_group_struct("162"), True)
+        self.assertEqual(fw.check_group_struct("710"), False)
        
       
         

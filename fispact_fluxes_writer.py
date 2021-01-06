@@ -6,6 +6,7 @@ Functions for writing fispact fluxes files
 """
 import argparse
 import numpy as np
+import logging
 import neut_utilities as ut
 
 
@@ -168,9 +169,9 @@ def create_fluxes_from_mcnp_spect(mcnp_spect):
         inverts to fispact fluxes format high to low energy
         adds a power line
     """
-    mcnp_spect=np.asarray(mcnp_spect)
+    mcnp_spect = np.asarray(mcnp_spect)
     fispact_spect = mcnp_spect[::-1]
-    fispact_spect=np.append(fispact_spect, 1.0)
+    fispact_spect = np.append(fispact_spect, 1.0)
     
     return fispact_spect
 
@@ -192,9 +193,11 @@ def check_group_struct(gs):
     """
     structures = ("709", "162")
     if gs not in structures:
-        print("Error group structure not recognised")
+        logging.debug("%s group structure recognised.", gs)
+        return False
     else:
-        print("group structure recognised")
+        logging.debug("%s group structure recognised.", gs)
+        return True
 
 
 if __name__ == "__main__":
