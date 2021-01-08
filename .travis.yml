@@ -10,6 +10,8 @@ script:
  - python test_mcnp_output_reader.py 
  - python test_fispact_input_reader.py
  - python test_fispact_output_reader.py
+ - python test_fispact_fluxes_file.py
  - python test_neut_util.py
  - python test_geom_util.py
  - python test_mcnp_analyis.py
+ - python test_meshtal_analyis.py
