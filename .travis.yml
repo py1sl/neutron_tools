@@ -3,13 +3,19 @@ python:
  - "3.5" 
 install:
  - pip install matplotlib
+ - pip install pandas
+ - pip install pytest-flake8
 script:
  - export PYTHONPATH=$PYTHONPATH:$(pwd)
+ - pytest --flake8
  - cd tests
+ - pytest --flake8
  - python test_mcnp_input_reader.py
  - python test_mcnp_output_reader.py 
  - python test_fispact_input_reader.py
  - python test_fispact_output_reader.py
+ - python test_fispact_fluxes_file.py
  - python test_neut_util.py
  - python test_geom_util.py
  - python test_mcnp_analyis.py
+ - python test_meshtal_analysis.py
