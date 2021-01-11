@@ -17,7 +17,6 @@ this module has methods for parsing the fispact output file,
 extracting data, processing the data
 
 """
-import sys
 import argparse
 import neut_utilities as ut
 import numpy as np
@@ -168,7 +167,7 @@ def read_time_step(lines, i):
         ind = find_ind(lines, "APPM OF He  4 ")
         ts.appm_he4 = lines[ind][23:33]
         if "E" in ts.appm_he4:
-            ts.appm_he4= float(ts.appm_he4)        
+            ts.appm_he4 = float(ts.appm_he4)
         ts.appm_he3 = lines[ind+1][23:33]
         if "E" in ts.appm_he3:
             ts.appm_he3 = float(ts.appm_he3)
@@ -193,7 +192,8 @@ def read_time_step(lines, i):
 
 def check_fisp_version(data):
     """ Checks which version of fispact was used to produced data
-        requires a list with each element being a line from the fispact output file
+        requires a list with each element being a line from the 
+        fispact output file
         returns a string of the version name
     """
 
@@ -241,27 +241,27 @@ def read_summary_data(data):
     trit = []
     to = 0
 
-    for l in sum_lines:
+    for line in sum_lines:
         if isFisII(data):
-            if l[1] == "-":
+            if line[1] == "-":
                 to = time_yrs[-1]
             else:
-                time_yrs.append(float(l[24:32]) + to)
-                act.append(l[35:43])
-                dr.append(l[58:66])
-                heat.append(l[81:89])
-                ing.append(l[104:112])
-                inhal.append(l[127:135])
-                trit.append(l[150:158])
+                time_yrs.append(float(line[24:32]) + to)
+                act.append(line[35:43])
+                dr.append(line[58:66])
+                heat.append(line[81:89])
+                ing.append(line[104:112])
+                inhal.append(line[127:135])
+                trit.append(line[150:158])
 
         else:
-            time_yrs.append(l[20:28])
-            act.append(l[31:39])
-            dr.append(l[54:62])
-            heat.append(l[77:85])
-            ing.append(l[100:108])
-            inhal.append(l[123:131])
-            trit.append(l[146:154])
+            time_yrs.append(line[20:28])
+            act.append(line[31:39])
+            dr.append(line[54:62])
+            heat.append(line[77:85])
+            ing.append(line[100:108])
+            inhal.append(line[123:131])
+            trit.append(line[146:154])
 
     sum_data.append(time_yrs)
     sum_data.append(act)
@@ -305,24 +305,24 @@ def parse_dominant(data):
     bheat = []
     bheat_percent = []
 
-    for l in topset:
-        act_nuc.append(l[7:13].replace(" ", ""))
-        act.append(l[15:25])
-        act_percent.append(l[27:36])
-        heat_nuc.append(l[38:44].replace(" ", ""))
-        heat.append(l[46:56])
-        heat_percent.append(l[58:67])
-        dr_nuc.append(l[69:75].replace(" ", ""))
-        dr.append(l[77:87])
-        dr_percent.append(l[89:98])
+    for tl in topset:
+        act_nuc.append(tl[7:13].replace(" ", ""))
+        act.append(tl[15:25])
+        act_percent.append(tl[27:36])
+        heat_nuc.append(tl[38:44].replace(" ", ""))
+        heat.append(tl[46:56])
+        heat_percent.append(tl[58:67])
+        dr_nuc.append(tl[69:75].replace(" ", ""))
+        dr.append(tl[77:87])
+        dr_percent.append(tl[89:98])
 
-    for l in lowerset:
-        gheat_nuc.append(l[7:13].replace(" ", ""))
-        gheat.append(l[15:25])
-        gheat_percent.append(l[27:36])
-        bheat_nuc.append(l[38:44].replace(" ", ""))
-        bheat.append(l[46:56])
-        bheat_percent.append(l[58:67])
+    for ll in lowerset:
+        gheat_nuc.append(ll[7:13].replace(" ", ""))
+        gheat.append(ll[15:25])
+        gheat_percent.append(ll[27:36])
+        bheat_nuc.append(ll[38:44].replace(" ", ""))
+        bheat.append(ll[46:56])
+        bheat_percent.append(ll[58:67])
 
     dom_data = []
     dom_data.append(act_nuc)
@@ -355,9 +355,9 @@ def parse_composition(data):
     ele_list = []
     atoms = []
 
-    for l in data:
-        ele_list.append(l[12:14])
-        atoms.append(float(l[20:30]))
+    for line in data:
+        ele_list.append(line[12:14])
+        atoms.append(float(line[20:30]))
 
     composition = []
     composition.append(ele_list)
@@ -374,8 +374,8 @@ def parse_spectra(data):
     p1 = find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
     data = data[p1+7:p1+31]
     spectra = []
-    for l in data:
-        spectra.append(float(l[130:141]))
+    for line in data:
+        spectra.append(float(line[130:141]))
     return spectra
 
 
@@ -396,8 +396,8 @@ def parse_inventory(data):
     p2 = find_ind(data, "0  TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
     data = data[4:p2]
     for nuc in data:
-        nuc_data = [nuc[2:8].replace(" ", ""), float(nuc[14:25]), 
-                    float(nuc[28:37]), float(nuc[40:49]), 
+        nuc_data = [nuc[2:8].replace(" ", ""), float(nuc[14:25]),
+                    float(nuc[28:37]), float(nuc[40:49]),
                     float(nuc[52:61]), float(nuc[64:72]),
                     float(nuc[75:84]), float(nuc[87:96])]
         inv.append(nuc_data)
@@ -422,6 +422,7 @@ def read_parameter(data, sub):
     line = line.split(" ")
     param = float(line[0])
     return param
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="reads fispact output file")

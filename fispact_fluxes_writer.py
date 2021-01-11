@@ -18,7 +18,7 @@ def get_group_pos(groups, energy):
     energy = float(energy)
     for i, e in enumerate(groups[1:]):
         if energy >= e:
-            return i 
+            return i
 
 
 def get_group_struct(gs):
@@ -151,19 +151,19 @@ def get_group_struct(gs):
 
 
 def create_fluxes_data(groups, epos):
-    """ produces a list representing a fluxes file 
-        with a single 1 in the correct energy bin 
+    """ produces a list representing a fluxes file
+        with a single 1 in the correct energy bin
         all other bins are set to zero
         a power line is also added to ensure it is the correct size
     """
-    
+
     fdata = np.zeros(len(groups)+1)
     fdata[epos] = 1
     fdata[-1] = 1  # deals with 'power line'
 
     return fdata
 
-    
+
 def create_fluxes_from_mcnp_spect(mcnp_spect):
     """ takes a list asumed to be ordered low to high energy
         inverts to fispact fluxes format high to low energy
@@ -172,7 +172,7 @@ def create_fluxes_from_mcnp_spect(mcnp_spect):
     mcnp_spect = np.asarray(mcnp_spect)
     fispact_spect = mcnp_spect[::-1]
     fispact_spect = np.append(fispact_spect, 1.0)
-    
+
     return fispact_spect
 
 
@@ -189,7 +189,7 @@ def write_fluxes_file(opath, data):
 
 
 def check_group_struct(gs):
-    """ checks if the requested group structure is a valid fispact group structure 
+    """ checks if the requested group structure is a valid fispact group structure
     """
     structures = ("709", "162")
     if gs not in structures:
