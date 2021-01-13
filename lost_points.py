@@ -28,17 +28,17 @@ def output_lost_points(path, outpath="lost"):
         i = i + 1
 
     ofile = open(outpath + ".3d", 'w')
-    for l in out_list:
-        ofile.write("%s\n" % l)
+    for line in out_list:
+        ofile.write("%s\n" % line)
 
 
 if __name__ == "__main__":
-    desc_txt = "extracts location of lost particles from MCNP output file" +
-               " and output to a .3d  file compatible with VisIt"
-    parser = argparse.ArgumentParser(description=desc_txt)
+    desc_txt1 = "extracts location of lost particles from MCNP output file" 
+    desc_txt2 = " and output to a .3d  file compatible with VisIt"
+    parser = argparse.ArgumentParser(description=desc_txt1 +desc_txt2 )
     parser.add_argument("input", help="path to the input file")
     parser.add_argument("-o", "--output", action="store", dest="output",
-    help="path to the output file")
+                        help="path to the output file")
     args = parser.parse_args()
 
     if args.output:

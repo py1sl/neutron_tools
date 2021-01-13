@@ -83,8 +83,7 @@ def read_fis_out(path):
 
     fo = FispactOutput()
     fo.file_name = path
-    with open(path) as f:
-        lines = f.read().splitlines()
+    lines = ut.get_lines(path)
 
     fo.version = check_fisp_version(lines)
     fo.isFisII = isFisII(lines)
@@ -192,7 +191,7 @@ def read_time_step(lines, i):
 
 def check_fisp_version(data):
     """ Checks which version of fispact was used to produced data
-        requires a list with each element being a line from the 
+        requires a list with each element being a line from the
         fispact output file
         returns a string of the version name
     """
