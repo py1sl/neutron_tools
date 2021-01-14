@@ -32,8 +32,8 @@ class meshtally:
 
 def rel_err_hist(df, fname = None):
     """ Plots a histogram of the relative errors"""
-    
-    df.hist(column = 'rel_err', bins = 15) 
+
+    df.hist(column = 'rel_err', bins = 15)
     plt.xlabel("Relative error")
     plt.ylabel("Number of voxels")
     if fname:
@@ -41,8 +41,8 @@ def rel_err_hist(df, fname = None):
         logging.info("produced figure: %s", fname)
     else:
         plt.show()
-  
-     
+
+
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
 def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=False, norm=1.0, erg=None):
@@ -52,13 +52,13 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=F
     # filter by energy if needed
     if erg:
         data = data[data["Energy"]==erg]
-     
+
     if plane == "XZ":
         midx = mesh.x_mids
         midy = mesh.z_mids
         v_mid = mesh.y_mids
         v_ind = "y"
-        ipos = "x" 
+        ipos = "x"
         jpos = "z"
         ilab = "X co-ord (cm)"
         jlab = "Z co-ord (cm)"
@@ -67,9 +67,9 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=F
         midy = mesh.y_mids
         v_mid = mesh.z_mids
         v_ind = "z"
-        ipos = "x" 
+        ipos = "x"
         jpos = "y"
-        
+
         ilab = "X co-ord (cm)"
         jlab = "Y co-ord (cm)"
     elif plane == "YZ":
@@ -77,30 +77,30 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=F
         midy = mesh.z_mids
         v_mid = mesh.x_mids
         v_ind = "x"
-        ipos = "y" 
+        ipos = "y"
         jpos = "z"
-        
+
         ilab = "Y co-ord (cm)"
         jlab = "Z co-ord (cm)"
 
     # find closest mid point
     value = find_nearest_mid(value, v_mid)
-    
+
     #filter to just the values in the plane
     data = data[data[v_ind] == value]
-    
-    
+
+
     # now find the slice values
     vals = np.zeros((len(midy), len(midx)))
     err_vals = np.zeros((len(midy), len(midx)))
-    
+
     for (_, __, x, y, ____, val, rerr) in data.itertuples():
 
         x=np.float64(x)
         y=np.float64(y)
         i, = np.where(midx == x)
         j, = np.where(midy == y)
-        
+
         vals[j, i] = val
         err_vals[j, i] = rerr
 
@@ -119,11 +119,11 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=F
 
         plt.subplot(2, 1, 1)
         plt.tight_layout()
-    
+
     plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
     title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
     plt.title(title)
-    
+
     plt.colorbar()
     plt.xlabel(ilab)
     plt.ylabel(jlab)
@@ -141,10 +141,10 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=F
 def output_as_vtk():
     """ """
     print("not ready yet")
-    
-    
+
+
 def find_nearest_mid(value, mids):
-    """ finds the midpoint with the shortest absoloute distance to the value """   
+    """ finds the midpoint with the shortest absoloute distance to the value """
     return mids[min(range(len(mids)), key = lambda i: abs(mids[i]-value))]
 
 
@@ -154,42 +154,42 @@ def convert_to_df(mesh):
         cols = ("Energy","x", "y", "z", "value", "rel_err")
     elif mesh.ctype == "5col":
         cols = ("x", "y", "z", "value", "rel_err")
-    
+
     data = pd.DataFrame(mesh.data, columns=cols)
     data["x"] = pd.to_numeric(data["x"], downcast="float")
     data["y"] = pd.to_numeric(data["y"], downcast="float")
     data["z"] = pd.to_numeric(data["z"], downcast="float")
     data["value"] = pd.to_numeric(data["value"], downcast="float")
-    data["rel_err"] = pd.to_numeric(data["rel_err"], downcast="float") 
-    
+    data["rel_err"] = pd.to_numeric(data["rel_err"], downcast="float")
+
     return data
 
-    
+
 def extract_line(mesh, p1, p2, erg=None):
-    """ currently support lines varying along a single axis  
+    """ currently support lines varying along a single axis
         p1 and p2 are tuples of the form (x,y,z) and describe two points on the line
         currently only either x,y or z can vary between the two points
     """
-      
+
     data = mesh.data
     # find and filter the constant axis
     if p1[0] == p2[0]:
         x = p1[0]
         x = find_nearest_mid(x, mesh.x_mids)
-        data = data[data["x"] == x ]        
+        data = data[data["x"] == x ]
     if p1[1] == p2[1]:
         y = p1[1]
         y = find_nearest_mid(y, mesh.y_mids)
         data = data[data["y"] == y ]
     if p1[2] == p2[2]:
-        z = p1[2] 
-        z = find_nearest_mid(z, mesh.z_mids)        
+        z = p1[2]
+        z = find_nearest_mid(z, mesh.z_mids)
         data = data[data["z"] == z ]
-    
+
     if erg:
         data = data[data["Energy"]==erg]
-    
-    result = data["value"]    
+
+    result = data["value"]
 
     return result
 
@@ -199,17 +199,17 @@ def pick_point(x, y, z, mesh, erg):
     """ find the mesh value for the voxel that  point x, y, z is in"""
     v=0
     return v
-     
 
-def add_mesh(mesh1, mesh2): 
+
+def add_mesh(mesh1, mesh2):
     """ checks if boundaries of two meshes are equal and adds their values and errors  """
     if mesh1.x_bounds != mesh2.x_bounds or mesh1.y_bounds != mesh2.y_bounds or mesh1.z_bounds != mesh2.z_bounds:
         raise ValueError('bounds not equal')
-    
+
     else:
         new_val = mesh1.data['value'] + mesh2.data['value']
         new_err = np.sqrt((mesh1.data['rel_err'])**2+(mesh2.data['rel_err'])**2)
-        
+
         new_mesh = meshtally()
         cols = ("Energy","x", "y", "z", "value", "rel_err")
         new_mesh.data = pd.DataFrame(columns = cols)
@@ -217,24 +217,24 @@ def add_mesh(mesh1, mesh2):
         new_mesh.x_bounds = mesh1.x_bounds
         new_mesh.y_bounds = mesh1.y_bounds
         new_mesh.z_bounds = mesh1.z_bounds
-        
+
         new_mesh.x_mids = mesh1.x_mids
         new_mesh.y_mids = mesh1.y_mids
         new_mesh.z_mids = mesh1.z_mids
-        
-        new_mesh.data['value'] = new_val 
+
+        new_mesh.data['value'] = new_val
         new_mesh.data['rel_err'] = new_err
         new_mesh.data['Energy'] = mesh1.data['Energy']
         new_mesh.data['x'] = mesh1.data['x']
         new_mesh.data['y'] = mesh1.data['y']
         new_mesh.data['z'] = mesh1.data['z']
-        
-        return(new_mesh) 
+
+        return(new_mesh)
 
 
 # TODO: need to deal with energy bins
 def convert_to_3d_array(mesh):
-    """ converts the mesh into 3d numpy array 
+    """ converts the mesh into 3d numpy array
         one array for the values and another for the rel errs
     """
     data = mesh.data
@@ -339,26 +339,26 @@ def read_mesh(tnum, data, tdict):
         elif ("Energy         X         Y         Z     Result" in v):
             in_data = True
             break
-            
+
         elif "X         Y         Z     Result" in v:
-            in_data = True          
+            in_data = True
             mesh.ctype = "5col"
             break
-            
+
         elif "mesh tally." in v:
             v = " ".join(v.split())
             mesh.ptype = v.split(" ")[0]
 
-            
+
     mesh_data = [" ".join(j.split()) for j in mesh_data[i:] ]
     mesh.data = [j.split() for j in mesh_data[1:]]
-    mesh.data = convert_to_df(mesh) 
-    
+    mesh.data = convert_to_df(mesh)
+
     mesh.x_mids = calc_mid_points(mesh.x_bounds)
     mesh.y_mids = calc_mid_points(mesh.y_bounds)
     mesh.z_mids = calc_mid_points(mesh.z_bounds)
     logging.info("finished reading mesh number: %s ", str(tnum))
-    
+
     return mesh
 
 
@@ -377,5 +377,5 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Meshtally ploting")
     parser.add_argument("input", help="path to the Meshtal file")
     args = parser.parse_args()
-    
+
     meshes=read_mesh_tally_file(args.input)

@@ -14,7 +14,7 @@ import argparse
 def plot_nps_stats(path):
     """ reads std out file of mcnp run and produces graphs vs nps
         these are useful for identifing any long history issues
-        process - read file, extract data, plot graphs 
+        process - read file, extract data, plot graphs
     """
     with open(path) as f:
         lines = f.read().splitlines()

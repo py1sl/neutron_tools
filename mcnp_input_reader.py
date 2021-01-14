@@ -28,8 +28,8 @@ def read_mode_card(lines):
            l = ut.string_cleaner(l)
            mode = l.split(" ")[1:]
     return mode
-    
-    
+
+
 def check_mode_valid(mode):
     """ """
     particle_list = ["n", "p", "h", "e"]
@@ -37,8 +37,8 @@ def check_mode_valid(mode):
         if particle.lower() not in particle_list:
             return False
     return True
-  
-  
+
+
 def get_full_line_comments(lines):
     """ """
     comments = []
@@ -46,8 +46,8 @@ def get_full_line_comments(lines):
         if len(l) > 1 and l[0].lower() == "c" and l[1] == " ":
             comments.append(l)
     return comments
-    
-    
+
+
 def get_material_numbers(lines):
     """ """
     mat_nums = []
@@ -55,11 +55,11 @@ def get_material_numbers(lines):
         if len(l) > 1 and l[0].lower() == "m" and l[1].isdigit():
              l = ut.string_cleaner(l)
              l = l.split(" ")[0]
-             mnum = l[1:] 
+             mnum = l[1:]
              mat_nums.append(int(mnum))
     return mat_nums
-   
-   
+
+
 def get_tally_numbers(lines):
     """ """
     tal_nums = []
@@ -68,11 +68,11 @@ def get_tally_numbers(lines):
              l = ut.string_cleaner(l)
              l = l.split(" ")[0]
              l = l.split(":")[0]
-             tnum = l[1:] 
+             tnum = l[1:]
              tal_nums.append(int(tnum))
     return tal_nums
-    
-    
+
+
 def check_surface_type_validity(surface):
     """ check surface is a valid mcnp type"""
     return True
@@ -101,32 +101,32 @@ def check_cone(surface):
 def check_GQ(surface):
     """ check entries on GQ surface are valid """
     return True
-    
+
 
 def find_blank_lines(lines):
     """ find the location and count of balnk lines in the file """
     count = 0
     blank_dict = {}
-    
+
     for i, l in enumerate(lines):
         if l == "":
             count = count + 1
             blank_dict[count] = i
-            
+
     return count, blank_dict
-    
-    
+
+
 def split_blocs(lines):
     """ split into the cell, surf and data blocks """
-    
+
     blank_count, blank_loc = find_blank_lines(lines)
     cell_bloc = lines[:blank_loc[1]]
     surf_bloc = lines[blank_loc[1]:blank_loc[2]]
     data_bloc = lines[blank_loc[2]:]
-    
+
     return cell_bloc, surf_bloc, data_bloc
 
-    
+
 def process_imp(part, cell):
     """ """
     imp_val = part.split("=")[-1]
@@ -135,21 +135,21 @@ def process_imp(part, cell):
         cell.imp_p = imp_val
     elif imp_particle.lower() == "n":
         cell.imp_n = imp_val
-    
+
     return cell
 
-    
+
 def process_geom(geom, cell):
     """ """
     surfaces = []
     for part in geom:
         if "imp" in part:
             cell = process_imp(part, cell)
-            
+
     cell.geom = " ".join(geom)
     return cell
 
-    
+
 def process_cell_block(bloc):
     """ """
     cell_list = []
@@ -159,7 +159,7 @@ def process_cell_block(bloc):
             if cell is not None:
                 cell = process_geom(geom, cell)
                 cell_list.append(cell)
-                
+
             cell = mcnp_cell()
             line = ut.string_cleaner(line)
             line = line.split(" ")
@@ -172,20 +172,20 @@ def process_cell_block(bloc):
             geom = line[geo_start_pos:]
         elif line[0:4] == "     ":
             geom = cell.geom.append(line)
-        
-        
+
+
     return cell_list
-    
-    
+
+
 def get_cell(cell_num, cell_list):
     """ get cell from cell list """
     for cell in cell_list:
         if cell_num == cell.number:
             return cell
-    
-    return None 
 
-        
+    return None
+
+
 def cells_with_mat(mat_num, cell_list):
     """ get all cells with mat """
     cells = []
@@ -193,8 +193,8 @@ def cells_with_mat(mat_num, cell_list):
         if mat_num == cell.mat:
             cells.append(cell)
     return cells
-    
-    
+
+
 def print_cell(cell):
     """ pretty printing of cell object """
     print("Cell number: ", cell.number)
@@ -203,8 +203,8 @@ def print_cell(cell):
     print("Cell geom: ", cell.geom)
     print("Cell surfaces: ", cell.surfaces)
     print("Cell imp p:", cell.imp_p)
-     
-    
+
+
 def read_mcnp_input(fpath):
     """ """
 
@@ -213,13 +213,13 @@ def read_mcnp_input(fpath):
     cell_list = process_cell_block(cell_bloc)
     print_cell(cell_list[0])
 
-    comments = get_full_line_comments(ifile) 
-    
+    comments = get_full_line_comments(ifile)
+
     mat_nums = get_material_numbers(data_bloc)
-    
+
     return ifile
 
-     
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="reads MCNP input file")
     parser.add_argument("input", help="path to the mcnp input file")

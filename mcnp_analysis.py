@@ -39,7 +39,7 @@ def calc_bin_width(bins):
     bw = np.asarray(bw)
     return bw
 
-    
+
 def calc_mid_points(bounds):
     """ calculate the mid points of a list"""
     mids = []
@@ -51,7 +51,7 @@ def calc_mid_points(bounds):
         i = i + 1
     return mids
 
-    
+
 def plot_raw_spectra(data, fname, title, sp="proton"):
     """ plots spectra from MCNP tally data object per bin no normalisation """
     plt.clf()
@@ -61,7 +61,7 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
     plt.xscale('log')
     plt.yscale('log')
     if type(data) is not list: data = [data]
-    
+
     for d in data:
              plt.step(np.asarray(d.eng), np.asarray(d.result))
     plt.savefig(fname)
@@ -82,10 +82,10 @@ def plot_spectra(data, fname, title, sp="proton", err = False, xlow = None, lege
     for d in data:
         bw = calc_bin_width(d.eng)
         if d.type == '2':
-            y_vals = np.asarray(d.result[0])/bw         
-        else:   
-            y_vals = np.asarray(d.result)/bw         
-            
+            y_vals = np.asarray(d.result[0])/bw
+        else:
+            y_vals = np.asarray(d.result)/bw
+
         splot = plt.step(np.asarray(d.eng),  y_vals)
         if err == True:
             abs_err = calc_err_abs(y_vals, d.err)
@@ -93,16 +93,16 @@ def plot_spectra(data, fname, title, sp="proton", err = False, xlow = None, lege
             ecol = splot[0].get_color()
             plt.errorbar(mids, y_vals[1:], yerr=abs_err[:-1], fmt="none", ecolor=ecol,
             markeredgewidth=1, capsize=2)
-    
-    if xlow is None:    
+
+    if xlow is None:
         non_zero_loc = ut.find_first_non_zero(y_vals)
         plt.xlim(xmin = d.eng[non_zero_loc])
     else:
         plt.xlim(xmin = xlow)
-        
+
     if legend is not None:
         plt.legend(legend)
-    
+
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
 
@@ -118,8 +118,8 @@ def plot_spectra_ratio(data1, data2, fname, title):
         ratio = np.asarray(data1.result[0])/np.asarray(data2.result[0])
     else:
         ratio = np.asarray(data1.result)/np.asarray(data2.result)
-    
-    
+
+
     plt.plot(data1.eng, ratio)
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
@@ -139,7 +139,7 @@ def plot_run_comp(data, err, fname, title, xlab="Run #",
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
 
-    
+
 def plot_en_time(data, fname):
     """ plotting energy time data"""
     plt.clf()
@@ -150,24 +150,24 @@ def plot_en_time(data, fname):
     plt.xlabel("time")
     plt.ylabel("energy")
 
-    
+
     masked_vals = np.asarray(data.result)
     masked_vals = masked_vals[:-1,:-1]
     #np.ma.masked_where(data.result[1] < 1e-50, data.result[1])
 
-    plt.pcolormesh( masked_vals.T, 
-                   norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()), 
+    plt.pcolormesh( masked_vals.T,
+                   norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()),
                    cmap="PuBu_r")
-    """               
-    plt.pcolormesh(data.times[:-3], data.eng, masked_vals.T, 
-                   norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()), 
+    """
+    plt.pcolormesh(data.times[:-3], data.eng, masked_vals.T,
+                   norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()),
                    cmap="PuBu_r")
     """
     plt.colorbar()
     plt.savefig(fname)
     logging.info("produced figure: %s", fname)
 
-    
+
 def html_tab_out(data, fname):
     """ produces f4 tally data as html table output """
     if type(data) is not list: data = [data]
