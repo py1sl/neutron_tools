@@ -4,12 +4,11 @@ python:
 install:
  - pip install matplotlib
  - pip install pandas
- - pip install pytest-flake8
+ - pip install flake8
 script:
  - export PYTHONPATH=$PYTHONPATH:$(pwd)
- - pytest --flake8
+ - flake8
  - cd tests
- - pytest --flake8
  - python test_mcnp_input_reader.py
  - python test_mcnp_output_reader.py 
  - python test_fispact_input_reader.py
