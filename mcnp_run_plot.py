@@ -7,7 +7,6 @@ does not work on the MCNP output file
 import matplotlib
 import matplotlib.pyplot as plt
 import datetime
-import sys
 import argparse
 
 
@@ -26,18 +25,18 @@ def plot_nps_stats(path):
     coll = []   # number of collisions
     time = []   # wall clock time
 
-    for l in lines:
-        if l[0:4] == " ctm":
-            ctm.append(float(l[6:18]))
-            nrn.append(int(l[26:44]))
-        if l[0:5] == " dump":
+    for line in lines:
+        if line[0:4] == " ctm":
+            ctm.append(float(line[6:18]))
+            nrn.append(int(line[26:44]))
+        if line[0:5] == " dump":
             coll.append(int(l[61:78]))
-        if l[0:22] == " master set rendezvous":
-            nps.append(int(l[28:40]))
+        if line[0:22] == " master set rendezvous":
+            nps.append(int(line[28:40]))
             t1 = datetime.datetime.strptime(l[66:83], '%m/%d/%y %H:%M:%S')
             time.append(t1)
 
-    d2 = matplotlib.dates.date2num(time)
+    time = matplotlib.dates.date2num(time)
     fmt = matplotlib.dates.DateFormatter('%d/%m  %H:%M')
 
     fig = plt.figure()
@@ -67,9 +66,9 @@ def plot_nps_stats(path):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="data about run time and rendevous frequency")
+    desc = "data about run time and rendevous frequency"
+    parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("input", help="path to the input file")
     args = parser.parse_args()
 
     plot_nps_stats(args.input)
-

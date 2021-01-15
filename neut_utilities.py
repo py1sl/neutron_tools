@@ -3,7 +3,8 @@ import logging
 
 
 def setup_logging():
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+    msg_format = '%(levelname)s:%(message)s'
+    logging.basicConfig(format=msg_format, level=logging.DEBUG)
     logging.info("Starting calculation")
 
 

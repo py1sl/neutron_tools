@@ -33,9 +33,9 @@ def output_lost_points(path, outpath="lost"):
 
 
 if __name__ == "__main__":
-    desc_txt1 = "extracts location of lost particles from MCNP output file" 
+    desc_txt1 = "extracts location of lost particles from MCNP output file"
     desc_txt2 = " and output to a .3d  file compatible with VisIt"
-    parser = argparse.ArgumentParser(description=desc_txt1 +desc_txt2 )
+    parser = argparse.ArgumentParser(description=desc_txt1 + desc_txt2)
     parser.add_argument("input", help="path to the input file")
     parser.add_argument("-o", "--output", action="store", dest="output",
                         help="path to the output file")

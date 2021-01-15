@@ -36,41 +36,34 @@ class surface_card_tests(unittest.TestCase):
     def test_single_line_surface(self):
         self.assertTrue(True)
 
-
     # test multi line surface card
     def test_multi_line_surface(self):
         self.assertTrue(True)
-
 
     def test_is_surface(self):
         # test check surface type validity
         self.assertTrue(True)
         self.assertFalse(False)
 
-
     def test_plane_valid(self):
         # test plane validity
         self.assertTrue(True)
         self.assertFalse(False)
-
 
     def test_sphere_valid(self):
         # test sphere validity
         self.assertTrue(True)
         self.assertFalse(False)
 
-
     def test_cyl_valid(self):
         # test cylinder validity
         self.assertTrue(True)
         self.assertFalse(False)
 
-
     def test_cone_valid(self):
         # test cone validity
         self.assertTrue(True)
         self.assertFalse(False)
-
 
     def test_gq_valid(self):
         # test general quadratic validity
@@ -105,7 +98,6 @@ class data_card_tests(unittest.TestCase):
         self.assertEqual(tnums[1], 10)   # test for upper case f
         self.assertEqual(len(tnums), 2)  # check nothing else added
 
-
     def test_get_mode(self):
         """ """
         mode = mcnp_input_reader.read_mode_card(["Mode n"])
@@ -120,9 +112,9 @@ class data_card_tests(unittest.TestCase):
         self.assertEqual(mode, ["n", "p"])  # test for upper case mode
         self.assertEqual(len(mode), 2)      # check multipe particles else added
 
-        mode = mcnp_input_reader.read_mode_card(["m23 1001.21c 1", "m34 32000"])
+        mode = mcnp_input_reader.read_mode_card(["m23 1001.21c 1",
+                                                 "m34 32000"])
         self.assertIsNone(mode)  # test for not including any line starting with m
-
 
     def test_mode_valid(self):
         """ """
@@ -130,10 +122,10 @@ class data_card_tests(unittest.TestCase):
         self.assertTrue(check)  # check lower case
 
         check = mcnp_input_reader.check_mode_valid(["n", "P"])
-        self.assertTrue(check) # check upper case and order
+        self.assertTrue(check)  # check upper case and order
 
         check = mcnp_input_reader.check_mode_valid(["p", "n", "r"])
-        self.assertFalse(check) # check false
+        self.assertFalse(check)  # check false
 
 
 class misc_tests(unittest.TestCase):

@@ -2,33 +2,29 @@ import unittest
 import mcnp_output_reader
 import neut_utilities as ut
 
+
 class version_test_case(unittest.TestCase):
     """ test for reading the version of output file"""
 
     def test_is_version(self):
         """ """
         list_a = ["          Code Name & Version = MCNP6, 1.0",
-                  "  ",
-                  "     _/      _/        _/_/_/       _/      _/       _/_/_/         _/_/_/"
-                  "    _/_/  _/_/      _/             _/_/    _/       _/    _/     _/       "
-                  "   _/  _/  _/      _/             _/  _/  _/       _/_/_/       _/_/_/    "
-                  "  _/      _/      _/             _/    _/_/       _/           _/    _/   "
-                  " _/      _/        _/_/_/       _/      _/       _/             _/_/    "]
+                  "  "]
         self.assertEqual(mcnp_output_reader.read_version(list_a), "MCNP6, 1.0")
 
     def test_is_version_none_given_other_list(self):
         """ test for version """
-        list_a = ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-                  "ccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-                  "ddddddddddddddddddddddddddddddddddddddddddddddddddddddd"]
-        list_b = ["a","b","c","d"]
+        list_a = ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                  "ccccccccccccccccccccccccccccccccccccccccccccccccc",
+                  "ddddddddddddddddddddddddddddddddddddddddddddddddd"]
+        list_b = ["a", "b", "c", "d"]
         self.assertEqual(mcnp_output_reader.read_version(list_a), None)
         self.assertEqual(mcnp_output_reader.read_version(list_b), None)
 
     def test_is_version_none_given_string(self):
         """ test for version with string"""
-        string_a = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        string_a = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         self.assertEqual(mcnp_output_reader.read_version(string_a), None)
 
 
@@ -82,7 +78,8 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(tn.err[0], 0.0006)
 
     def test_ebined_t1_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
+        path = "test_output/singles_erg.io"
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 1:
                 self.assertEqual(tn.type, '1')
@@ -102,7 +99,8 @@ class tally_type2_tests(unittest.TestCase):
     """ tests for type 2 tally """
 
     def test_single_value_t2_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles.io")
+        path = "test_output/singles.io"
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
                 self.assertEqual(tn.type, '2')
@@ -118,7 +116,8 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.err[0], 0.0015)
 
     def test_ebined_t2_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
+        path = "test_output/singles_erg.io"
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
                 self.assertEqual(tn.type, '2')
@@ -132,6 +131,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(len(tn.result), 14)
                 self.assertEqual(len(tn.err), 14)
                 self.assertEqual(tn.result[0], 1.92767E-04)
+
 
 class tally_type4_tests(unittest.TestCase):
     """ tests for type 4 tally """
@@ -154,7 +154,8 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.vols, ['3.66519E+03'])
 
     def test_ebined_t4_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
+        path = "test_output/singles_erg.io"
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
                 self.assertEqual(tn.type, '4')
@@ -194,7 +195,8 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.z, 0.00)
 
     def test_ebined_t5_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
+        path = "test_output/singles_erg.io"
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 5:
                 self.assertEqual(tn.type, '5')
@@ -210,6 +212,7 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.x, 15)
                 self.assertEqual(tn.y, 0.00)
                 self.assertEqual(tn.z, 0.00)
+
 
 class tally_type6_tests(unittest.TestCase):
     """ tests for type 6 tally """
@@ -232,7 +235,8 @@ class tally_type6_tests(unittest.TestCase):
                 self.assertEqual(tn.vols, ['9.89602E+03'])
 
     def test_ebined_t6_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
+        path = "test_output/singles_erg.io"
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 6:
                 self.assertEqual(tn.type, '6')
@@ -268,7 +272,8 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(tn.err[0], 0.00)
 
     def test_ebined_t8_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles_erg.io")
+        path = "test_output/singles_erg.io"
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 8:
                 self.assertEqual(tn.type, '8')
