@@ -30,10 +30,10 @@ def plot_nps_stats(path):
             ctm.append(float(line[6:18]))
             nrn.append(int(line[26:44]))
         if line[0:5] == " dump":
-            coll.append(int(l[61:78]))
+            coll.append(int(line[61:78]))
         if line[0:22] == " master set rendezvous":
             nps.append(int(line[28:40]))
-            t1 = datetime.datetime.strptime(l[66:83], '%m/%d/%y %H:%M:%S')
+            t1 = datetime.datetime.strptime(line[66:83], '%m/%d/%y %H:%M:%S')
             time.append(t1)
 
     time = matplotlib.dates.date2num(time)

@@ -1,10 +1,10 @@
 """
 Reads MCNP ptrac output file
 """
-import datetime
+# import datetime
 import argparse
 import logging
-import numpy as np
+# import numpy as np
 import neut_utilities as ut
 
 
@@ -24,7 +24,7 @@ class event():
         self.x = 0
         self.y = 0
         self.z = 0
-        self.type =""
+        self.type = ""
         self.u = 0
         self.v = 0
         self.e = 0
@@ -50,7 +50,7 @@ def mean_num_events(hists):
     n_hist = float(len(hists))
     n_events = 0
     for hist in hists:
-      n_events = n_events + len(hist.events)
+        n_events = n_events + len(hist.events)
 
     ave = n_events/n_hist
     return ave
@@ -101,8 +101,9 @@ def process_tracks(tracks):
             cur_history = history()
             cur_history.nps = line[0]
 
-        # check length of line to determine if it is a new event or a continuation
-        elif len(line) == 7 or len(line) == 6 :    # first event line of a history is shorter
+        # check linelength to determine if a new event or a continuation
+        # first event line of a history is shorter
+        elif len(line) == 7 or len(line) == 6 :
             temp_line = line
             temp_line.append("0")
 
@@ -111,9 +112,9 @@ def process_tracks(tracks):
 
         elif len(line) == 9:    # continuation of an event
 
-             temp_line = temp_line + line
-             event = process_event(temp_line)
-             cur_history.events.append(event)
+            temp_line = temp_line + line
+            event = process_event(temp_line)
+            cur_history.events.append(event)
 
         i = i + 1
 

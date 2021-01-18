@@ -34,7 +34,8 @@ def plot_act(time_hrs, act, offset=0, fname=None,
     if max(time_hrs) > 10:
         plt.xscale("log")
 
-    # add any vertical or horizontal lines i.e. highlight specific times or activities
+    # add any vertical or horizontal lines 
+    # i.e. highlight specific times or activities
     if vlines:
         for xc in vlines:
             plt.vline(x=xc+offset)
@@ -51,7 +52,8 @@ def plot_act(time_hrs, act, offset=0, fname=None,
         plt.show()
 
 
-def plot_dose(time_hrs, dose_rate, offset=0, fname=None, vlines=None, hlines=None):
+def plot_dose(time_hrs, dose_rate, offset=0, fname=None,
+              vlines=None, hlines=None):
     """ plot dose as function of time """
 
     # check and convert data
@@ -61,8 +63,8 @@ def plot_dose(time_hrs, dose_rate, offset=0, fname=None, vlines=None, hlines=Non
     # make sensible graphs for short half lives
     zero_pos = ut.find_first_zero(dose_rate)
     if zero_pos:
-       dose_rate = dose_rate[:zero_pos]
-       time_hrs = time_hrs[:zero_pos]
+        dose_rate = dose_rate[:zero_pos]
+        time_hrs = time_hrs[:zero_pos]
 
     # create plot
     plt.clf()
@@ -75,10 +77,11 @@ def plot_dose(time_hrs, dose_rate, offset=0, fname=None, vlines=None, hlines=Non
     if max(time_hrs) > 10:
         plt.xscale("log")
 
-    # add any vertical or horizontal lines i.e. highlight specific times or activities    
+    # add any vertical or horizontal lines 
+    # i.e. highlight specific times or activities
     if vlines:
         for xc in vlines:
-            plt.vline(x=xc+offset)            
+            plt.vline(x=xc+offset)
     if hlines:
         for xc in hlines:
             plt.hline(x=xc)
@@ -89,12 +92,12 @@ def plot_dose(time_hrs, dose_rate, offset=0, fname=None, vlines=None, hlines=Non
     if fname:
         plt.savefig(fname)
     else:
-        plt.show()  
+        plt.show()
 
 
 def plot_spectra(timestep, fname=None):
     """ plots the group wise gamma emission spectra """
-    plt.clf() 
+    plt.clf()
     plt.xlabel("Energy (MeV)")
     plt.ylabel("gamma/s")
     plt.yscale("log")
@@ -103,9 +106,9 @@ def plot_spectra(timestep, fname=None):
     plt.ylim(ymin=1e-4, ymax=y_upper_lim)
 
     # groups are fixed by fispact
-    xbounds = (0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8, 
-               1.0, 1.22, 1.44, 1.66, 2.0, 2.5, 3.0, 4.0, 5.0, 6.5, 
-               8.0, 10.0, 12.0, 14.0, 20.0,)
+    xbounds = (0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8,
+               1.0, 1.22, 1.44, 1.66, 2.0, 2.5, 3.0, 4.0, 5.0, 6.5,
+               8.0, 10.0, 12.0, 14.0, 20.0)
 
     plt.step(xbounds, timestep.gspec)
 
@@ -113,10 +116,10 @@ def plot_spectra(timestep, fname=None):
     if fname:
         plt.savefig(fname)
     else:
-        plt.show()  
+        plt.show()
 
 
-def plot_pie(dom_data, title, fname=None, thres=1.0 ):
+def plot_pie(dom_data, title, fname=None, thres=1.0):
     """ """
     n = 0
     act_nuc2 = []
@@ -159,4 +162,4 @@ def plot_pie(dom_data, title, fname=None, thres=1.0 ):
     if fname:
         plt.savefig(fname)
     else:
-        plt.show()  
+        plt.show()

@@ -4,9 +4,9 @@ MCNP input file reader
 S Lilley
 March 2019
 """
-import sys
 import argparse
 import neut_utilities as ut
+
 
 class mcnp_cell():
     """ """
@@ -23,10 +23,10 @@ class mcnp_cell():
 def read_mode_card(lines):
     """ """
     mode = None
-    for l in lines:
-        if l[0:4].lower() == "mode":
-           l = ut.string_cleaner(l)
-           mode = l.split(" ")[1:]
+    for line in lines:
+        if line[0:4].lower() == "mode":
+            line = ut.string_cleaner(line)
+            mode = line.split(" ")[1:]
     return mode
 
 
@@ -42,34 +42,34 @@ def check_mode_valid(mode):
 def get_full_line_comments(lines):
     """ """
     comments = []
-    for l in lines:
-        if len(l) > 1 and l[0].lower() == "c" and l[1] == " ":
-            comments.append(l)
+    for line in lines:
+        if len(line) > 1 and line[0].lower() == "c" and line[1] == " ":
+            comments.append(line)
     return comments
 
 
 def get_material_numbers(lines):
     """ """
     mat_nums = []
-    for l in lines:
-        if len(l) > 1 and l[0].lower() == "m" and l[1].isdigit():
-             l = ut.string_cleaner(l)
-             l = l.split(" ")[0]
-             mnum = l[1:]
-             mat_nums.append(int(mnum))
+    for line in lines:
+        if len(line) > 1 and line[0].lower() == "m" and line[1].isdigit():
+            line = ut.string_cleaner(line)
+            line = line.split(" ")[0]
+            mnum = line[1:]
+            mat_nums.append(int(mnum))
     return mat_nums
 
 
 def get_tally_numbers(lines):
     """ """
     tal_nums = []
-    for l in lines:
-        if len(l) > 1 and l[0].lower() == "f" and l[1].isdigit():
-             l = ut.string_cleaner(l)
-             l = l.split(" ")[0]
-             l = l.split(":")[0]
-             tnum = l[1:]
-             tal_nums.append(int(tnum))
+    for line in lines:
+        if len(line) > 1 and line[0].lower() == "f" and line[1].isdigit():
+            line = ut.string_cleaner(line)
+            line = line.split(" ")[0]
+            line = line.split(":")[0]
+            tnum = line[1:]
+            tal_nums.append(int(tnum))
     return tal_nums
 
 
@@ -108,8 +108,8 @@ def find_blank_lines(lines):
     count = 0
     blank_dict = {}
 
-    for i, l in enumerate(lines):
-        if l == "":
+    for i, line in enumerate(lines):
+        if line == "":
             count = count + 1
             blank_dict[count] = i
 
@@ -141,7 +141,7 @@ def process_imp(part, cell):
 
 def process_geom(geom, cell):
     """ """
-    surfaces = []
+    # surfaces = []
     for part in geom:
         if "imp" in part:
             cell = process_imp(part, cell)
@@ -154,9 +154,10 @@ def process_cell_block(bloc):
     """ """
     cell_list = []
     cell = None
+    geom = []
     for line in bloc:
         if line[0].isdigit():
-            if cell is not None:
+            if cell != None:
                 cell = process_geom(geom, cell)
                 cell_list.append(cell)
 
@@ -172,7 +173,6 @@ def process_cell_block(bloc):
             geom = line[geo_start_pos:]
         elif line[0:4] == "     ":
             geom = cell.geom.append(line)
-
 
     return cell_list
 

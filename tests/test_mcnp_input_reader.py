@@ -110,11 +110,11 @@ class data_card_tests(unittest.TestCase):
 
         mode = mcnp_input_reader.read_mode_card(["MODE n p", "m34 32000"])
         self.assertEqual(mode, ["n", "p"])  # test for upper case mode
-        self.assertEqual(len(mode), 2)      # check multipe particles else added
+        self.assertEqual(len(mode), 2)  # check multipe particles else added
 
         mode = mcnp_input_reader.read_mode_card(["m23 1001.21c 1",
                                                  "m34 32000"])
-        self.assertIsNone(mode)  # test for not including any line starting with m
+        self.assertIsNone(mode)  # test other lines starting with m
 
     def test_mode_valid(self):
         """ """
@@ -141,7 +141,7 @@ class misc_tests(unittest.TestCase):
         comments = mcnp_input_reader.get_full_line_comments(test_list)
         self.assertEqual(comments[0], test_list[0])  # test for lower case c
         self.assertEqual(comments[1], test_list[1])  # test for upper case c
-        self.assertEqual(len(comments), 2)  # check nothing else added as comment
+        self.assertEqual(len(comments), 2)  # check nothing else added
 
 if __name__ == '__main__':
     unittest.main()

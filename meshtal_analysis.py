@@ -3,18 +3,15 @@
 mesh tally tools
 
 """
-
 import matplotlib as mpl
-mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 import argparse
 import logging
 import pandas as pd
-
 import neut_utilities as ut
-
+mpl.use('Agg')
 
 class meshtally:
     idnum = None
@@ -30,10 +27,10 @@ class meshtally:
     ctype = None
 
 
-def rel_err_hist(df, fname = None):
+def rel_err_hist(df, fname=None):
     """ Plots a histogram of the relative errors"""
 
-    df.hist(column = 'rel_err', bins = 15)
+    df.hist(column='rel_err', bins=15)
     plt.xlabel("Relative error")
     plt.ylabel("Number of voxels")
     if fname:
@@ -45,13 +42,14 @@ def rel_err_hist(df, fname = None):
 
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
-def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=False, norm=1.0, erg=None):
+def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, 
+               err=False, norm=1.0, erg=None):
     """ plots a slice through the mesh"""
     plt.clf()
     data = mesh.data
     # filter by energy if needed
     if erg:
-        data = data[data["Energy"]==erg]
+        data = data[data["Energy"] == erg]
 
     if plane == "XZ":
         midx = mesh.x_mids
@@ -86,9 +84,8 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=F
     # find closest mid point
     value = find_nearest_mid(value, v_mid)
 
-    #filter to just the values in the plane
+    # filter to just the values in the plane
     data = data[data[v_ind] == value]
-
 
     # now find the slice values
     vals = np.zeros((len(midy), len(midx)))
@@ -96,20 +93,20 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, err=F
 
     for (_, __, x, y, ____, val, rerr) in data.itertuples():
 
-        x=np.float64(x)
-        y=np.float64(y)
+        x = np.float64(x)
+        y = np.float64(y)
         i, = np.where(midx == x)
         j, = np.where(midy == y)
 
         vals[j, i] = val
         err_vals[j, i] = rerr
 
-
     # now plot
-    if err :
+    if err:
         plt.subplot(2, 1, 2)
         plt.pcolormesh(midx, midy, err_vals)
-        title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum) + " rel err"
+        title = plane + " Slice at " + str(value) + " of mesh "
+        title = title + str(mesh.idnum) + " rel err"
         plt.title(title)
         plt.colorbar()
         plt.xlabel(ilab)
@@ -144,14 +141,14 @@ def output_as_vtk():
 
 
 def find_nearest_mid(value, mids):
-    """ finds the midpoint with the shortest absoloute distance to the value """
-    return mids[min(range(len(mids)), key = lambda i: abs(mids[i]-value))]
+    """ finds midpoint with shortest absoloute distance to the value """
+    return mids[min(range(len(mids)), key=lambda i: abs(mids[i]-value))]
 
 
 def convert_to_df(mesh):
     """ converts mesh.data in raw format to a pandas dataframe """
     if mesh.ctype == "6col":
-        cols = ("Energy","x", "y", "z", "value", "rel_err")
+        cols = ("Energy", "x", "y", "z", "value", "rel_err")
     elif mesh.ctype == "5col":
         cols = ("x", "y", "z", "value", "rel_err")
 
@@ -167,7 +164,8 @@ def convert_to_df(mesh):
 
 def extract_line(mesh, p1, p2, erg=None):
     """ currently support lines varying along a single axis
-        p1 and p2 are tuples of the form (x,y,z) and describe two points on the line
+        p1 and p2 are tuples of the form (x,y,z) and 
+        describe two points on the line
         currently only either x,y or z can vary between the two points
     """
 
@@ -176,18 +174,18 @@ def extract_line(mesh, p1, p2, erg=None):
     if p1[0] == p2[0]:
         x = p1[0]
         x = find_nearest_mid(x, mesh.x_mids)
-        data = data[data["x"] == x ]
+        data = data[data["x"] == x]
     if p1[1] == p2[1]:
         y = p1[1]
         y = find_nearest_mid(y, mesh.y_mids)
-        data = data[data["y"] == y ]
+        data = data[data["y"] == y]
     if p1[2] == p2[2]:
         z = p1[2]
         z = find_nearest_mid(z, mesh.z_mids)
-        data = data[data["z"] == z ]
+        data = data[data["z"] == z]
 
     if erg:
-        data = data[data["Energy"]==erg]
+        data = data[data["Energy"] == erg]
 
     result = data["value"]
 
@@ -197,22 +195,27 @@ def extract_line(mesh, p1, p2, erg=None):
 # TODO:
 def pick_point(x, y, z, mesh, erg):
     """ find the mesh value for the voxel that  point x, y, z is in"""
-    v=0
+    v = 0
     return v
 
 
 def add_mesh(mesh1, mesh2):
-    """ checks if boundaries of two meshes are equal and adds their values and errors  """
-    if mesh1.x_bounds != mesh2.x_bounds or mesh1.y_bounds != mesh2.y_bounds or mesh1.z_bounds != mesh2.z_bounds:
+    """ checks if boundaries of two meshes are equal 
+        and adds their values and errors  
+    """
+    if mesh1.x_bounds != mesh2.x_bounds or
+       mesh1.y_bounds != mesh2.y_bounds or 
+       mesh1.z_bounds != mesh2.z_bounds:
         raise ValueError('bounds not equal')
 
     else:
         new_val = mesh1.data['value'] + mesh2.data['value']
-        new_err = np.sqrt((mesh1.data['rel_err'])**2+(mesh2.data['rel_err'])**2)
+        new_err = np.sqrt((mesh1.data['rel_err'])**2+
+                  (mesh2.data['rel_err'])**2)
 
         new_mesh = meshtally()
-        cols = ("Energy","x", "y", "z", "value", "rel_err")
-        new_mesh.data = pd.DataFrame(columns = cols)
+        cols = ("Energy", "x", "y", "z", "value", "rel_err")
+        new_mesh.data = pd.DataFrame(columns=cols)
         new_mesh.ctype = "6col"
         new_mesh.x_bounds = mesh1.x_bounds
         new_mesh.y_bounds = mesh1.y_bounds
@@ -321,8 +324,8 @@ def read_mesh(tnum, data, tdict):
 
     for i, v in enumerate(mesh_data):
         if in_data:
-            #v = " ".join(v.split())
-            #mesh.data.append(v.split(" "))
+            # v = " ".join(v.split())
+            # mesh.data.append(v.split(" "))
             logging.info("Guru meditation error")
         elif "X direction:" in v:
             v = " ".join(v.split())
@@ -349,8 +352,7 @@ def read_mesh(tnum, data, tdict):
             v = " ".join(v.split())
             mesh.ptype = v.split(" ")[0]
 
-
-    mesh_data = [" ".join(j.split()) for j in mesh_data[i:] ]
+    mesh_data = [" ".join(j.split()) for j in mesh_data[i:]]
     mesh.data = [j.split() for j in mesh_data[1:]]
     mesh.data = convert_to_df(mesh)
 
@@ -373,9 +375,10 @@ def read_mesh_tally_file(fpath):
         meshes.append(mesh)
     return meshes
 
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Meshtally ploting")
     parser.add_argument("input", help="path to the Meshtal file")
     args = parser.parse_args()
 
-    meshes=read_mesh_tally_file(args.input)
+    meshes = read_mesh_tally_file(args.input)
