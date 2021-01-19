@@ -287,5 +287,6 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(len(tn.err), 14)
                 self.assertEqual(tn.result[0],  5.16461E-01)
 
+
 if __name__ == '__main__':
     unittest.main()

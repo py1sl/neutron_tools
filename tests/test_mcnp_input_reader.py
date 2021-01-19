@@ -143,5 +143,6 @@ class misc_tests(unittest.TestCase):
         self.assertEqual(comments[1], test_list[1])  # test for upper case c
         self.assertEqual(len(comments), 2)  # check nothing else added
 
+
 if __name__ == '__main__':
     unittest.main()

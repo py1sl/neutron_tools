@@ -13,6 +13,7 @@ import pandas as pd
 import neut_utilities as ut
 mpl.use('Agg')
 
+
 class meshtally:
     idnum = None
     ptype = None
@@ -42,7 +43,7 @@ def rel_err_hist(df, fname=None):
 
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
-def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None, 
+def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None,
                err=False, norm=1.0, erg=None):
     """ plots a slice through the mesh"""
     plt.clf()
@@ -164,7 +165,7 @@ def convert_to_df(mesh):
 
 def extract_line(mesh, p1, p2, erg=None):
     """ currently support lines varying along a single axis
-        p1 and p2 are tuples of the form (x,y,z) and 
+        p1 and p2 are tuples of the form (x,y,z) and
         describe two points on the line
         currently only either x,y or z can vary between the two points
     """
@@ -200,18 +201,18 @@ def pick_point(x, y, z, mesh, erg):
 
 
 def add_mesh(mesh1, mesh2):
-    """ checks if boundaries of two meshes are equal 
-        and adds their values and errors  
+    """ checks if boundaries of two meshes are equal
+        and adds their values and errors
     """
-    if mesh1.x_bounds != mesh2.x_bounds or
-       mesh1.y_bounds != mesh2.y_bounds or 
-       mesh1.z_bounds != mesh2.z_bounds:
+    if (mesh1.x_bounds != mesh2.x_bounds or
+        mesh1.y_bounds != mesh2.y_bounds or
+        mesh1.z_bounds != mesh2.z_bounds):
         raise ValueError('bounds not equal')
 
     else:
         new_val = mesh1.data['value'] + mesh2.data['value']
-        new_err = np.sqrt((mesh1.data['rel_err'])**2+
-                  (mesh2.data['rel_err'])**2)
+        new_err = np.sqrt((mesh1.data['rel_err'])**2 +
+                          (mesh2.data['rel_err'])**2)
 
         new_mesh = meshtally()
         cols = ("Energy", "x", "y", "z", "value", "rel_err")
@@ -375,7 +376,7 @@ def read_mesh_tally_file(fpath):
         meshes.append(mesh)
     return meshes
 
-    
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Meshtally ploting")
     parser.add_argument("input", help="path to the Meshtal file")

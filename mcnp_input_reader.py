@@ -157,7 +157,7 @@ def process_cell_block(bloc):
     geom = []
     for line in bloc:
         if line[0].isdigit():
-            if cell != None:
+            if cell is not None:
                 cell = process_geom(geom, cell)
                 cell_list.append(cell)
 
@@ -167,7 +167,7 @@ def process_cell_block(bloc):
             cell.number = line[0]
             cell.mat = line[1]
             geo_start_pos = 2
-            if cell.mat is not "0":
+            if cell.mat != "0":
                 cell.density = line[2]
                 geo_start_pos = 3
             geom = line[geo_start_pos:]

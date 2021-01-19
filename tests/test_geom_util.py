@@ -71,14 +71,14 @@ class geom_points_test_case(unittest.TestCase):
                          1.0, 1.0, 1.0), 0.0)
 
     def test_1d_case(self):
-       self.assertEqual(geom_utils.dist_bet_points(2.0, 0.0, 0.0, 1.0,
-                       0.0, 0.0), 1.0)
-       self.assertEqual(geom_utils.dist_bet_points(1.0, 0.0, 0.0, 2.0,
-                       0.0, 0.0), 1.0)
-       self.assertEqual(geom_utils.dist_bet_points(0.0, 1.0, 0.0, 0.0,
-                       2.0, 0.0), 1.0)
-       self.assertEqual(geom_utils.dist_bet_points(0.0, 0.0, 1.0, 0.0,
-                       0.0, 2.0), 1.0)
+        self.assertEqual(geom_utils.dist_bet_points(2.0, 0.0, 0.0, 1.0,
+                         0.0, 0.0), 1.0)
+        self.assertEqual(geom_utils.dist_bet_points(1.0, 0.0, 0.0, 2.0,
+                         0.0, 0.0), 1.0)
+        self.assertEqual(geom_utils.dist_bet_points(0.0, 1.0, 0.0, 0.0,
+                         2.0, 0.0), 1.0)
+        self.assertEqual(geom_utils.dist_bet_points(0.0, 0.0, 1.0, 0.0,
+                         0.0, 2.0), 1.0)
 
     def test_negative(self):
         self.assertEqual(geom_utils.dist_bet_points(2.0, 0.0, 0.0, -1.0,

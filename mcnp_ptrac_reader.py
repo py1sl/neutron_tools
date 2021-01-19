@@ -103,7 +103,7 @@ def process_tracks(tracks):
 
         # check linelength to determine if a new event or a continuation
         # first event line of a history is shorter
-        elif len(line) == 7 or len(line) == 6 :
+        elif len(line) == 7 or len(line) == 6:
             temp_line = line
             temp_line.append("0")
 

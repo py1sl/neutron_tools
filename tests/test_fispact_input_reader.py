@@ -7,7 +7,8 @@ class read_input_test_case(unittest.TestCase):
 
     def test_read(self):
         path = "test_output/fis_in.i"
-        self.assertEqual(len(fispact_input_reader.read_fispact_input(path)), 64)
+        self.assertEqual(len(fispact_input_reader.read_fispact_input(path)),
+                         64)
 
 
 if __name__ == '__main__':

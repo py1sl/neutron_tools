@@ -34,7 +34,7 @@ def plot_act(time_hrs, act, offset=0, fname=None,
     if max(time_hrs) > 10:
         plt.xscale("log")
 
-    # add any vertical or horizontal lines 
+    # add any vertical or horizontal lines
     # i.e. highlight specific times or activities
     if vlines:
         for xc in vlines:
@@ -77,7 +77,7 @@ def plot_dose(time_hrs, dose_rate, offset=0, fname=None,
     if max(time_hrs) > 10:
         plt.xscale("log")
 
-    # add any vertical or horizontal lines 
+    # add any vertical or horizontal lines
     # i.e. highlight specific times or activities
     if vlines:
         for xc in vlines:
