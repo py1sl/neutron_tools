@@ -95,7 +95,7 @@ def read_version(lines):
     """ from 1st line of output get the MCNP version"""
     version = None
     line = lines[0]
-    if line[:29]=="          Code Name & Version":
+    if line[:29] == "          Code Name & Version":
         version = line.split("=")[1]
         version = version.strip()
     logging.debug("Version: %s", version)
@@ -177,7 +177,7 @@ def count_rendevous(data):
 def process_ang_string(line):
     """ converts the tally string describing the angualr bin edges into
         a single float value for the angle """
-    line=line.strip()
+    line = line.strip()
     ang_string = line.split(":")[1]
     ang_float = float(ang_string.split()[-2])
     return ang_float
@@ -301,7 +301,7 @@ def read_tally(lines, tnum, rnum=-1):
     # todo add ability to do all rendevous
     # reduce to only the final result set
     term_line = find_term_line(lines)
-    if term_line == None:
+    if term_line is None:
         logging.debug("trying to find last complete rendevous")
         term_line = find_last_rendevous(lines)
 
@@ -314,10 +314,10 @@ def read_tally(lines, tnum, rnum=-1):
     # add an error catch
 
     # check if tally comment
-    if lines[res_start_line +1][0] == "+":
-       tal_comment_bool = True
+    if lines[res_start_line + 1][0] == "+":
+        tal_comment_bool = True
     else:
-       tal_comment_bool = False
+        tal_comment_bool = False
 
     # find tally type and create appropriate class
     if tal_comment_bool:
@@ -382,7 +382,7 @@ def read_tally(lines, tnum, rnum=-1):
     # get statistical test outcomes
     # first check not all zeros
     # if np.array(tally_data.result).any():
-       # tally_data.stat_tests = read_stat_tests(lines)
+    # tally_data.stat_tests = read_stat_tests(lines)
 
     return tally_data
 
@@ -391,22 +391,23 @@ def read_type_8(tally_data, lines):
     """ process type 8 tally output data """
     logging.debug("pulse height tally")
     # TODO: fix this hard coded part
-    tally_data.cells = ["2"] # this should not be hard coded
+    tally_data.cells = ["2"]  # this should not be hard coded
 
     # loop for each cell
     for cell in tally_data.cells:
         cline = " cell  "
-        cell_res_start = ut.find_line(cline + cell, lines, len(cell)+len(cline))
+        cell_res_start = ut.find_line(cline + cell, lines,
+                                      len(cell)+len(cline))
         if lines[cell_res_start + 1] == "      energy   ":
             logging.debug("noticed energy")
             tally_data.eng = []
-            loc_line_id2=ut.find_line("      total    ",
+            loc_line_id2 = ut.find_line("      total    ",
                                       lines[cell_res_start + 1:], 15)
             erg_lines = lines[cell_res_start + 2:cell_res_start +
                               1 + loc_line_id2]
             for line in erg_lines:
-                line=line.strip()
-                line=line.split(" ")
+                line = line.strip()
+                line = line.split(" ")
                 tally_data.eng.append(float(line[0]))
                 tally_data.result.append(float(line[3]))
                 tally_data.err.append(float(line[4]))
@@ -414,15 +415,16 @@ def read_type_8(tally_data, lines):
             # single value result
             logging.debug('tally e bin count = 1')
             line = lines[cell_res_start + 1]
-            line=line.strip()
-            line=line.split(" ")
+            line = line.strip()
+            line = line.split(" ")
             tally_data.result.append(float(line[0]))
             tally_data.err.append(float(line[1]))
 
-    if tally_data.eng != None:
+    if tally_data.eng is not None:
         logging.debug('tally e bin count: %s', len(tally_data.eng))
 
     return tally_data
+
 
 def read_type_surface(tally_data, lines):
     """ process type 1 or type 2 tally output data"""
@@ -451,7 +453,7 @@ def read_type_surface(tally_data, lines):
 
     first_surface_line_id = ut.find_line(" surface ", lines, 9)
     logging.debug("first surface id %s", first_surface_line_id)
-    if tally_data.type =="1":
+    if tally_data.type == "1":
         tally_data.surfaces = lines[first_surface_line_id].strip()
         tally_data.surfaces = [tally_data.surfaces.split()[-1]]
         logging.debug("Tally surface numbers:")
@@ -461,7 +463,7 @@ def read_type_surface(tally_data, lines):
     surface_line_id = first_surface_line_id
     res_df = []
     rel_err_df = []
-    if lines[first_surface_line_id +1] == "      energy   ":
+    if lines[first_surface_line_id + 1] == "      energy   ":
         logging.debug("energy bins only")
 
         for s in tally_data.surfaces:
@@ -512,14 +514,14 @@ def read_type_surface(tally_data, lines):
             res = []
             in_res = False
             for line in lines[first_surface_line_id:]:
-                if line[:11] ==  " angle  bin":
+                if line[:11] == " angle  bin":
                     ang_float = process_ang_string(line)
                     angles_bins.append(ang_float)
                     logging.debug(ang_float)
                 if line[:13] == "      total  ":
                     in_res = False
                     ebin = np.array(ebin)
-                    tally_data.eng=ebin
+                    tally_data.eng = ebin
                     rel_err = np.array(rel_err)
                     rel_err_df.append(rel_err)
                     res = np.array(res)
@@ -547,8 +549,8 @@ def read_type_surface(tally_data, lines):
         line = lines[first_surface_line_id+1]
         line = line.strip()
         line = line.split(" ")
-        tally_data.result = [float(l[0])]
-        tally_data.err = [float(l[1])]
+        tally_data.result = [float(line[0])]
+        tally_data.err = [float(line[1])]
 
     return tally_data
 
@@ -564,7 +566,7 @@ def read_type_cell(tally_data, lines):
     # find line that the volumes or masses start at
     if tally_data.type == "4":
         line_id = ut.find_line("           volumes ", lines, 19)
-    elif  tally_data.type == "6":
+    elif tally_data.type == "6":
         line_id = ut.find_line("           masses ", lines, 18)
 
     # extract the values of cell number and volumes
@@ -590,18 +592,19 @@ def read_type_cell(tally_data, lines):
         results = []
         errs = []
         cline = " cell  "
-        cell_res_start = ut.find_line(cline + cell, lines, len(cell)+len(cline))
+        cell_res_start = ut.find_line(cline + cell, lines,
+                                      len(cell)+len(cline))
         # energy binned data
         if lines[cell_res_start + 1] == "      energy   ":
             logging.debug("noticed energy")
             tally_data.eng = []
-            loc_line_id2=ut.find_line("      total    ", lines[cell_res_start
-                                                               + 1:], 15)
+            loc_line_id2 = ut.find_line("      total    ",
+                                        lines[cell_res_start+ 1:], 15)
             erg_lines = lines[cell_res_start + 2:cell_res_start + 1 +
                               loc_line_id2]
             for line in erg_lines:
-                line=line.strip()
-                line=line.split(" ")
+                line = line.strip()
+                line = line.split(" ")
                 tally_data.eng.append(float(line[0]))
                 results.append(float(line[3]))
                 errs.append(float(line[4]))
@@ -621,7 +624,7 @@ def read_type_cell(tally_data, lines):
 def read_type_5(tally_data, lines):
     """ processes a type 5 (point detector tally output) """
     # read detector position
-    loc_line_id=ut.find_line(" detector located", lines, 17)
+    loc_line_id = ut.find_line(" detector located", lines, 17)
     loc_line = lines[loc_line_id]
     loc_line = loc_line.split("=")[1]
 
@@ -631,9 +634,9 @@ def read_type_5(tally_data, lines):
     tally_data.y = float(tally_data.y.strip())
     tally_data.z = loc_line[24:36]
     tally_data.z = float(tally_data.z.strip())
-    logging.debug("x: %s",tally_data.x)
-    logging.debug("y: %s",tally_data.y)
-    logging.debug("z: %s",tally_data.z)
+    logging.debug("x: %s", tally_data.x)
+    logging.debug("y: %s", tally_data.y)
+    logging.debug("z: %s", tally_data.z)
     res_line = lines[loc_line_id + 1]
 
     # check if energy dependant
@@ -644,8 +647,8 @@ def read_type_5(tally_data, lines):
         erg_lines = lines[loc_line_id + 2:loc_line_id + total_line_id2+1]
 
         for line in erg_lines:
-            line=line.strip()
-            line=line.split(" ")
+            line = line.strip()
+            line = line.split(" ")
             tally_data.eng.append(float(line[0]))
             tally_data.result.append(float(line[3]))
             tally_data.err.append(float(line[4]))
@@ -665,36 +668,36 @@ def read_type_5(tally_data, lines):
         t5_err = []
         ergs = []
 
-
-        t_count= 0
-        loc_line_id2=ut.find_line(" detector located", lines[loc_line_id+2:], 17)
+        tcount = 0
+        loc_line_id2 = ut.find_line(" detector located",
+                                    lines[loc_line_id+2:], 17)
         erg_lines = lines[loc_line_id + 1 :loc_line_id + loc_line_id2-1]
         in_res = False
         for line in erg_lines:
             if ("total" in line) and ("time" not in line):
-                    in_res = False
-                    tally_data.result.append(t1_res)
-                    tally_data.result.append(t2_res)
-                    tally_data.result.append(t3_res)
-                    tally_data.result.append(t4_res)
-                    tally_data.result.append(t5_res)
-                    tally_data.err.append(t1_err)
-                    tally_data.err.append(t2_err)
-                    tally_data.err.append(t3_err)
-                    tally_data.err.append(t4_err)
-                    tally_data.err.append(t5_err)
-                    tally_data.eng = ergs
-                    t1_res = []
-                    t1_err = []
-                    t2_res = []
-                    t2_err = []
-                    t3_res = []
-                    t3_err = []
-                    t4_res = []
-                    t4_err = []
-                    t5_res = []
-                    t5_err = []
-                    ergs = []
+                in_res = False
+                tally_data.result.append(t1_res)
+                tally_data.result.append(t2_res)
+                tally_data.result.append(t3_res)
+                tally_data.result.append(t4_res)
+                tally_data.result.append(t5_res)
+                tally_data.err.append(t1_err)
+                tally_data.err.append(t2_err)
+                tally_data.err.append(t3_err)
+                tally_data.err.append(t4_err)
+                tally_data.err.append(t5_err)
+                tally_data.eng = ergs
+                t1_res = []
+                t1_err = []
+                t2_res = []
+                t2_err = []
+                t3_res = []
+                t3_err = []
+                t4_res = []
+                t4_err = []
+                t5_res = []
+                t5_err = []
+                ergs = []
             elif in_res:
                 line = line.strip()
                 line = " ".join(line.split())
@@ -725,7 +728,7 @@ def read_type_5(tally_data, lines):
                 tcount = len(line[1:])
                 logging.debug("tcount: %s", tcount)
 
-                for t in l[1:]:
+                for t in line[1:]:
                     times.append(t)
 
         tally_data.times = times
