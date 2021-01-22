@@ -217,7 +217,7 @@ def read_mcnp_input(fpath):
 
     mat_nums = get_material_numbers(data_bloc)
 
-    return ifile
+    return ifile, comments, mat_nums
 
 
 if __name__ == "__main__":

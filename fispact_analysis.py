@@ -70,7 +70,7 @@ def plot_dose(time_hrs, dose_rate, offset=0, fname=None,
     plt.clf()
     plt.plot(time_hrs, dose_rate)
     plt.xlabel("Time (hrs)")
-    plt.ylabel("Dose rate $\mu$Sv/h")
+    plt.ylabel(r"Dose rate $\mu$Sv/h")
     plt.yscale("log")
 
     # set to x axis to log if longer than 10 hours

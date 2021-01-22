@@ -57,8 +57,8 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None,
         midy = mesh.z_mids
         v_mid = mesh.y_mids
         v_ind = "y"
-        ipos = "x"
-        jpos = "z"
+        # ipos = "x"
+        # jpos = "z"
         ilab = "X co-ord (cm)"
         jlab = "Z co-ord (cm)"
     elif plane == "XY":
@@ -66,8 +66,8 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None,
         midy = mesh.y_mids
         v_mid = mesh.z_mids
         v_ind = "z"
-        ipos = "x"
-        jpos = "y"
+        # ipos = "x"
+        # jpos = "y"
 
         ilab = "X co-ord (cm)"
         jlab = "Y co-ord (cm)"
@@ -76,8 +76,8 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None,
         midy = mesh.z_mids
         v_mid = mesh.x_mids
         v_ind = "x"
-        ipos = "y"
-        jpos = "z"
+        # ipos = "y"
+        # jpos = "z"
 
         ilab = "Y co-ord (cm)"
         jlab = "Z co-ord (cm)"
@@ -205,8 +205,8 @@ def add_mesh(mesh1, mesh2):
         and adds their values and errors
     """
     if (mesh1.x_bounds != mesh2.x_bounds or
-        mesh1.y_bounds != mesh2.y_bounds or
-        mesh1.z_bounds != mesh2.z_bounds):
+         mesh1.y_bounds != mesh2.y_bounds or
+         mesh1.z_bounds != mesh2.z_bounds):
         raise ValueError('bounds not equal')
 
     else:

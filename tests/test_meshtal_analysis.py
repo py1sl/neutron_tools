@@ -112,12 +112,11 @@ class add_mesh_test(unittest.TestCase):
         mesh4_test.y_bounds = (-8.9, -9.1)
         mesh4_test.z_bounds = (1.3, 1.5)
 
-
         new_mesh_test = ma.add_mesh(mesh3_test, mesh4_test)
 
-        self.assertEqual(new_mesh_test.x_bounds, (-9, -9.1))
-        self.assertEqual(new_mesh_test.y_bounds, (-9, -9.1))
-        self.assertEqual(new_mesh_test.z_bounds, (1.4, 1.5))
+        self.assertEqual(new_mesh_test.x_bounds, (-8.9, -9.1))
+        self.assertEqual(new_mesh_test.y_bounds, (-8.9, -9.1))
+        self.assertEqual(new_mesh_test.z_bounds, (1.3, 1.5))
         self.assertEqual(new_mesh_test.data['value'].item(),
                          1.3895760275772773e-06)
         self.assertEqual(new_mesh_test.data['rel_err'].item(),

@@ -402,7 +402,7 @@ def read_type_8(tally_data, lines):
             logging.debug("noticed energy")
             tally_data.eng = []
             loc_line_id2 = ut.find_line("      total    ",
-                                      lines[cell_res_start + 1:], 15)
+                                        lines[cell_res_start + 1:], 15)
             erg_lines = lines[cell_res_start + 2:cell_res_start +
                               1 + loc_line_id2]
             for line in erg_lines:
@@ -599,7 +599,7 @@ def read_type_cell(tally_data, lines):
             logging.debug("noticed energy")
             tally_data.eng = []
             loc_line_id2 = ut.find_line("      total    ",
-                                        lines[cell_res_start+ 1:], 15)
+                                        lines[cell_res_start + 1:], 15)
             erg_lines = lines[cell_res_start + 2:cell_res_start + 1 +
                               loc_line_id2]
             for line in erg_lines:
@@ -643,7 +643,7 @@ def read_type_5(tally_data, lines):
     if res_line == "      energy   ":
         logging.debug("energy dependant")
         tally_data.eng = []
-        total_line_id2=ut.find_line("      total", lines[loc_line_id+1:], 11)
+        total_line_id2 = ut.find_line("      total", lines[loc_line_id+1:], 11)
         erg_lines = lines[loc_line_id + 2:loc_line_id + total_line_id2+1]
 
         for line in erg_lines:
@@ -671,7 +671,7 @@ def read_type_5(tally_data, lines):
         tcount = 0
         loc_line_id2 = ut.find_line(" detector located",
                                     lines[loc_line_id+2:], 17)
-        erg_lines = lines[loc_line_id + 1 :loc_line_id + loc_line_id2-1]
+        erg_lines = lines[loc_line_id + 1:loc_line_id + loc_line_id2-1]
         in_res = False
         for line in erg_lines:
             if ("total" in line) and ("time" not in line):

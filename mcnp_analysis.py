@@ -90,7 +90,7 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
             y_vals = np.asarray(d.result)/bw
 
         splot = plt.step(np.asarray(d.eng),  y_vals)
-        if err == True:
+        if err is True:
             abs_err = calc_err_abs(y_vals, d.err)
             mids = calc_mid_points(d.eng)
             ecol = splot[0].get_color()
@@ -157,8 +157,8 @@ def plot_en_time(data, fname):
     # np.ma.masked_where(data.result[1] < 1e-50, data.result[1])
 
     plt.pcolormesh(masked_vals.T,
-                    norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()),
-                    cmap="PuBu_r")
+                   norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()),
+                   cmap="PuBu_r")
     """
     plt.pcolormesh(data.times[:-3], data.eng, masked_vals.T,
                    norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()),
