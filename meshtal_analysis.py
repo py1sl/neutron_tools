@@ -193,20 +193,31 @@ def extract_line(mesh, p1, p2, erg=None):
     return result
 
 
-# TODO:
-def pick_point(x, y, z, mesh, erg):
+def pick_point(x, y, z, mesh, erg=None):
     """ find the mesh value for the voxel that  point x, y, z is in"""
-    v = 0
-    return v
+    x = find_nearest_mid(x, mesh.x_mids)
+    y = find_nearest_mid(y, mesh.y_mids)
+    z = find_nearest_mid(z, mesh.z_mids)
+
+    data = data[data["x"] == x]
+    data = data[data["y"] == y]
+    data = data[data["z"] == z]
+
+    if erg:
+        data = data[data["Energy"] == erg]
+
+    result = data["value"]
+
+    return result
 
 
 def add_mesh(mesh1, mesh2):
     """ checks if boundaries of two meshes are equal
         and adds their values and errors
     """
-    if (mesh1.x_bounds != mesh2.x_bounds or
-         mesh1.y_bounds != mesh2.y_bounds or
-         mesh1.z_bounds != mesh2.z_bounds):
+    if ((mesh1.x_bounds != mesh2.x_bounds) or
+        (mesh1.y_bounds != mesh2.y_bounds) or
+        (mesh1.z_bounds != mesh2.z_bounds)):
         raise ValueError('bounds not equal')
 
     else:
