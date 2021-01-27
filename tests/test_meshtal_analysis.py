@@ -117,9 +117,9 @@ class add_mesh_test(unittest.TestCase):
         self.assertEqual(new_mesh_test.x_bounds, (-8.9, -9.1))
         self.assertEqual(new_mesh_test.y_bounds, (-8.9, -9.1))
         self.assertEqual(new_mesh_test.z_bounds, (1.3, 1.5))
-        self.assertEqual(new_mesh_test.data['value'].item(),
+        self.assertEqual(new_mesh_test.data['value'].iloc[0],
                          1.3895760275772773e-06)
-        self.assertEqual(new_mesh_test.data['rel_err'].item(),
+        self.assertEqual(new_mesh_test.data['rel_err'].iloc[0],
                          0.025778627023100853)
 
 
@@ -143,6 +143,32 @@ class find_nearest_mid_test(unittest.TestCase):
         self.assertEqual(ma.find_nearest_mid(test_val_4, test_mids_4), 1)
         self.assertEqual(ma.find_nearest_mid(test_val_5, test_mids_5), -3.5)
 
+        
+class find_point_test(unittest.TestCase):
+
+    def test_get_point(self):
+        mesh3_test = ma.meshtally()
+        mesh3_test.ctype = "6col"
+        mesh3_test.x_mids = [-9.0]
+        mesh3_test.y_mids = [-9.0]
+        mesh3_test.z_mids = [1.4]
+       
+        mesh3_test.data = [['1.000E+36', '-9.0', '-9.0', '1.4',
+                            '7.329430e-07', '0.017765']]
+        mesh3_test.data = ma.convert_to_df(mesh3_test)
+        result = ma.pick_point(-9, -9, 1.4, mesh3_test)
+        self.assertAlmostEqual(float(result[0]), 7.329430e-07, 7)
+        
+    def test_get_point_file(self):
+        mesh = ma.read_mesh_tally_file(path)[0]
+        result = ma.pick_point(-9, -9, 1.4, mesh).iloc[0]
+        self.assertAlmostEqual(result, 7.329430e-07, 7)
+        result = ma.pick_point(-8.9, -8.9, 1.4, mesh).iloc[0]
+        self.assertAlmostEqual(result, 7.329430e-07, 7)
+        result = ma.pick_point(-9, -9, 9.4, mesh).iloc[0]
+        self.assertAlmostEqual(result, 5.54340E-07, 7)
+                
+        
 
 if __name__ == '__main__':
     unittest.main()
