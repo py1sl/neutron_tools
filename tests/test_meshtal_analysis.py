@@ -26,9 +26,40 @@ class calc_mid_points_test(unittest.TestCase):
         self.assertEqual(ma.calc_mid_points(test_data_6), [1.5, 2.5, 3.5])
 
 
+class convert_to_df_test(unittest.TestCase):
+
+    def test_count_zeros_6col(self):
+        meshtally_test = ma.meshtally()
+        meshtally_test.ctype = "6col"
+        meshtally_test.data = [['1.00', '3.00', '-2.00', '5.00', '0.00',
+                                '1.00'],
+                               ['1.00', '5.00', '3.00', '6.00', '0.00',
+                                '9.00']]
+        meshtally_test.data = ma.convert_to_df(meshtally_test)
+        self.assertEqual(meshtally_test.data['value'].iloc[0], 0.00)
+        self.assertEqual(meshtally_test.data['x'].iloc[0], 3.00)
+        self.assertEqual(meshtally_test.data['y'].iloc[0], -2.00)
+        self.assertEqual(meshtally_test.data['z'].iloc[0], 5.00)
+        self.assertEqual(meshtally_test.data['rel_err'].iloc[0], 1.00)
+
+    def test_count_zeros_5col(self):
+        meshtally_test = ma.meshtally()
+        meshtally_test.ctype = "5col"
+        meshtally_test.data = [['3.00', '-2.00', '5.00', '0.00',
+                                '1.00'],
+                               ['5.00', '3.00', '6.00', '0.00',
+                                '9.00']]
+        meshtally_test.data = ma.convert_to_df(meshtally_test)
+        self.assertEqual(meshtally_test.data['value'].iloc[0], 0.00)
+        self.assertEqual(meshtally_test.data['x'].iloc[0], 3.00)
+        self.assertEqual(meshtally_test.data['y'].iloc[0], -2.00)
+        self.assertEqual(meshtally_test.data['z'].iloc[0], 5.00)
+        self.assertEqual(meshtally_test.data['rel_err'].iloc[0], 1.00)
+
+
 class count_zeros_test(unittest.TestCase):
 
-    def test_count_zeros(self):
+    def test_count_zeros_6col(self):
         meshtally_test = ma.meshtally()
         meshtally_test.ctype = "6col"
         meshtally_test.data = [['1.00', '3.00', '-2.00', '5.00', '0.00',
@@ -37,7 +68,16 @@ class count_zeros_test(unittest.TestCase):
                                 '9.00']]
         meshtally_test.data = ma.convert_to_df(meshtally_test)
         self.assertEqual(ma.count_zeros(meshtally_test), 2)
-        # looks for zeros in 5th column as thats the 'results'
+
+    def test_count_zeros_5col(self):
+        meshtally_test = ma.meshtally()
+        meshtally_test.ctype = "5col"
+        meshtally_test.data = [['3.00', '-2.00', '5.00', '0.00',
+                                '1.00'],
+                               ['5.00', '3.00', '6.00', '0.00',
+                                '9.00']]
+        meshtally_test.data = ma.convert_to_df(meshtally_test)
+        self.assertEqual(ma.count_zeros(meshtally_test), 2)
 
 
 class read_mesh_file_tests(unittest.TestCase):
@@ -122,6 +162,15 @@ class add_mesh_test(unittest.TestCase):
         self.assertEqual(new_mesh_test.data['rel_err'].iloc[0],
                          0.025778627023100853)
 
+    def test_add_mesh_file(self):
+        mesh = ma.read_mesh_tally_file(path)[0]
+        new_mesh_test = ma.add_mesh(mesh, mesh)
+        self.assertEqual(new_mesh_test.x_bounds, mesh.x_bounds)
+        self.assertEqual(new_mesh_test.y_bounds, mesh.y_bounds)
+        self.assertEqual(new_mesh_test.z_bounds, mesh.z_bounds)
+        self.assertEqual(new_mesh_test.data['value'].iloc[0],
+                         2*mesh.data['value'].iloc[0])
+
 
 class find_nearest_mid_test(unittest.TestCase):
 
@@ -143,7 +192,7 @@ class find_nearest_mid_test(unittest.TestCase):
         self.assertEqual(ma.find_nearest_mid(test_val_4, test_mids_4), 1)
         self.assertEqual(ma.find_nearest_mid(test_val_5, test_mids_5), -3.5)
 
-        
+
 class find_point_test(unittest.TestCase):
 
     def test_get_point(self):
@@ -152,13 +201,13 @@ class find_point_test(unittest.TestCase):
         mesh3_test.x_mids = [-9.0]
         mesh3_test.y_mids = [-9.0]
         mesh3_test.z_mids = [1.4]
-       
+
         mesh3_test.data = [['1.000E+36', '-9.0', '-9.0', '1.4',
                             '7.329430e-07', '0.017765']]
         mesh3_test.data = ma.convert_to_df(mesh3_test)
         result = ma.pick_point(-9, -9, 1.4, mesh3_test)
         self.assertAlmostEqual(float(result[0]), 7.329430e-07, 7)
-        
+
     def test_get_point_file(self):
         mesh = ma.read_mesh_tally_file(path)[0]
         result = ma.pick_point(-9, -9, 1.4, mesh).iloc[0]
@@ -167,8 +216,7 @@ class find_point_test(unittest.TestCase):
         self.assertAlmostEqual(result, 7.329430e-07, 7)
         result = ma.pick_point(-9, -9, 9.4, mesh).iloc[0]
         self.assertAlmostEqual(result, 5.54340E-07, 7)
-                
-        
+
 
 if __name__ == '__main__':
     unittest.main()
