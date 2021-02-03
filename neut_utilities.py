@@ -48,16 +48,16 @@ def string_cleaner(text):
 def find_first_non_zero(val_list):
     """ finds the first non zero value in a list and returns its position """
     for i, val in enumerate(val_list):
-        if val > 0:
+        if (val > 0.0) or (val < 0.0):
             return i
             break
+    return None
 
 
 def find_first_zero(val_list):
     """ finds the first zero value in a list and returns its position"""
     for i, val in enumerate(val_list):
-        if val <= 0:
+        if val == 0:
             return i
             break
-
     return None
