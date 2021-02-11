@@ -218,13 +218,22 @@ class find_point_test(unittest.TestCase):
         self.assertAlmostEqual(result, 5.54340E-07, 7)
 
 
-class max_val_test(unittest.TestCase):
+class upper_vals_test(unittest.TestCase):
 
-    def test_max_vals_file(self):
+    def test_upper_vals_file(self):
         mesh = ma.read_mesh_tally_file(path)[0]
-        mesh = ma.max_mesh(mesh)
+        mesh = ma.calculate_upper_mesh_vals(mesh)
         value = mesh.data["max_vals"].iloc[0]
         self.assertAlmostEqual(value, 6.50278e-7)
+
+
+class lower_vals_test(unittest.TestCase):
+
+    def test_lower_vals_file(self):
+        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.calculate_lower_mesh_vals(mesh)
+        value = mesh.data["min_vals"].iloc[0]
+        self.assertAlmostEqual(value, 6.2608e-7)
 
 
 if __name__ == '__main__':
