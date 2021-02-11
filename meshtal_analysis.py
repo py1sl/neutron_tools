@@ -212,6 +212,14 @@ def pick_point(x, y, z, mesh, erg=None):
     return result
 
 
+def max_mesh(mesh1):
+    """ adds the absoute max value based on the relative error """
+    maxvals = mesh1.data["value"] + (mesh1.data["value"] * mesh1.data["rel_err"])
+    mesh1.data["max_vals"] = maxvals
+
+    return mesh1
+
+
 def add_mesh(mesh1, mesh2):
     """ checks if boundaries of two meshes are equal
         and adds their values and errors
