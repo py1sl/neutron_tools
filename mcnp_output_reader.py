@@ -463,7 +463,7 @@ def read_type_surface(tally_data, lines):
     surface_line_id = first_surface_line_id
     res_df = []
     rel_err_df = []
-    if lines[first_surface_line_id + 1] == "      energy   ":
+    if "energy" in lines[first_surface_line_id + 1] :
         logging.debug("energy bins only")
 
         for s in tally_data.surfaces:
@@ -502,7 +502,7 @@ def read_type_surface(tally_data, lines):
         # add energy data to tally object
         tally_data.eng = erg
 
-    elif lines[first_surface_line_id+1][:11] == " angle  bin":
+    elif "angle" in lines[first_surface_line_id+1]:
         logging.debug("angle bins")
 
         if lines[first_surface_line_id+2] == "      energy   ":
@@ -544,6 +544,15 @@ def read_type_surface(tally_data, lines):
 
         else:
             logging.debug("angle bins only")
+    elif "time" in lines[first_surface_line_id+1]:
+        logging.debug("time bins")
+        end_line_id = ut.find_line(" ===", lines, 4)
+        tb, eb, res, err = process_e_t_userbin(lines[first_surface_line_id+1:end_line_id])
+        tally_data.times = tb
+        tally_data.eng = eb
+        tally_data.result = res
+        tally_data.err = err
+
     else:
         logging.debug("single value only")
         line = lines[first_surface_line_id+1]
