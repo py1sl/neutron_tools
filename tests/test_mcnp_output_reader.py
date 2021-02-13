@@ -28,6 +28,35 @@ class version_test_case(unittest.TestCase):
         self.assertEqual(mcnp_output_reader.read_version(string_a), None)
 
 
+class get_tally_nums_test_case(unittest.TestCase):
+    """ test for get talyl num """
+
+    def test_get_tally_num(self):
+        # test with a set of differnt tally types
+        data = ut.get_lines("test_output/singles.io")
+        tnums = mcnp_output_reader.get_tally_nums(data)
+        self.assertEqual(len(tnums), 6)
+        self.assertIn("1", tnums)
+        self.assertIn("2", tnums)
+        self.assertIn("4", tnums)
+        self.assertIn("5", tnums)
+        self.assertIn("6", tnums)
+        self.assertIn("8", tnums)
+
+        
+class energy_time_processing_test_case(unittest.TestCase):
+    """ test for energy time """
+
+    def test_f2_etprocess(self):
+        self.assertTrue(True)
+    
+    def test_f4_etprocess(self):
+        self.assertTrue(True)
+    
+    def test_f5_etprocess(self):
+        self.assertTrue(True)
+
+
 class rendevous_test_case(unittest.TestCase):
     """ test for reading the version of output file"""
 
