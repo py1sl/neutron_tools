@@ -4,7 +4,7 @@ Reads MCNP output file
 import argparse
 import logging
 import numpy as np
-# import pandas as pd
+import pandas as pd
 import neut_utilities as ut
 
 
@@ -271,8 +271,13 @@ def process_e_t_userbin(data):
                 in_data = True
                 tcol = tcol + len_tcol - 1
                 erow = 0
-
-    return time_bins, erg_bins, res_data, err_data
+    try:
+        res_df = pd.DataFrame(res_data, index=time_bins, columns=erg_bins)            
+    except ValueError:
+        logging.debug("cannot convert to dataframe ")
+        res_df = res_data
+    
+    return time_bins, erg_bins, res_df, err_data
 
 
 def find_term_line(lines):
@@ -547,7 +552,8 @@ def read_type_surface(tally_data, lines):
     elif "time" in lines[first_surface_line_id+1]:
         logging.debug("time bins")
         end_line_id = ut.find_line(" ===", lines, 4)
-        tb, eb, res, err = process_e_t_userbin(lines[first_surface_line_id+1:end_line_id])
+        tb, eb, res, err = process_e_t_userbin(
+                           lines[first_surface_line_id+1:end_line_id])
         tally_data.times = tb
         tally_data.eng = eb
         tally_data.result = res
