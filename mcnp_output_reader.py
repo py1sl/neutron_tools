@@ -243,8 +243,8 @@ def process_e_t_userbin(data):
 
     erg_bins.append("total")
     # create data arrays
-    res_data = np.zeros((len(time_bins)+1, len(erg_bins)))
-    err_data = np.zeros((len(time_bins)+1, len(erg_bins)))
+    res_data = np.zeros((len(time_bins), len(erg_bins)))
+    err_data = np.zeros((len(time_bins), len(erg_bins)))
     # now try get the data
     tcol = 0
     erow = 0
@@ -269,14 +269,14 @@ def process_e_t_userbin(data):
         elif not in_data:
             if "energy" in line:
                 in_data = True
-                tcol = tcol + len_tcol - 1
+                tcol = tcol + len_tcol
                 erow = 0
     try:
-        res_df = pd.DataFrame(res_data, index=time_bins, columns=erg_bins)            
+        res_df = pd.DataFrame(res_data, index=time_bins, columns=erg_bins)
     except ValueError:
         logging.debug("cannot convert to dataframe ")
         res_df = res_data
-    
+
     return time_bins, erg_bins, res_df, err_data
 
 
@@ -468,7 +468,7 @@ def read_type_surface(tally_data, lines):
     surface_line_id = first_surface_line_id
     res_df = []
     rel_err_df = []
-    if "energy" in lines[first_surface_line_id + 1] :
+    if "energy" in lines[first_surface_line_id + 1]:
         logging.debug("energy bins only")
 
         for s in tally_data.surfaces:
@@ -625,8 +625,12 @@ def read_type_cell(tally_data, lines):
                 errs.append(float(line[4]))
             tally_data.result.append(results)
             tally_data.err.append(errs)
-        # single value per cell data
+        elif "time" in lines[cell_res_start+1] :
+             logging.debug("noticed time bins")
+             logging.debug("time bins not currently supported for cell tallies")
+
         else:
+            # single value per cell data
             data_line = lines[cell_res_start + 1]
             data_line = " ".join(data_line.split())
             data_line = data_line.split(" ")
