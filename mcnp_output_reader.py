@@ -625,9 +625,16 @@ def read_type_cell(tally_data, lines):
                 errs.append(float(line[4]))
             tally_data.result.append(results)
             tally_data.err.append(errs)
-        elif "time" in lines[cell_res_start+1] :
-             logging.debug("noticed time bins")
-             logging.debug("time bins not currently supported for cell tallies")
+        # time bins
+        elif "time" in lines[cell_res_start+1]:
+            logging.debug("time bins")
+            end_line_id = ut.find_line(" ===", lines, 4)
+            tb, eb, res, err = process_e_t_userbin(
+                               lines[cell_res_start+1:end_line_id])
+            tally_data.times = tb
+            tally_data.eng = eb
+            tally_data.result = res
+            tally_data.err = err
 
         else:
             # single value per cell data

@@ -44,19 +44,6 @@ class get_tally_nums_test_case(unittest.TestCase):
         self.assertIn("8", tnums)
 
 
-class energy_time_processing_test_case(unittest.TestCase):
-    """ test for energy time """
-
-    def test_f2_etprocess(self):
-        self.assertTrue(True)
-
-    def test_f4_etprocess(self):
-        self.assertTrue(True)
-
-    def test_f5_etprocess(self):
-        self.assertTrue(True)
-
-
 class rendevous_test_case(unittest.TestCase):
     """ test for reading the version of output file"""
 
@@ -218,6 +205,24 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.result[0][0], 1.20226E-04)
                 self.assertEqual(tn.cells, ['2'])
                 self.assertEqual(tn.vols, ['3.66519E+03'])
+
+    def test_etbinned_t4_tally(self):
+        path = "test_output/singles_et.io"
+        single = mcnp_output_reader.read_output_file(path)
+        for tn in single.tally_data:
+            if tn.number == 4:
+                self.assertEqual(tn.type, '4')
+                self.assertEqual(tn.particle, "photons")
+                self.assertEqual(tn.nps, 1000000)
+                self.assertNotEqual(tn.eng, None)
+                self.assertEqual(len(tn.eng), 15)
+                self.assertEqual(tn.eng[-1], "total")
+                self.assertNotEqual(tn.times, None)
+                self.assertEqual(len(tn.times), 15)
+                self.assertEqual(tn.times[-1], "total")
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(tn.result.shape, tn.err.shape)
+                self.assertEqual(tn.result.shape, (15, 15))
 
 
 class tally_type5_tests(unittest.TestCase):
