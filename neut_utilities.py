@@ -12,7 +12,7 @@ def write_lines(path, lines):
     """ writes lines list to file at path """
     f = open(path, 'w')
     for line in lines:
-         f.write("%s\n" % line)
+        f.write("%s\n" % line)
     f.close()
 
 

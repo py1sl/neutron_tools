@@ -236,3 +236,26 @@ def find_sense_sphere(x1, y1, z1, x2, y2, z2, r):
     elif val == 0.0:
         print("on the sphere")
         return 0
+
+
+def project_ray(x ,y, z, ux, uy, uz, mu):
+    """ calculate the new co-ordinates for moving mu along the unit vector direct """
+    x1 = x + (ux*mu)
+    y1 = y + (uy*mu)
+    z1 = z + (uz*mu)
+
+    return (x1,y1,z1)
+
+
+def sphere_ray_intesect(x,y,z, ux, uv, uz, spherex, spherey,
+                        spherez, sphere_rad):
+    """ calculate mu for a ray intersecting a sphere """
+    dpx = x - spherex
+    dpy = y - spherey
+    dpz = z - spherez
+    dp2 = (dpx * dpx) + (dpy * dpy) + (dpz * dpz)
+    ddot = np.dot([dpx, dpy, dpz], [ux, uy, uz])
+    mu1 = -1 * ddot + np.sqrt((ddot*ddot) - (dp2) + (sphere_rad*sphere_rad))
+    mu2 = -1 * ddot - np.sqrt((ddot*ddot) - (dp2) + (sphere_rad*sphere_rad))
+
+    return (mu1, mu2)
