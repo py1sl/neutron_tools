@@ -238,16 +238,18 @@ def find_sense_sphere(x1, y1, z1, x2, y2, z2, r):
         return 0
 
 
-def project_ray(x ,y, z, ux, uy, uz, mu):
-    """ calculate the new co-ordinates for moving mu along the unit vector direct """
+def project_ray(x, y, z, ux, uy, uz, mu):
+    """ calculate the new co-ordinates
+         for moving mu along the unit vector direct
+    """
     x1 = x + (ux*mu)
     y1 = y + (uy*mu)
     z1 = z + (uz*mu)
 
-    return (x1,y1,z1)
+    return (x1, y1, z1)
 
 
-def sphere_ray_intesect(x,y,z, ux, uv, uz, spherex, spherey,
+def sphere_ray_intesect(x, y, z, ux, uy, uz, spherex, spherey,
                         spherez, sphere_rad):
     """ calculate mu for a ray intersecting a sphere """
     dpx = x - spherex
