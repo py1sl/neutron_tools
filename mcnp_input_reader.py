@@ -20,6 +20,18 @@ class mcnp_cell():
         self.surfaces = []
 
 
+def long_line_index(lines):
+    """ find index of lines longer than 80 characters"""
+    long_lines = []
+    for i, line in enumerate(lines):
+        if len(line) > 79:
+            long_lines.append(i)
+    if len(long_lines) == 0:
+        return None
+    else:
+        return long_lines
+
+
 def read_mode_card(lines):
     """ """
     mode = None

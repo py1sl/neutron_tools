@@ -143,6 +143,23 @@ class misc_tests(unittest.TestCase):
         self.assertEqual(comments[1], test_list[1])  # test for upper case c
         self.assertEqual(len(comments), 2)  # check nothing else added
 
+    def test_long_line(self):
+        """ """
+        test_list = ["c cell cards",
+                     "C surface ecards",
+                     "c234",
+                     "comment " + 90 * "f",
+                     "c"]
+        ll_index = mcnp_input_reader.long_line_index(test_list)
+        self.assertEqual(len(ll_index), 1)  # test found a single long line
+        self.assertEqual(ll_index, [3])     # check it found the right index
+
+        test_list = ["c cell cards",
+                     "C surface ecards",
+                     "c234"]
+        ll_index = mcnp_input_reader.long_line_index(test_list)
+        self.assertEqual(ll_index, None)     # if no long lines, return none
+
 
 if __name__ == '__main__':
     unittest.main()
