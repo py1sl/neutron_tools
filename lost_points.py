@@ -2,13 +2,12 @@
 Reads the output file and gets a list of the co-ordinates of the lost particles
 """
 import argparse
+import neut_utilities as ut
 
 
 def output_lost_points(path, outpath="lost"):
     """ """
-    with open(path) as f:
-        lines = f.read().splitlines()
-    f.close()
+    lines = ut.get_lines(path)
 
     x = []
     y = []
@@ -17,7 +16,7 @@ def output_lost_points(path, outpath="lost"):
     out_list.append("x y z temp")
 
     for line in lines:
-        if line[0:19] == " x,y,z coordinates:":
+        if "x,y,z coordinates:" in line :
             x.append(float(line[28:40]))
             y.append(float(line[43:55]))
             z.append(float(line[58:70]))
@@ -27,9 +26,8 @@ def output_lost_points(path, outpath="lost"):
         out_list.append(str(x[i]) + " " + str(y[i]) + " " + str(z[i]) + " 1")
         i = i + 1
 
-    ofile = open(outpath + ".3d", 'w')
-    for line in out_list:
-        ofile.write("%s\n" % line)
+    outpath = outpath + ".3d"
+    ut.write_lines(outpath, out_list)
 
 
 if __name__ == "__main__":

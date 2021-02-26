@@ -9,15 +9,15 @@ import matplotlib.pyplot as plt
 import datetime
 import argparse
 
+import neut_utilities as ut
+
 
 def plot_nps_stats(path):
     """ reads std out file of mcnp run and produces graphs vs nps
         these are useful for identifing any long history issues
         process - read file, extract data, plot graphs
     """
-    with open(path) as f:
-        lines = f.read().splitlines()
-    f.close()
+    lines = ut.get_lines(path)
 
     ctm = []    # computer time
     nrn = []    # number random numbers
@@ -26,12 +26,12 @@ def plot_nps_stats(path):
     time = []   # wall clock time
 
     for line in lines:
-        if line[0:4] == " ctm":
+        if "ctm" in line:
             ctm.append(float(line[6:18]))
             nrn.append(int(line[26:44]))
-        if line[0:5] == " dump":
+        if "dump" in line:
             coll.append(int(line[61:78]))
-        if line[0:22] == " master set rendezvous":
+        if "master set rendezvous" in line:
             nps.append(int(line[28:40]))
             t1 = datetime.datetime.strptime(line[66:83], '%m/%d/%y %H:%M:%S')
             time.append(t1)
