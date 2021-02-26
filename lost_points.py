@@ -16,7 +16,7 @@ def output_lost_points(path, outpath="lost"):
     out_list.append("x y z temp")
 
     for line in lines:
-        if "x,y,z coordinates:" in line :
+        if "x,y,z coordinates:" in line:
             x.append(float(line[28:40]))
             y.append(float(line[43:55]))
             z.append(float(line[58:70]))
