@@ -39,23 +39,28 @@ def get_lines(path):
 
 
 def find_line(text, lines, num):
-    """finds a index of the line in lines where the text is present in
-       the first num characters
+    """ finds first index of the line in lines where the text is present
+        in the first num characters
     """
-    i = 0
-    for line in lines:
-        i = i + 1
+    for i, line in enumerate(lines):
         if line[0:num] == text:
-            return i - 1
+            return i 
     raise ValueError
-    # TODO: add a catch if it doesnt find any match
 
 
 def string_cleaner(text):
-    """ returns cleaned up line"""
+    """ returns cleaned up line """
     text = text.strip()
     text = " ".join(text.split())
     return text
+
+
+def find_ind(data, sub):
+    """ finds first index in data which contains sub string """
+    for i, s in enumerate(data):
+        if sub in s:
+            return i
+    raise ValueError
 
 
 def find_first_non_zero(val_list):
@@ -68,7 +73,7 @@ def find_first_non_zero(val_list):
 
 
 def find_first_zero(val_list):
-    """ finds the first zero value in a list and returns its position"""
+    """ finds the first zero value in a list and returns its position """
     for i, val in enumerate(val_list):
         if val == 0:
             return i
