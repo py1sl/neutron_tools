@@ -16,6 +16,16 @@ class string_cleaner_test_case(unittest.TestCase):
         self.assertEqual(ut.string_cleaner(test_string), "hello world")
 
 
+class find_ind_test_case(unittest.TestCase):
+    """ test for reading the version of output file"""
+
+    def test_find_ind(self):
+        data = ["hello world", "hello mars"]
+        self.assertEqual(ut.find_ind(data, "mars"), 1)
+        self.assertEqual(ut.find_ind(data, "world"), 0)
+        self.assertEqual(ut.find_ind(data, "hello"), 0)
+
+
 class find_line_test_case(unittest.TestCase):
     """ tests for find line function"""
 

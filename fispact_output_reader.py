@@ -127,21 +127,21 @@ def read_time_step(lines, i):
 
     ts.step_length = float(lines[0][50:60])
 
-    ind = find_ind(lines, "TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
+    ind = ut.find_ind(lines, "TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
     ts.num_nuclides = int(lines[ind][50:])
 
-    ind = find_ind(lines, "ALPHA BECQUERELS")
+    ind = ut.find_ind(lines, "ALPHA BECQUERELS")
     ts.alpha_act = float(lines[ind][22:34])
     ts.beta_act = float(lines[ind][54:66])
     ts.gamma_act = float(lines[ind][87:99])
 
-    ind = find_ind(lines, "TOTAL ACTIVITY FOR ALL MATERIALS ")
+    ind = ut.find_ind(lines, "TOTAL ACTIVITY FOR ALL MATERIALS ")
     ts.total_act = float(lines[ind][40:51])
 
-    ind = find_ind(lines, "TOTAL ACTIVITY EXCLUDING TRITIUM ")
+    ind = ut.find_ind(lines, "TOTAL ACTIVITY EXCLUDING TRITIUM ")
     ts.total_act_no_trit = float(lines[ind][40:51])
 
-    ind = find_ind(lines, "TOTAL ALPHA HEAT")
+    ind = ut.find_ind(lines, "TOTAL ALPHA HEAT")
     ts.alpha_heat = float(lines[ind][40:51])
     ts.beta_heat = float(lines[ind + 1][40:51])
     ts.gamma_heat = float(lines[ind + 2][40:51])
@@ -158,12 +158,12 @@ def read_time_step(lines, i):
 
     ts.actinide_burn = float(lines[ind + 6][90:101])
 
-    ind = find_ind(lines, "DENSITY")
+    ind = ut.find_ind(lines, "DENSITY")
     ts.density = float(lines[ind][78:86])
 
     if ts.total_act > 0.0:
         # added check for E as if <=1E-100 the E is dropped
-        ind = find_ind(lines, "APPM OF He  4 ")
+        ind = ut.find_ind(lines, "APPM OF He  4 ")
         ts.appm_he4 = lines[ind][23:33]
         if "E" in ts.appm_he4:
             ts.appm_he4 = float(ts.appm_he4)
@@ -280,10 +280,10 @@ def read_summary_data(data):
 
 def parse_dominant(data):
     """parse dominant nuclides section and return a list of lists """
-    p1_ind = find_ind(data, "DOMINANT NUCLIDES")
+    p1_ind = ut.find_ind(data, "DOMINANT NUCLIDES")
     data = data[p1_ind:]
-    d1_ind = find_ind(data, "(Bq) ")
-    d2_ind = find_ind(data, "GAMMA HEAT")
+    d1_ind = ut.find_ind(data, "(Bq) ")
+    d2_ind = ut.find_ind(data, "GAMMA HEAT")
     topset = data[d1_ind+2:d2_ind-1]
     topset = np.array(topset)
     lowerset = data[d2_ind+3:]
@@ -348,8 +348,8 @@ def parse_composition(data):
         returns a list of 2 lists, one with name of element,
         one with the number of atoms
     """
-    p1 = find_ind(data, "COMPOSITION  OF  MATERIAL  BY  ELEMENT")
-    p2 = find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
+    p1 = ut.find_ind(data, "COMPOSITION  OF  MATERIAL  BY  ELEMENT")
+    p2 = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
     data = data[p1+5:p2-3]
     ele_list = []
     atoms = []
@@ -370,7 +370,7 @@ def parse_spectra(data):
         returns list of length 24 corresponding to 24 gamma energy groups
         data is in gamma/s/cc
     """
-    p1 = find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
+    p1 = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
     data = data[p1+7:p1+31]
     spectra = []
     for line in data:
@@ -392,7 +392,7 @@ def parse_inventory(data):
         dose rate in Sv/hr
     """
     inv = []
-    p2 = find_ind(data, "0  TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
+    p2 = ut.find_ind(data, "0  TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
     data = data[4:p2]
     for nuc in data:
         nuc_data = [nuc[2:8].replace(" ", ""), float(nuc[14:25]),
@@ -404,17 +404,9 @@ def parse_inventory(data):
     return np.array(inv)
 
 
-def find_ind(data, sub):
-    """ finds index in data whic contains sub string """
-    for i, s in enumerate(data):
-        if sub in s:
-            ind = i
-    return ind
-
-
 def read_parameter(data, sub):
     """ finds and cleans integral values in each timestep"""
-    ind = find_ind(data, sub)
+    ind = ut.find_ind(data, sub)
     line = data[ind]
     line = line.split("=")
     line = line[1].strip()

@@ -44,7 +44,7 @@ def find_line(text, lines, num):
     """
     for i, line in enumerate(lines):
         if line[0:num] == text:
-            return i 
+            return i
     raise ValueError
 
 
