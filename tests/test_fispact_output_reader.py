@@ -18,10 +18,10 @@ class version_test_case(unittest.TestCase):
         version = fo.isFisII(lines)
         self.assertEqual(version, True)
 
-        
+
 class read_fis_out_test_case(unittest.TestCase):
     """ test for the read fis out function which tests many other functions """
-    
+
     def test_fis_out_file1(self):
         path = "test_output/fis_test1.out"
         output = fo.read_fis_out(path)
@@ -32,6 +32,11 @@ class read_fis_out_test_case(unittest.TestCase):
         self.assertEqual(output.tot_irrad_time, 1.2e3)
         self.assertEqual(output.tot_fluence, 7.2e9)
         self.assertEqual(output.ave_flux, 6.0e6)
+        self.assertEqual(output.num_cool_step, 0)
+        self.assertEqual(output.irrad_step, 0))
+        self.assertEqual(len(output.sumdat[0]), 9)
+        self.assertEqual(len(output.timestep_data), 9)
+
 
 if __name__ == '__main__':
     unittest.main()
