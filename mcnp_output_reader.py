@@ -601,14 +601,15 @@ def read_type_cell(tally_data, lines):
             vol_line = vol_line.split(" ")
             for vol in vol_line:
                 tally_data.vols.append(vol)
-
+                
+    lines = lines[line_id:]
     # loop for each cell
     for cell in tally_data.cells:
+        
         results = []
         errs = []
         cline = " cell  "
-        cell_res_start = ut.find_line(cline + cell, lines,
-                                      len(cell)+len(cline))
+        cell_res_start = ut.find_ind(lines, cell)
         # energy binned data
         if lines[cell_res_start + 1] == "      energy   ":
             logging.debug("noticed energy")
