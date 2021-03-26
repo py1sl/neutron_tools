@@ -21,13 +21,7 @@ def generate_mesh_header(mesh, output_data):
 def normalise_mesh(mesh):
     """ normalise so highest point is a half """
 
-    mesh_data = np.asarray(mesh.data)
-
-    if mesh.ctype == "6col":
-        result = mesh_data[:, 4]
-    else:
-        result = mesh_data[:, 3]
-
+    result = mesh.data["value"]
     result = result.astype(np.float)
     norm_const = 0.5/max(result)
 
