@@ -90,6 +90,36 @@ def midpoint_bet_points(x1, y1, z1, x2, y2, z2):
         return (x, y, z)
 
 
+def coefficients_of_line_from_points(point_a, point_b):
+    """Computes the m and c coefficients of the equation (y=mx+c) for
+    a straight line from two points on a plane. 
+    point_a and point_b are two co-ordinate points. i.e. point_a=(ax, by)
+    """
+
+    points = [point_a, point_b]
+    x_coords, y_coords = zip(*points)
+    coord_array = np.vstack([x_coords, np.ones(len(x_coords))]).T
+    m, c = np.linalg.lstsq(coord_array, y_coords, rcond=None)[0]
+    return m, c
+
+
+def rotate_point(ox, oy, px, py, angle):
+    """
+    Rotate a point counterclockwise by a given angle around a given origin.
+    The angle should be given in radians.
+    ox, oy are origin point co-ords,
+    px, py are the point to rotate co-ords.
+    The origin and point are assumed to have a constant 3rd co-ord
+    i.e. they lie on an axial plane
+    Returns:
+        float, float: rotated point coordinates.
+    """
+
+    qx = ox + np.cos(angle) * (px - ox) - np.sin(angle) * (py - oy)
+    qy = oy + np.sin(angle) * (px - ox) + np.cos(angle) * (py - oy)
+    return qx, qy
+
+
 def pythag_h(l1, l2):
     """ calculate length of hypotenuse """
     if l1 == 0.0 or l2 == 0.0:
