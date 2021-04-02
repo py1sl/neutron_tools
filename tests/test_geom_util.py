@@ -86,6 +86,18 @@ class geom_points_test_case(unittest.TestCase):
         self.assertEqual(geom_utils.dist_bet_points(-1.0, 0.0, 0.0, 2.0,
                          0.0, 0.0), 3.0)
 
+    def test_mid_point(self):
+        self.assertEqual(geom_utils.midpoint_bet_points(0.0, 2.0, 0.0, 0.0,
+                         4.0, 0.0), (0.0, 3.0, 0.0))
+        self.assertEqual(geom_utils.midpoint_bet_points(0.0, 0.0, 2.0, 0.0,
+                         0.0, 4.0), (.0, 0.0, 3.0))
+        self.assertEqual(geom_utils.midpoint_bet_points(2.0, 0.0, 0.0, 4.0,
+                         0.0, 0.0), (3.0, 0.0, 0.0))
+
+    def test_rotate_point(self):
+        x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi/2.0)
+        self.assertEqual(y, 10)
+
 
 class geom_pythag_test_case(unittest.TestCase):
     """ tests for points functions"""
@@ -100,6 +112,12 @@ class geom_pythag_test_case(unittest.TestCase):
         self.assertEqual(geom_utils.pythag_h(0, 4), 0)
         self.assertEqual(geom_utils.pythag_h(4, 0), 0)
 
+
+class line_eq_test_case(unittest.TestCase):
+    """ tests for points functions"""
+
+    def test_line(self):
+        self.assertEqual(geom_utils.pythag_h(3, 4), 5)
 
 if __name__ == '__main__':
     unittest.main()

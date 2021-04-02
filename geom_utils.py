@@ -92,7 +92,7 @@ def midpoint_bet_points(x1, y1, z1, x2, y2, z2):
 
 def coefficients_of_line_from_points(point_a, point_b):
     """Computes the m and c coefficients of the equation (y=mx+c) for
-    a straight line from two points on a plane. 
+    a straight line from two points on a plane.
     point_a and point_b are two co-ordinate points. i.e. point_a=(ax, by)
     """
 
