@@ -96,7 +96,11 @@ class geom_points_test_case(unittest.TestCase):
 
     def test_rotate_point(self):
         x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi/2.0)
-        self.assertEqual(y, 10)
+        self.assertEqual(y, 10) # simple 90 degree rotate
+        x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi)
+        self.assertEqual(x, -10) # simple 180 degree rotate
+        x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi*2.0)
+        self.assertEqual(x, 10) # 360 degree rotate
 
 
 class geom_pythag_test_case(unittest.TestCase):
@@ -117,7 +121,10 @@ class line_eq_test_case(unittest.TestCase):
     """ tests for points functions"""
 
     def test_line(self):
-        self.assertEqual(geom_utils.pythag_h(3, 4), 5)
+        m, c = geom_utils.coefficients_of_line_from_points((-1,3),(3,11))
+        self.assertAlmostEqual(m, 2.0, 7)
+        self.assertAlmostEqual(c,5.0,7)
+
 
 if __name__ == '__main__':
     unittest.main()
