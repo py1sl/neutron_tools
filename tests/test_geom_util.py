@@ -96,15 +96,17 @@ class geom_points_test_case(unittest.TestCase):
 
     def test_rotate_point(self):
         x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi/2.0)
-        self.assertEqual(y, 10) # simple 90 degree rotate
+        self.assertEqual(y, 10)   # simple 90 degree rotate
         x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi)
-        self.assertEqual(x, -10) # simple 180 degree rotate
+        self.assertEqual(x, -10)   # simple 180 degree rotate
         x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi*2.0)
-        self.assertEqual(x, 10) # 360 degree rotate
+        self.assertEqual(x, 10)   # 360 degree rotate
+        x, y = geom_utils.rotate_point(0, 0, 10, 0, -np.pi*2.0)
+        self.assertEqual(x, 10)   # -360 degree rotate
 
 
 class geom_pythag_test_case(unittest.TestCase):
-    """ tests for points functions"""
+    """ tests for pythag functions"""
 
     def test_345(self):
         self.assertEqual(geom_utils.pythag_h(3, 4), 5)
@@ -118,12 +120,41 @@ class geom_pythag_test_case(unittest.TestCase):
 
 
 class line_eq_test_case(unittest.TestCase):
-    """ tests for points functions"""
+    """ tests for line equation functions"""
 
     def test_line(self):
-        m, c = geom_utils.coefficients_of_line_from_points((-1,3),(3,11))
+        m, c = geom_utils.coefficients_of_line_from_points((-1, 3),  (3,11))
         self.assertAlmostEqual(m, 2.0, 7)
         self.assertAlmostEqual(c,5.0,7)
+
+
+class ray_test_case(unittest.TestCase):
+    """ tests for ray functions"""
+
+    def test_ray_project(self):
+        x, y, z = geom_utils.project_ray(10, 0, 0, 1, 0, 0, 5)
+        self.assertEqual(x, 15)
+        self.assertEqual(y, 0)
+        self.assertEqual(z, 0)
+
+
+class sphere_intersect_test_case(unittest.TestCase):
+    """ tests for ray functions"""
+
+    def test_sphere(self):
+        self.assertEqual(1, 1)
+
+
+class surface_sense_test_case(unittest.TestCase):
+    """ tests for surface sense functions"""
+
+    def test_sphere(self):
+        sense = geom_utils.find_sense_sphere(0, 0, 0, 1, 0, 0, 10)
+        self.assertEqual(sense, 1)
+        sense = geom_utils.find_sense_sphere(0, 0, 0, 10, 0, 0, 10)
+        self.assertEqual(sense, 0)
+        sense = geom_utils.find_sense_sphere(0, 0, 0, 20, 0, 0, 10)
+        self.assertEqual(sense, -1)
 
 
 if __name__ == '__main__':
