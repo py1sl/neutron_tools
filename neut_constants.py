@@ -44,3 +44,28 @@ def years_to_hrs(val):
 def years_to_days(val):
     """ convert years to days """
     return val * 365
+
+
+def bq_to_curie(val):
+    """converts bq to curies """
+    return val * 2.703e11
+
+
+def curie_to_bq(val):
+   """ convert val to bq """
+   return val * 3.7e-12
+
+
+def eV_to_joule(val);
+    """ convert electron volts to joules """
+    return val * 1.602e-19
+
+
+def eV_to_wavelength_photon(val):
+    """ converts eV to wavelength in m """
+    return 1.24e-6 / val
+
+
+ def wavelength_to_meV_neutron(val):
+     """convert neutron wavelength in A to energy in meV """
+     return 81.81 / (val * val)

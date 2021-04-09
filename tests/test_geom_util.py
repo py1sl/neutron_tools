@@ -123,9 +123,9 @@ class line_eq_test_case(unittest.TestCase):
     """ tests for line equation functions"""
 
     def test_line(self):
-        m, c = geom_utils.coefficients_of_line_from_points((-1, 3),  (3,11))
+        m, c = geom_utils.coefficients_of_line_from_points((-1, 3),  (3, 11))
         self.assertAlmostEqual(m, 2.0, 7)
-        self.assertAlmostEqual(c,5.0,7)
+        self.assertAlmostEqual(c, 5.0, 7)
 
 
 class ray_test_case(unittest.TestCase):
