@@ -1,4 +1,4 @@
-"""Set of constants for use by neutron tools """
+"""Set of constants and conversions for use by neutron tools """
 
 
 def get_e():
@@ -56,7 +56,7 @@ def curie_to_bq(val):
    return val * 3.7e-12
 
 
-def eV_to_joule(val);
+def eV_to_joule(val):
     """ convert electron volts to joules """
     return val * 1.602e-19
 
@@ -66,6 +66,6 @@ def eV_to_wavelength_photon(val):
     return 1.24e-6 / val
 
 
- def wavelength_to_meV_neutron(val):
+def wavelength_to_meV_neutron(val):
      """convert neutron wavelength in A to energy in meV """
      return 81.81 / (val * val)
