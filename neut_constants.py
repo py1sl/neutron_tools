@@ -22,11 +22,11 @@ def get_e_mass():
 
 
 def rem_to_Sv(val):
-    """convert rem to Sv """
+    """convert Rem to Sv """
     return val/100.0
 
 
-def Sv_to_rem(val):
+def sv_to_rem(val):
     """ convert Sv to Rem """
     return val * 100.0
 
