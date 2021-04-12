@@ -52,8 +52,8 @@ def bq_to_curie(val):
 
 
 def curie_to_bq(val):
-   """ convert val to bq """
-   return val * 3.7e-12
+    """ convert val to bq """
+    return val * 3.7e-12
 
 
 def eV_to_joule(val):
@@ -67,5 +67,5 @@ def eV_to_wavelength_photon(val):
 
 
 def wavelength_to_meV_neutron(val):
-     """convert neutron wavelength in A to energy in meV """
-     return 81.81 / (val * val)
+    """convert neutron wavelength in A to energy in meV """
+    return 81.81 / (val * val)
