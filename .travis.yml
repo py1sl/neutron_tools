@@ -19,4 +19,4 @@ script:
  - python test_geom_util.py
  - python test_mcnp_analyis.py
  - python test_meshtal_analysis.py
- - pytest --cov=./
+ - pytest --cov=..
