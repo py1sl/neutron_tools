@@ -138,7 +138,7 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None,
 # TODO:
 def output_as_vtk():
     """ """
-    print("not ready yet")
+    logging.debug("not ready yet")
 
 
 def find_nearest_mid(value, mids):
@@ -222,7 +222,7 @@ def calculate_upper_mesh_vals(mesh1):
 
 
 def calculate_lower_mesh_vals(mesh1):
-    """ adds the absoute max value based on the relative error """
+    """ adds the absoute min value based on the relative error """
     minvals = mesh1.data["value"] - (
               mesh1.data["value"] * mesh1.data["rel_err"])
     mesh1.data["min_vals"] = minvals

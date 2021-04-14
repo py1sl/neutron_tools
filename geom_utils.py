@@ -5,6 +5,7 @@ Part of neutron tools
 
 """
 import numpy as np
+import logging
 
 
 def angle_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
@@ -46,8 +47,8 @@ def dist_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
 
     check = evaluate_plane_eq(x, y, z, x1, y1, z1, d1)
     if check != 0.0:
-        print("warning check not equal to 0.0")
-        print(check)
+        logging.debug("warning check not equal to 0.0")
+        logging.debug(check)
 
     top = (x2 * x)+(y2 * y)+(z2 * z) - d2
     bottom = (x2 * x2) + (y2 * y2) + (z2 * z2)
@@ -252,7 +253,7 @@ def find_sense_plane(x, y, z, coeff_X, coeff_Y, coeff_Z, d):
     elif val < 0.0:
         return 1
     elif val == 0.0:
-        print("on the plane")
+        logging.debug("on the plane")
         return 0
 
 
@@ -264,7 +265,7 @@ def find_sense_sphere(x1, y1, z1, x2, y2, z2, r):
     elif val < 0.0:
         return 1
     elif val == 0.0:
-        print("on the sphere")
+        logging.debug("on the sphere")
         return 0
 
 

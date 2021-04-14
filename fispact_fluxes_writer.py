@@ -147,7 +147,8 @@ def get_group_struct(gs):
     if gs == "709":
         return gs_709
     else:
-        print("Error group structure not found")
+        logging.debug("Error group structure not found")
+        return False
 
 
 def create_fluxes_data(groups, epos):

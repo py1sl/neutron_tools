@@ -8,6 +8,7 @@ March 2019
 import sys
 import argparse
 import neut_utilities as ut
+import logging
 
 
 def reduce_ofile(infile, ofile):
@@ -19,7 +20,7 @@ def reduce_ofile(infile, ofile):
     try:
         term_line = ut.find_line("      run terminated when", lines, 25)
     except EOFError as e:
-        print(repr(e))
+        logging.debug(repr(e))
         sys.exit()
 
     lines = lines[term_line:]
