@@ -236,5 +236,25 @@ class lower_vals_test(unittest.TestCase):
         self.assertAlmostEqual(value, 6.2608e-7)
 
 
+class err_hist_tests(unittest.TestCase):
+
+    def test_err_hist(self):
+        mesh = ma.read_mesh_tally_file(path)[0]
+        plot = ma.rel_err_hist(mesh.data)
+        # x_plot, y_plot = plot.get_xydata().T
+        self.assertEqual(plot.get_xlabel(), "Relative error")
+        self.assertEqual(plot.get_ylabel(), "Number of voxels")
+
+'''
+class slice_tests(unittest.TestCase):
+
+    def test_slice_plot(self):
+        mesh = ma.read_mesh_tally_file(path)[0]
+        plot = ma.plot_slice(mesh, 1)
+        # x_plot, y_plot = plot.get_xydata().T
+        self.assertEqual(plot.get_xlabel(), "X co-ord (cm)")
+        self.assertEqual(plot.get_ylabel(), "Y co-ord (cm)")
+'''
+
 if __name__ == '__main__':
     unittest.main()

@@ -31,7 +31,7 @@ class meshtally:
 def rel_err_hist(df, fname=None):
     """ Plots a histogram of the relative errors"""
 
-    df.hist(column='rel_err', bins=15)
+    plot, = df.hist(column='rel_err', bins=15)
     plt.xlabel("Relative error")
     plt.ylabel("Number of voxels")
     if fname:
@@ -39,6 +39,8 @@ def rel_err_hist(df, fname=None):
         logging.info("produced figure: %s", fname)
     else:
         plt.show()
+
+    return plot[0]
 
 
 # TODO: need to deal with energy bins

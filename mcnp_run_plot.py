@@ -4,19 +4,22 @@ works on the output to std out from MCNP6
 does not work on the MCNP output file
 """
 
-import matplotlib
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import datetime
 import argparse
+import logging
 
 import neut_utilities as ut
+mpl.use('Agg')
 
 
-def plot_nps_stats(path):
+def plot_nps_stats(path, fname=None):
     """ reads std out file of mcnp run and produces graphs vs nps
         these are useful for identifing any long history issues
         process - read file, extract data, plot graphs
     """
+    ut.setup_logging()
     lines = ut.get_lines(path)
 
     ctm = []    # computer time
@@ -62,13 +65,23 @@ def plot_nps_stats(path):
     ax3.plot(nps, coll[1:])
 
     fig.tight_layout()
-    plt.show()
+
+    if fname:
+        plt.savefig(fname)
+        logging.info("produced figure: %s", fname)
+    else:
+        plt.show()
 
 
 if __name__ == "__main__":
     desc = "data about run time and rendevous frequency"
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument("input", help="path to the input file")
+    parser.add_argument("-o", "--output", action="store", dest="output",
+                        help="path to the output file")
     args = parser.parse_args()
 
-    plot_nps_stats(args.input)
+    if args.output:
+        plot_nps_stats(args.input, args.output)
+    else:
+        plot_nps_stats(args.input)

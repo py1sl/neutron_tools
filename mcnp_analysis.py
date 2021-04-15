@@ -1,4 +1,5 @@
 """ """
+import matplotlib
 import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,6 +7,7 @@ import numpy as np
 import logging
 
 import neut_utilities as ut
+matplotlib.use('agg')
 
 
 def normalise(data, norm_val):
