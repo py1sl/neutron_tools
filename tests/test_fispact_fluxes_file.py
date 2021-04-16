@@ -1,5 +1,19 @@
 import unittest
+from unittest.mock import patch, mock_open
 import fispact_fluxes_writer as fw
+import numpy as np
+
+
+class writelines_test_case(unittest.TestCase):
+    """ tests write_lines function"""
+
+    def test_write_lines(self):
+        open_mock = mock_open()
+        data = np.asarray([1, 2.0])
+        with patch("neut_utilities.open", open_mock, create=True):
+            fw.write_fluxes_file("output.txt", data)
+
+        open_mock.assert_called_with("output.txt", "w")
 
 
 class fluxes_writer_test_case(unittest.TestCase):

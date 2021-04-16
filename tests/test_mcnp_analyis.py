@@ -1,5 +1,7 @@
 import unittest
+from unittest.mock import patch, mock_open
 import mcnp_analysis as ma
+import mcnp_output_reader as mor
 
 
 class normalise_test_case(unittest.TestCase):
@@ -26,6 +28,21 @@ class calc_bin_width_test(unittest.TestCase):
         bins = [1, 1.5, 1.6]
         self.assertEqual(len(ma.calc_bin_width(bins)), 3)
 
+        
+class csv_test_case(unittest.TestCase):
+    """ tests write_lines function"""
 
+    def test_write_csv(self):
+        open_mock = mock_open()
+        single = mor.read_output_file("test_output/singles.io")
+        for tn in single.tally_data:
+            if tn.number == 4:
+                data = tn
+        with patch("neut_utilities.open", open_mock, create=True):
+            ma.csv_out(data, "output.txt")
+
+        open_mock.assert_called_with("output.txt", "w")
+
+        
 if __name__ == '__main__':
     unittest.main()

@@ -1,4 +1,6 @@
 import unittest
+from unittest.mock import patch, mock_open
+import logging
 import mcnp_output_reader
 import neut_utilities as ut
 
@@ -339,6 +341,21 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(len(tn.result), 14)
                 self.assertEqual(len(tn.err), 14)
                 self.assertEqual(tn.result[0],  5.16461E-01)
+
+
+class writelines_test_case(unittest.TestCase):
+    """ tests write_lines function"""
+
+    def test_write_lines(self):
+        open_mock = mock_open()
+        logger = logging.getLogger()
+        logger.level = logging.DEBUG
+        with patch("neut_utilities.open", open_mock, create=True):
+            mcnp_output_reader.print_tally_lines_to_file(["hello", "world"],
+                                                          "output", 1)
+
+        open_mock.assert_called_with("output1.txt", "w")
+        open_mock.return_value.write.assert_any_call("hello\n")
 
 
 if __name__ == '__main__':
