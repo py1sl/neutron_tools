@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, mock_open
-import magic
+import mcnp_run_plot as mrp
 
 
 if __name__ == '__main__':

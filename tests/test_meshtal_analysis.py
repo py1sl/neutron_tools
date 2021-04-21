@@ -245,6 +245,7 @@ class err_hist_tests(unittest.TestCase):
         self.assertEqual(plot.get_xlabel(), "Relative error")
         self.assertEqual(plot.get_ylabel(), "Number of voxels")
 
+
 '''
 class slice_tests(unittest.TestCase):
 

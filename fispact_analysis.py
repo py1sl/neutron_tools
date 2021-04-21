@@ -25,7 +25,7 @@ def plot_act(time_hrs, act, offset=0, fname=None,
 
     # make plot
     plt.clf()
-    plt.plot(time_hrs, act)
+    plot = plt.plot(time_hrs, act)
     plt.xlabel("Time (hrs)")
     plt.ylabel(act_lab)
     plt.yscale("log")
@@ -50,6 +50,7 @@ def plot_act(time_hrs, act, offset=0, fname=None,
         plt.savefig(fname)
     else:
         plt.show()
+    return plot
 
 
 def plot_dose(time_hrs, dose_rate, offset=0, fname=None,
@@ -68,7 +69,7 @@ def plot_dose(time_hrs, dose_rate, offset=0, fname=None,
 
     # create plot
     plt.clf()
-    plt.plot(time_hrs, dose_rate)
+    plot, = plt.plot(time_hrs, dose_rate)
     plt.xlabel("Time (hrs)")
     plt.ylabel(r"Dose rate $\mu$Sv/h")
     plt.yscale("log")
@@ -93,6 +94,7 @@ def plot_dose(time_hrs, dose_rate, offset=0, fname=None,
         plt.savefig(fname)
     else:
         plt.show()
+    return plot[0]
 
 
 def plot_spectra(timestep, fname=None):

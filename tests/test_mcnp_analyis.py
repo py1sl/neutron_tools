@@ -10,6 +10,12 @@ class normalise_test_case(unittest.TestCase):
     def test_norm_nice_data(self):
         data = [1, 2, 3, 4]
         self.assertEqual(ma.normalise(data, 10), [10, 20, 30, 40])
+        self.assertEqual(ma.normalise(data, 1), data)
+        result = ma.normalise(data, 0.1)
+        self.assertAlmostEqual(result[0], 0.1, 7)
+        self.assertAlmostEqual(result[1], 0.2, 7)
+        self.assertAlmostEqual(result[2], 0.3, 7)
+        self.assertAlmostEqual(result[3], 0.4, 7)
 
 
 class calc_absolute_err_test(unittest.TestCase):
@@ -28,7 +34,16 @@ class calc_bin_width_test(unittest.TestCase):
         bins = [1, 1.5, 1.6]
         self.assertEqual(len(ma.calc_bin_width(bins)), 3)
 
-        
+
+class calc_bin_mid_test(unittest.TestCase):
+    """ test for bin width calculation function"""
+
+    def test_bin_mids(self):
+        bins = [1, 3, 5]
+        self.assertEqual(len(ma.calc_mid_points(bins)), 2)
+        self.assertEqual(ma.calc_mid_points(bins), [2, 4])
+
+
 class csv_test_case(unittest.TestCase):
     """ tests write_lines function"""
 
@@ -43,6 +58,6 @@ class csv_test_case(unittest.TestCase):
 
         open_mock.assert_called_with("output.txt", "w")
 
-        
+
 if __name__ == '__main__':
     unittest.main()

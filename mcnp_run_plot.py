@@ -39,8 +39,8 @@ def plot_nps_stats(path, fname=None):
             t1 = datetime.datetime.strptime(line[66:83], '%m/%d/%y %H:%M:%S')
             time.append(t1)
 
-    time = matplotlib.dates.date2num(time)
-    fmt = matplotlib.dates.DateFormatter('%d/%m  %H:%M')
+    time = mpl.dates.date2num(time)
+    fmt = mpl.dates.DateFormatter('%d/%m  %H:%M')
 
     fig = plt.figure()
     ax = fig.add_subplot(221)

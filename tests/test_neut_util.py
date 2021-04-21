@@ -3,6 +3,13 @@ from unittest.mock import patch, mock_open
 import neut_utilities as ut
 
 
+class getlines_test_case(unittest.TestCase):
+    """ tests get_lines function"""
+    def test_get_lines(self):
+        data = ut.get_lines("test_output/singles.io")
+        self.assertEqual(len(data), 700)
+
+
 class writelines_test_case(unittest.TestCase):
     """ tests write_lines function"""
 
