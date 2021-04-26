@@ -43,7 +43,7 @@ def remove_header(lines):
 
 def mean_num_events(hists):
     """ calculate mean number of events
-       input is a list of hist objects
+       input is a list of history objects
        output is the mean number of events per history (float)
     """
 
