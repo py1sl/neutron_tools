@@ -55,6 +55,11 @@ class MCNP_type5_tally(MCNP_tally_data):
         self.cell_scores = None
         self.uncoll_flux = None
         self.uncoll_err = None
+        self.diagnostics = None
+        self.largest_score = 0.0
+        self.largest_score_nps = 0.0
+        self.average_per_history = 0.0
+        self.misses = None
 
 
 class MCNP_surface_tally(MCNP_tally_data):
@@ -795,6 +800,54 @@ def read_type_5(tally_data, lines):
         tally_data.result.append(float(res_line[0]))
         tally_data.err.append(float(res_line[1]))
 
+        
+    # read general f5 tally data 
+    ave_line_id = ut.find_ind(lines, " average tally per history")
+    ave_line = lines[ave_line_id]
+    ave_line = ut.string_cleaner(ave_line)
+    ave_line = ave_line.split("=")
+    tally_data.average_per_history = float(ave_line[1][1:13])
+    tally_data.largest_score = float(ave_line[-1])
+    n_line = lines[ave_line_id+1]
+    n_line = ut.string_cleaner(n_line)
+    n_line = n_line.split("=")
+    tally_data.largest_score_nps = float(n_line[-1])
+    
+    # read score misses data
+    tally_data.misses = {}
+    
+    score_miss_line_id = ut.find_ind(lines, "score misses")
+    n_line = lines[score_miss_line_id+1]
+    n_line = ut.string_cleaner(n_line)
+    n_line = n_line.split(" ")
+    tally_data.misses["russian roulette on pd"] = float(n_line[-1])
+    
+    n_line = lines[score_miss_line_id+2]
+    n_line = ut.string_cleaner(n_line)
+    n_line = n_line.split(" ")
+    tally_data.misses["psc=0"] = float(n_line[-1])
+    
+    n_line = lines[score_miss_line_id+3]
+    n_line = ut.string_cleaner(n_line)
+    n_line = n_line.split(" ")
+    tally_data.misses["russian roulette in transmission"] = float(n_line[-1])
+    
+    n_line = lines[score_miss_line_id+4]
+    n_line = ut.string_cleaner(n_line)
+    n_line = n_line.split(" ")
+    tally_data.misses["underflow in transmission"] = float(n_line[-1])
+    
+    n_line = lines[score_miss_line_id+5]
+    n_line = ut.string_cleaner(n_line)
+    n_line = n_line.split(" ")
+    tally_data.misses["hit a zero-importance cell"] = float(n_line[-1])
+    
+    n_line = lines[score_miss_line_id+6]
+    n_line = ut.string_cleaner(n_line)
+    n_line = n_line.split(" ")
+    tally_data.misses["energy cutoff"] = float(n_line[-1])
+
+    
     return tally_data
 
 

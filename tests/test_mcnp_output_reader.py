@@ -248,6 +248,16 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.x, 15.0)
                 self.assertEqual(tn.y, 0.00)
                 self.assertEqual(tn.z, 0.00)
+                self.assertEqual(tn.largest_score, 2.32897E-01)
+                self.assertEqual(tn.largest_score_nps, 492485)
+                self.assertEqual(tn.average_per_history, 3.42950E-04)
+                self.assertEqual(tn.misses["russian roulette on pd"], 0)
+                self.assertEqual(tn.misses["psc=0"], 0)
+                self.assertEqual(tn.misses["russian roulette in transmission"], 935317)
+                self.assertEqual(tn.misses["underflow in transmission"], 39376)
+                self.assertEqual(tn.misses["hit a zero-importance cell"], 0)
+                self.assertEqual(tn.misses["energy cutoff"], 0)
+                
 
     def test_ebined_t5_tally(self):
         path = "test_output/singles_erg.io"
