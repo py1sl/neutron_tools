@@ -225,6 +225,24 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.result.shape, tn.err.shape)
                 self.assertEqual(tn.result.shape, (15, 15))
+                
+    def test_tbinned_t4_tally(self):
+        path = "test_output/singles_t.io"
+        single = mcnp_output_reader.read_output_file(path)
+        for tn in single.tally_data:
+            if tn.number == 4:
+                self.assertEqual(tn.type, '4')
+                self.assertEqual(tn.particle, "photons")
+                self.assertEqual(tn.nps, 200000)
+                self.assertEqual(tn.eng, None)
+                self.assertNotEqual(tn.times, None)
+                self.assertEqual(len(tn.times), 14)
+                self.assertEqual(tn.times[-1], "total")
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(len(tn.result), 14)
+                self.assertEqual(len(tn.err), 14)
+                self.assertEqual(tn.result[-1], 1.70644e-03)
+                self.assertEqual(tn.err[-1], 0.0008)
 
 
 class tally_type5_tests(unittest.TestCase):
@@ -277,6 +295,15 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.x, 15)
                 self.assertEqual(tn.y, 0.00)
                 self.assertEqual(tn.z, 0.00)
+                self.assertEqual(tn.largest_score, 2.32897E-01)
+                self.assertEqual(tn.largest_score_nps, 492485)
+                self.assertEqual(tn.average_per_history, 3.42950E-04)
+                self.assertEqual(tn.misses["russian roulette on pd"], 0)
+                self.assertEqual(tn.misses["psc=0"], 0)
+                self.assertEqual(tn.misses["russian roulette in transmission"], 935317)
+                self.assertEqual(tn.misses["underflow in transmission"], 39376)
+                self.assertEqual(tn.misses["hit a zero-importance cell"], 0)
+                self.assertEqual(tn.misses["energy cutoff"], 0)
 
 
 class tally_type6_tests(unittest.TestCase):

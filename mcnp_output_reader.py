@@ -631,15 +631,40 @@ def read_type_cell(tally_data, lines):
             tally_data.result.append(results)
             tally_data.err.append(errs)
         # time bins
-        elif "time" in lines[cell_res_start+1]:
-            logging.debug("time bins")
+        elif "time" in lines[cell_res_start+1]:            
             end_line_id = ut.find_line(" ===", lines, 4)
-            tb, eb, res, err = process_e_t_userbin(
+            # check if energy bins as well as time
+            if "energy" in lines[cell_res_start+2]:
+                logging.debug("energy & time bins")
+                tb, eb, res, err = process_e_t_userbin(
                                lines[cell_res_start+1:end_line_id])
-            tally_data.times = tb
-            tally_data.eng = eb
-            tally_data.result = res
-            tally_data.err = err
+                tally_data.times = tb
+                tally_data.eng = eb
+                tally_data.result = res
+                tally_data.err = err
+            else:
+                # just time bins
+                logging.debug("time bins only")
+                end_line_id = ut.find_ind(lines, "total") + 2
+                lines = lines[cell_res_start+1:end_line_id]
+                time_bins = []
+
+                for line in lines:
+                    line = ut.string_cleaner(line)
+                    if "time" in line:
+                        line = line.split(" ")[1:]
+                        for t in line:
+                            time_bins.append(t)
+                    elif len(line) > 4:
+                        line = line.split(" ")
+                        line = [float(i) for i in line]
+                        errs += line[1::2]
+                        results += line[0::2]
+                        
+                tally_data.times = time_bins
+                tally_data.result = results
+                tally_data.err = errs
+                           
 
         else:
             # single value per cell data
