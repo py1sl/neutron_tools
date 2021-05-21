@@ -219,6 +219,29 @@ def print_tally_lines_to_file(lines, fname, tnum):
         ut.write_lines(fname, lines)
 
 
+def process_time_bin_only(lines):
+    """ processes a tally with only times bins
+        input a list of strings for the time bin section of the tally
+    """
+    time_bins = []
+    errs = []
+    results = []
+
+    for line in lines:
+        line = ut.string_cleaner(line)
+        if "time" in line:
+            line = line.split(" ")[1:]
+            for t in line:
+                time_bins.append(t)
+        elif len(line) > 4:
+            line = line.split(" ")
+            line = [float(i) for i in line]
+            errs += line[1::2]
+            results += line[0::2]
+
+    return time_bins, results, errs
+
+
 def process_e_t_userbin(data):
     """ processes energy time bins in a tally """
     time_bins = []
@@ -398,7 +421,9 @@ def read_tally(lines, tnum, rnum=-1):
 
 
 def read_type_8(tally_data, lines):
-    """ process type 8 tally output data """
+    """ process type 8 tally output data 
+        note: type 8 tally cannot have time bins 
+    """
     logging.debug("pulse height tally")
     # TODO: fix this hard coded part
     tally_data.cells = ["2"]  # this should not be hard coded
@@ -555,14 +580,27 @@ def read_type_surface(tally_data, lines):
         else:
             logging.debug("angle bins only")
     elif "time" in lines[first_surface_line_id+1]:
-        logging.debug("time bins")
-        end_line_id = ut.find_line(" ===", lines, 4)
-        tb, eb, res, err = process_e_t_userbin(
-                           lines[first_surface_line_id+1:end_line_id])
-        tally_data.times = tb
-        tally_data.eng = eb
-        tally_data.result = res
-        tally_data.err = err
+            end_line_id = ut.find_line(" ===", lines, 4)
+            # check if energy bins as well as time
+            if "energy" in lines[first_surface_line_id+2]:
+                logging.debug("energy & time bins")
+                tb, eb, res, err = process_e_t_userbin(
+                               lines[first_surface_line_id+1:end_line_id])
+                tally_data.times = tb
+                tally_data.eng = eb
+                tally_data.result = res
+                tally_data.err = err
+            else:
+                # just time bins
+                logging.debug("time bins only")
+                end_line_id = ut.find_ind(lines, "total") + 2
+                lines = lines[first_surface_line_id+1:end_line_id]
+
+                time_bins, results, errs = process_time_bin_only(lines)
+
+                tally_data.times = time_bins
+                tally_data.result = results
+                tally_data.err = errs
 
     else:
         logging.debug("single value only")
@@ -631,7 +669,7 @@ def read_type_cell(tally_data, lines):
             tally_data.result.append(results)
             tally_data.err.append(errs)
         # time bins
-        elif "time" in lines[cell_res_start+1]:            
+        elif "time" in lines[cell_res_start+1]:
             end_line_id = ut.find_line(" ===", lines, 4)
             # check if energy bins as well as time
             if "energy" in lines[cell_res_start+2]:
@@ -647,24 +685,12 @@ def read_type_cell(tally_data, lines):
                 logging.debug("time bins only")
                 end_line_id = ut.find_ind(lines, "total") + 2
                 lines = lines[cell_res_start+1:end_line_id]
-                time_bins = []
 
-                for line in lines:
-                    line = ut.string_cleaner(line)
-                    if "time" in line:
-                        line = line.split(" ")[1:]
-                        for t in line:
-                            time_bins.append(t)
-                    elif len(line) > 4:
-                        line = line.split(" ")
-                        line = [float(i) for i in line]
-                        errs += line[1::2]
-                        results += line[0::2]
-                        
+                time_bins, results, errs = process_time_bin_only(lines)
+
                 tally_data.times = time_bins
                 tally_data.result = results
                 tally_data.err = errs
-                           
 
         else:
             # single value per cell data
@@ -825,8 +851,8 @@ def read_type_5(tally_data, lines):
         tally_data.result.append(float(res_line[0]))
         tally_data.err.append(float(res_line[1]))
 
-        
-    # read general f5 tally data 
+
+    # read general f5 tally data
     ave_line_id = ut.find_ind(lines, " average tally per history")
     ave_line = lines[ave_line_id]
     ave_line = ut.string_cleaner(ave_line)
@@ -837,42 +863,42 @@ def read_type_5(tally_data, lines):
     n_line = ut.string_cleaner(n_line)
     n_line = n_line.split("=")
     tally_data.largest_score_nps = float(n_line[-1])
-    
+
     # read score misses data
     tally_data.misses = {}
-    
+
     score_miss_line_id = ut.find_ind(lines, "score misses")
     n_line = lines[score_miss_line_id+1]
     n_line = ut.string_cleaner(n_line)
     n_line = n_line.split(" ")
     tally_data.misses["russian roulette on pd"] = float(n_line[-1])
-    
+
     n_line = lines[score_miss_line_id+2]
     n_line = ut.string_cleaner(n_line)
     n_line = n_line.split(" ")
     tally_data.misses["psc=0"] = float(n_line[-1])
-    
+
     n_line = lines[score_miss_line_id+3]
     n_line = ut.string_cleaner(n_line)
     n_line = n_line.split(" ")
     tally_data.misses["russian roulette in transmission"] = float(n_line[-1])
-    
+
     n_line = lines[score_miss_line_id+4]
     n_line = ut.string_cleaner(n_line)
     n_line = n_line.split(" ")
     tally_data.misses["underflow in transmission"] = float(n_line[-1])
-    
+
     n_line = lines[score_miss_line_id+5]
     n_line = ut.string_cleaner(n_line)
     n_line = n_line.split(" ")
     tally_data.misses["hit a zero-importance cell"] = float(n_line[-1])
-    
+
     n_line = lines[score_miss_line_id+6]
     n_line = ut.string_cleaner(n_line)
     n_line = n_line.split(" ")
     tally_data.misses["energy cutoff"] = float(n_line[-1])
 
-    
+
     return tally_data
 
 

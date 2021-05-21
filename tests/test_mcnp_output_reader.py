@@ -111,6 +111,24 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(len(tn.result), 14)
                 self.assertEqual(len(tn.err), 14)
                 self.assertEqual(tn.result[0], 2.92000E-02)
+                
+    def test_tbinned_t1_tally(self):
+        path = "test_output/singles_t.io"
+        single = mcnp_output_reader.read_output_file(path)
+        for tn in single.tally_data:
+            if tn.number == 1:
+                self.assertEqual(tn.type, '1')
+                self.assertEqual(tn.particle, "photons")
+                self.assertEqual(tn.nps, 200000)
+                self.assertEqual(tn.eng, None)
+                self.assertNotEqual(tn.times, None)
+                self.assertEqual(len(tn.times), 14)
+                self.assertEqual(tn.times[-1], "total")
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(len(tn.result), 14)
+                self.assertEqual(len(tn.err), 14)
+                self.assertEqual(tn.result[-1], 2.44655e-1)
+                self.assertEqual(tn.err[-1], 0.0039)
 
 
 class tally_type2_tests(unittest.TestCase):
@@ -168,6 +186,25 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.ang_bins, None)
                 self.assertEqual(tn.result.shape, tn.err.shape)
                 self.assertEqual(tn.result.shape, (15, 15))
+                
+    def test_tbinned_t2_tally(self):
+        path = "test_output/singles_t.io"
+        single = mcnp_output_reader.read_output_file(path)
+        for tn in single.tally_data:
+            if tn.number == 2:
+                self.assertEqual(tn.type, '2')
+                self.assertEqual(tn.particle, "photons")
+                self.assertEqual(tn.nps, 200000)
+                self.assertEqual(tn.eng, None)
+                self.assertNotEqual(tn.times, None)
+                self.assertEqual(len(tn.times), 14)
+                self.assertEqual(tn.times[-1], "total")
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(len(tn.result), 14)
+                self.assertEqual(len(tn.err), 14)
+                self.assertEqual(tn.result[-1], 2.69842E-04)
+                self.assertEqual(tn.err[-1], 0.0054)
+
 
 
 class tally_type4_tests(unittest.TestCase):
@@ -225,7 +262,7 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.result.shape, tn.err.shape)
                 self.assertEqual(tn.result.shape, (15, 15))
-                
+
     def test_tbinned_t4_tally(self):
         path = "test_output/singles_t.io"
         single = mcnp_output_reader.read_output_file(path)
@@ -271,11 +308,12 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.average_per_history, 3.42950E-04)
                 self.assertEqual(tn.misses["russian roulette on pd"], 0)
                 self.assertEqual(tn.misses["psc=0"], 0)
-                self.assertEqual(tn.misses["russian roulette in transmission"], 935317)
+                tstring = "russian roulette in transmission"
+                self.assertEqual(tn.misses[tstring], 935317)
                 self.assertEqual(tn.misses["underflow in transmission"], 39376)
                 self.assertEqual(tn.misses["hit a zero-importance cell"], 0)
                 self.assertEqual(tn.misses["energy cutoff"], 0)
-                
+
 
     def test_ebined_t5_tally(self):
         path = "test_output/singles_erg.io"
@@ -300,7 +338,8 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.average_per_history, 3.42950E-04)
                 self.assertEqual(tn.misses["russian roulette on pd"], 0)
                 self.assertEqual(tn.misses["psc=0"], 0)
-                self.assertEqual(tn.misses["russian roulette in transmission"], 935317)
+                tstring = "russian roulette in transmission"
+                self.assertEqual(tn.misses[tstring], 935317)
                 self.assertEqual(tn.misses["underflow in transmission"], 39376)
                 self.assertEqual(tn.misses["hit a zero-importance cell"], 0)
                 self.assertEqual(tn.misses["energy cutoff"], 0)
