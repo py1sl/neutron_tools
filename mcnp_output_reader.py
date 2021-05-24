@@ -421,8 +421,8 @@ def read_tally(lines, tnum, rnum=-1):
 
 
 def read_type_8(tally_data, lines):
-    """ process type 8 tally output data 
-        note: type 8 tally cannot have time bins 
+    """ process type 8 tally output data
+        note: type 8 tally cannot have time bins
     """
     logging.debug("pulse height tally")
     # TODO: fix this hard coded part
@@ -580,27 +580,27 @@ def read_type_surface(tally_data, lines):
         else:
             logging.debug("angle bins only")
     elif "time" in lines[first_surface_line_id+1]:
-            end_line_id = ut.find_line(" ===", lines, 4)
-            # check if energy bins as well as time
-            if "energy" in lines[first_surface_line_id+2]:
-                logging.debug("energy & time bins")
-                tb, eb, res, err = process_e_t_userbin(
-                               lines[first_surface_line_id+1:end_line_id])
-                tally_data.times = tb
-                tally_data.eng = eb
-                tally_data.result = res
-                tally_data.err = err
-            else:
-                # just time bins
-                logging.debug("time bins only")
-                end_line_id = ut.find_ind(lines, "total") + 2
-                lines = lines[first_surface_line_id+1:end_line_id]
+        end_line_id = ut.find_line(" ===", lines, 4)
+        # check if energy bins as well as time
+        if "energy" in lines[first_surface_line_id+2]:
+            logging.debug("energy & time bins")
+            tb, eb, res, err = process_e_t_userbin(
+                           lines[first_surface_line_id+1:end_line_id])
+            tally_data.times = tb
+            tally_data.eng = eb
+            tally_data.result = res
+            tally_data.err = err
+        else:
+            # just time bins
+            logging.debug("time bins only")
+            end_line_id = ut.find_ind(lines, "total") + 2
+            lines = lines[first_surface_line_id+1:end_line_id]
 
-                time_bins, results, errs = process_time_bin_only(lines)
+            time_bins, results, errs = process_time_bin_only(lines)
 
-                tally_data.times = time_bins
-                tally_data.result = results
-                tally_data.err = errs
+            tally_data.times = time_bins
+            tally_data.result = results
+            tally_data.err = errs
 
     else:
         logging.debug("single value only")
@@ -851,7 +851,6 @@ def read_type_5(tally_data, lines):
         tally_data.result.append(float(res_line[0]))
         tally_data.err.append(float(res_line[1]))
 
-
     # read general f5 tally data
     ave_line_id = ut.find_ind(lines, " average tally per history")
     ave_line = lines[ave_line_id]
@@ -897,7 +896,6 @@ def read_type_5(tally_data, lines):
     n_line = ut.string_cleaner(n_line)
     n_line = n_line.split(" ")
     tally_data.misses["energy cutoff"] = float(n_line[-1])
-
 
     return tally_data
 

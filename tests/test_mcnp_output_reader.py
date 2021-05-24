@@ -111,7 +111,7 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(len(tn.result), 14)
                 self.assertEqual(len(tn.err), 14)
                 self.assertEqual(tn.result[0], 2.92000E-02)
-                
+
     def test_tbinned_t1_tally(self):
         path = "test_output/singles_t.io"
         single = mcnp_output_reader.read_output_file(path)
@@ -186,7 +186,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.ang_bins, None)
                 self.assertEqual(tn.result.shape, tn.err.shape)
                 self.assertEqual(tn.result.shape, (15, 15))
-                
+
     def test_tbinned_t2_tally(self):
         path = "test_output/singles_t.io"
         single = mcnp_output_reader.read_output_file(path)
@@ -204,7 +204,6 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(len(tn.err), 14)
                 self.assertEqual(tn.result[-1], 2.69842E-04)
                 self.assertEqual(tn.err[-1], 0.0054)
-
 
 
 class tally_type4_tests(unittest.TestCase):
@@ -313,7 +312,6 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.misses["underflow in transmission"], 39376)
                 self.assertEqual(tn.misses["hit a zero-importance cell"], 0)
                 self.assertEqual(tn.misses["energy cutoff"], 0)
-
 
     def test_ebined_t5_tally(self):
         path = "test_output/singles_erg.io"
@@ -428,7 +426,7 @@ class writelines_test_case(unittest.TestCase):
         logger.level = logging.DEBUG
         with patch("neut_utilities.open", open_mock, create=True):
             mcnp_output_reader.print_tally_lines_to_file(["hello", "world"],
-                                                          "output", 1)
+                                                         "output", 1)
 
         open_mock.assert_called_with("output1.txt", "w")
         open_mock.return_value.write.assert_any_call("hello\n")
