@@ -13,11 +13,12 @@ class mcnp_cell():
     def __init__(self):
         self.number = ""
         self.mat = ""
-        self.density = 0.0
+        self.density = None
         self.imp_p = 1.0
         self.imp_n = 1.0
         self.geom = ""
         self.surfaces = []
+        self.param_list = []
 
 
 def long_line_index(lines):
@@ -33,7 +34,7 @@ def long_line_index(lines):
 
 
 def read_mode_card(lines):
-    """ """
+    """ finds the mode card and returns the particle identifiers"""
     mode = None
     for line in lines:
         if line[0:4].lower() == "mode":
@@ -43,7 +44,7 @@ def read_mode_card(lines):
 
 
 def check_mode_valid(mode):
-    """ """
+    """ checks the particles on a mode card are valid particles identifiers """
     particle_list = ["n", "p", "h", "e"]
     for particle in mode:
         if particle.lower() not in particle_list:
@@ -52,7 +53,7 @@ def check_mode_valid(mode):
 
 
 def get_full_line_comments(lines):
-    """ """
+    """  extracts all full line comments """
     comments = []
     for line in lines:
         if len(line) > 1 and line[0].lower() == "c" and line[1] == " ":
@@ -61,7 +62,7 @@ def get_full_line_comments(lines):
 
 
 def get_material_numbers(lines):
-    """ """
+    """ extracts all material numbers """
     mat_nums = []
     for line in lines:
         if len(line) > 1 and line[0].lower() == "m" and line[1].isdigit():
@@ -73,7 +74,7 @@ def get_material_numbers(lines):
 
 
 def get_tally_numbers(lines):
-    """ """
+    """ extracts all tally numbers """
     tal_nums = []
     for line in lines:
         if len(line) > 1 and line[0].lower() == "f" and line[1].isdigit():
@@ -140,30 +141,40 @@ def split_blocs(lines):
 
 
 def process_imp(part, cell):
-    """ """
+    """ extracts importances for a cell """
     imp_val = part.split("=")[-1]
     imp_particle = part.split(":")[1][0]
     if imp_particle.lower() == "p":
-        cell.imp_p = imp_val
+        cell.imp_p = float(imp_val)
     elif imp_particle.lower() == "n":
-        cell.imp_n = imp_val
+        cell.imp_n = float(imp_val)
 
     return cell
 
 
 def process_geom(geom, cell):
-    """ """
-    # surfaces = []
+    """ processes geometry part of a cell """
+    surfaces = []
+    cell.geom = geom
+    
     for part in geom:
-        if "imp" in part:
+        part = part.strip("()-")
+        if "imp" in part.lower():
             cell = process_imp(part, cell)
-
-    cell.geom = " ".join(geom)
+        elif part[0].isdigit():
+            part = part.split(":")
+            for s in part:
+                surfaces.append(float(s))
+        else:
+            print(" part not recogninsed")
+    
+    cell.surfaces = surfaces
+    
     return cell
 
 
 def process_cell_block(bloc):
-    """ """
+    """ split cell block into cell objects """
     cell_list = []
     cell = None
     geom = []
@@ -172,20 +183,25 @@ def process_cell_block(bloc):
             if cell is not None:
                 cell = process_geom(geom, cell)
                 cell_list.append(cell)
-
+                geom = []
+            
             cell = mcnp_cell()
             line = ut.string_cleaner(line)
             line = line.split(" ")
-            cell.number = line[0]
-            cell.mat = line[1]
+            cell.number = int(line[0])
+            cell.mat = int(line[1])
             geo_start_pos = 2
-            if cell.mat != "0":
-                cell.density = line[2]
+            if cell.mat != 0:
+                cell.density = float(line[2])
                 geo_start_pos = 3
             geom = line[geo_start_pos:]
         elif line[0:4] == "     ":
-            geom = cell.geom.append(line)
+            geom.append(line)
 
+    # add last cell
+    cell = process_geom(geom, cell)
+    cell_list.append(cell) 
+    
     return cell_list
 
 
@@ -215,6 +231,7 @@ def print_cell(cell):
     print("Cell geom: ", cell.geom)
     print("Cell surfaces: ", cell.surfaces)
     print("Cell imp p:", cell.imp_p)
+    print("Cell imp n:", cell.imp_n)
 
 
 def read_mcnp_input(fpath):
@@ -223,13 +240,12 @@ def read_mcnp_input(fpath):
     ifile = ut.get_lines(fpath)
     cell_bloc, surf_bloc, data_bloc = split_blocs(ifile)
     cell_list = process_cell_block(cell_bloc)
-    print_cell(cell_list[0])
 
     comments = get_full_line_comments(ifile)
 
     mat_nums = get_material_numbers(data_bloc)
 
-    return ifile, comments, mat_nums
+    return ifile, comments, mat_nums, cell_list
 
 
 if __name__ == "__main__":
