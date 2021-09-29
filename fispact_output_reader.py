@@ -277,17 +277,16 @@ def read_summary_data(data):
     sum_data.append(inhal_un)
 
     # convert to dataframe
-    col_heads = ["time_years", "act", "dose_rate", "heating", "ingestion", 
+    col_heads = ["time_years", "act", "dose_rate", "heating", "ingestion",
                  "inhalation", "tritium", "act_un", "dr_un", "heat_un",
                  "ing_un", "inhal_un"]
     sum_data = pd.DataFrame(sum_data)
     sum_data = sum_data.transpose()
-    sum_data.columns=col_heads
+    sum_data.columns = col_heads
     # add columns for time in days, hrs, seconds
     sum_data["time_days"] = sum_data["time_years"] * 365.4
     sum_data["time_hours"] = sum_data["time_years"] * 365.4 * 24
     sum_data["time_secs"] = sum_data["time_years"] * 365.4 * 24 * 3600
-
 
     return sum_data
 
@@ -330,7 +329,7 @@ def parse_dominant(data):
         dr_percent.append(float(tl[89:98]))
 
     for ll in lowerset:
-        if ll[0] =="1":
+        if ll[0] == "1":
             break
         gheat_nuc.append(ll[7:13].replace(" ", ""))
         gheat.append(float(ll[15:25]))
@@ -361,7 +360,7 @@ def parse_dominant(data):
 
 def parse_composition(data):
     """ parse compostions section
-        returns a list of 2 lists, one with name of element,
+        returns dataframe with two columns, one with name of element,
         one with the number of atoms
     """
     p1 = ut.find_ind(data, "COMPOSITION  OF  MATERIAL  BY  ELEMENT")
@@ -374,9 +373,9 @@ def parse_composition(data):
         ele_list.append(line[12:14])
         atoms.append(float(line[20:30]))
 
-    composition = []
-    composition.append(ele_list)
-    composition.append(atoms)
+    composition = pd.DataFrame()
+    composition["element"] = ele_list
+    composition["atoms"] = atoms
 
     return composition
 
@@ -416,8 +415,9 @@ def parse_inventory(data):
                     float(nuc[52:61]), float(nuc[64:72]),
                     float(nuc[75:84]), float(nuc[87:96])]
         inv.append(nuc_data)
-     
-    col_heads = ["nuclide", "atoms", "mass", "act", "b_energy", "a_energy", "g-energy", "dose_rate"]
+    
+    col_heads = ["nuclide", "atoms", "mass", "act", "b_energy", "a_energy", 
+                 "g-energy", "dose_rate"]
     inv = pd.DataFrame(inv, columns=col_heads)
     inv["element"] = inv["nuclide"].astype(str).str[0:2]
     inv["element"] = inv["element"].str.strip()

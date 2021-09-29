@@ -1,3 +1,4 @@
+import logging
 import matplotlib
 from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt
@@ -5,14 +6,14 @@ import numpy as np
 import neut_utilities as ut
 import neut_constants
 matplotlib.use('agg')
-import logging
+
 
 def reduce_to_non_zero(variable, time):
-     # make sensible graphs for short half lives
+    # make sensible graphs for short half lives
     zero_pos = ut.find_first_zero(variable)
     if zero_pos:
         variable = variable[:zero_pos]
-        time= time[:zero_pos]
+        time = time[:zero_pos]
     return variable, time
 
 
@@ -20,7 +21,6 @@ def plot_act(sum_dat, offset=0, fname=None,
              vlines=None, hlines=None, y_units="Bq/kg", x_units="time_hours"):
     """ plots activity as function of time """
     act = sum_dat["act"]
-    
 
     # correct for sensible x unit requests, otherwise just use x_units
     # if it is not a valid column name that will be picked up by the dataframe
@@ -30,7 +30,6 @@ def plot_act(sum_dat, offset=0, fname=None,
         x_units = "time_days"
     elif x_units == "h" or "hours" or "hrs":
         x_units = "time_hours"
-    
 
     time_vals = sum_dat[x_units]
 
@@ -87,7 +86,6 @@ def plot_dose(sum_dat, offset=0, fname=None,
         x_units = "time_days"
     elif x_units == "h" or "hours" or "hrs":
         x_units = "time_hours"
-    
 
     time_vals = sum_dat[x_units]
 
@@ -151,10 +149,11 @@ def plot_spectra(timestep, fname=None):
 
 def plot_pie(dom_data, title, fname=None, thres=1.0):
     """ """
-    dom_data=dom_data[dom_data["act_percent"]>thres]   
+    dom_data = dom_data[dom_data["act_percent"] > thres]
 
     # cmap = plt.cm.prism
-    colors = plt.cm.Set1(np.arange(len(dom_data["act_nuc"]))/len(dom_data["act_nuc"]))
+    colors = plt.cm.Set1(np.arange(len(dom_data["act_nuc"]))/len(
+                         dom_data["act_nuc"]))
     plt.clf()
     fig = plt.figure(figsize=[10, 10])
     ax = fig.add_subplot(111)
@@ -176,52 +175,51 @@ def plot_pie(dom_data, title, fname=None, thres=1.0):
 
 def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
     """ plots a table of nuclides style plot of the given parameter """
-  
+
     z_min = 0
     z_max = 118
     a_min = 0
     a_max = 294
-    
+
     data = np.zeros((a_max, z_max))
-    
+
     if arange:
         a_min = arange[0]
         a_max = arange[1]
-    
+
     if zrange:
         z_min = zrange[0]
         z_max = zrange[1]
-     
+
     min_val = inv_dat[prop].min()+1e-8
     max_val = inv_dat[prop].max()
-      
+
     zdict = neut_constants.Z_dict()
     inv_dat["Z"] = inv_dat["element"].map(zdict)
-    
-    for a in np.arange(a_min,a_max):
-        for z in np.arange(z_min,z_max):
-                 
-            df = inv_dat[(inv_dat["A"]==str(a)) & (inv_dat["Z"]==z)]
-                    
+
+    for a in np.arange(a_min, a_max):
+        for z in np.arange(z_min, z_max):
+            df = inv_dat[(inv_dat["A"] == str(a)) & (inv_dat["Z"] == z)]
+
             if df.empty:
                 value = 0.0
             else:
                 value = df[prop].item()
-       
+
             data[a][z] = value
-    
+
     fig, ax = plt.subplots(figsize=(14, 8))
-    im = plt.imshow(data, cmap='gnuplot', norm=LogNorm(vmin=min_val, vmax=max_val))
+    im = plt.imshow(data, cmap='gnuplot', norm=LogNorm(vmin=min_val,
+                    vmax=max_val))
     ax.invert_yaxis()
     plt.xlabel("Z", fontsize=16)
     plt.ylabel("A", fontsize=16)
     plt.xlim(z_min, z_max)
     plt.ylim(a_min, a_max)
     plt.title(prop)
-    fig.colorbar(im, cax = fig.add_axes([0.91, 0.2, 0.03, 0.6]))
+    fig.colorbar(im, cax=fig.add_axes([0.91, 0.2, 0.03, 0.6]))
 
     if fname:
         plt.savefig(fname)
     else:
         plt.show()
-    
