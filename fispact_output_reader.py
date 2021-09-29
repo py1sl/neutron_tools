@@ -10,7 +10,7 @@ Module for parsing FISPACT output data
 FISPACT and FISPACT-II are bateman equation solvers for transmutation
 and fission product yield calculations.  FISPACT-II is developed and maintained
 by the UKAEA.
-it supports not only neutron irradiaiton but gamma, proton, deuteron and triton
+it supports not only neutron irradiation but gamma, proton, deuteron and triton
 irradiation. it has support for self shielding and can read endf format nuclear
 data
 this module has methods for parsing the fispact output file,
@@ -20,6 +20,7 @@ extracting data, processing the data
 import argparse
 import neut_utilities as ut
 import numpy as np
+import pandas as pd
 
 
 class FispactOutput():
@@ -246,12 +247,12 @@ def read_summary_data(data):
                 to = time_yrs[-1]
             else:
                 time_yrs.append(float(line[24:32]) + to)
-                act.append(line[35:43])
-                dr.append(line[58:66])
-                heat.append(line[81:89])
-                ing.append(line[104:112])
-                inhal.append(line[127:135])
-                trit.append(line[150:158])
+                act.append(float(line[35:43]))
+                dr.append(float(line[58:66]))
+                heat.append(float(line[81:89]))
+                ing.append(float(line[104:112]))
+                inhal.append(float(line[127:135]))
+                trit.append(float(line[150:158]))
 
         else:
             time_yrs.append(line[20:28])
@@ -274,6 +275,19 @@ def read_summary_data(data):
     sum_data.append(heat_un)
     sum_data.append(ing_un)
     sum_data.append(inhal_un)
+
+    # convert to dataframe
+    col_heads = ["time_years", "act", "dose_rate", "heating", "ingestion", 
+                 "inhalation", "tritium", "act_un", "dr_un", "heat_un",
+                 "ing_un", "inhal_un"]
+    sum_data = pd.DataFrame(sum_data)
+    sum_data = sum_data.transpose()
+    sum_data.columns=col_heads
+    # add columns for time in days, hrs, seconds
+    sum_data["time_days"] = sum_data["time_years"] * 365.4
+    sum_data["time_hours"] = sum_data["time_years"] * 365.4 * 24
+    sum_data["time_secs"] = sum_data["time_years"] * 365.4 * 24 * 3600
+
 
     return sum_data
 
@@ -306,39 +320,41 @@ def parse_dominant(data):
 
     for tl in topset:
         act_nuc.append(tl[7:13].replace(" ", ""))
-        act.append(tl[15:25])
-        act_percent.append(tl[27:36])
+        act.append(float(tl[15:25]))
+        act_percent.append(float(tl[27:36]))
         heat_nuc.append(tl[38:44].replace(" ", ""))
-        heat.append(tl[46:56])
-        heat_percent.append(tl[58:67])
+        heat.append(float(tl[46:56]))
+        heat_percent.append(float(tl[58:67]))
         dr_nuc.append(tl[69:75].replace(" ", ""))
-        dr.append(tl[77:87])
-        dr_percent.append(tl[89:98])
+        dr.append(float(tl[77:87]))
+        dr_percent.append(float(tl[89:98]))
 
     for ll in lowerset:
+        if ll[0] =="1":
+            break
         gheat_nuc.append(ll[7:13].replace(" ", ""))
-        gheat.append(ll[15:25])
-        gheat_percent.append(ll[27:36])
+        gheat.append(float(ll[15:25]))
+        gheat_percent.append(float(ll[27:36]))
         bheat_nuc.append(ll[38:44].replace(" ", ""))
-        bheat.append(ll[46:56])
-        bheat_percent.append(ll[58:67])
+        bheat.append(float(ll[46:56]))
+        bheat_percent.append(float(ll[58:67]))
 
-    dom_data = []
-    dom_data.append(act_nuc)
-    dom_data.append(act)
-    dom_data.append(act_percent)
-    dom_data.append(heat_nuc)
-    dom_data.append(heat)
-    dom_data.append(heat_percent)
-    dom_data.append(dr_nuc)
-    dom_data.append(dr)
-    dom_data.append(dr_percent)
-    dom_data.append(gheat_nuc)
-    dom_data.append(gheat)
-    dom_data.append(gheat_percent)
-    dom_data.append(bheat_nuc)
-    dom_data.append(bheat)
-    dom_data.append(bheat_percent)
+    dom_data = pd.DataFrame()
+    dom_data["act_nuc"] = act_nuc
+    dom_data["act"] = act
+    dom_data["act_percent"] = act_percent
+    dom_data["heat_nuc"] = heat_nuc
+    dom_data["heat"] = heat
+    dom_data["heat_percent"] = heat_percent
+    dom_data["dr_nuc"] = dr_nuc
+    dom_data["dr"] = dr
+    dom_data["dr_percent"] = dr_percent
+    dom_data["gheat_nuc"] = gheat_nuc
+    dom_data["gheat"] = gheat
+    dom_data["gheat_percent"] = gheat_percent
+    dom_data["bheat_nuc"] = bheat_nuc
+    dom_data["bheat"] = bheat
+    dom_data["bheat_percent"] = bheat_percent
 
     return dom_data
 
@@ -395,13 +411,20 @@ def parse_inventory(data):
     p2 = ut.find_ind(data, "0  TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
     data = data[4:p2]
     for nuc in data:
-        nuc_data = [nuc[2:8].replace(" ", ""), float(nuc[14:25]),
+        nuc_data = [nuc[2:8], float(nuc[14:25]),
                     float(nuc[28:37]), float(nuc[40:49]),
                     float(nuc[52:61]), float(nuc[64:72]),
                     float(nuc[75:84]), float(nuc[87:96])]
         inv.append(nuc_data)
+     
+    col_heads = ["nuclide", "atoms", "mass", "act", "b_energy", "a_energy", "g-energy", "dose_rate"]
+    inv = pd.DataFrame(inv, columns=col_heads)
+    inv["element"] = inv["nuclide"].astype(str).str[0:2]
+    inv["element"] = inv["element"].str.strip()
+    inv["A"] = inv["nuclide"].astype(str).str[2:]
+    inv["A"] = inv["A"].str.strip()
 
-    return np.array(inv)
+    return inv
 
 
 def read_parameter(data, sub):
