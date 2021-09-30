@@ -415,8 +415,8 @@ def parse_inventory(data):
                     float(nuc[52:61]), float(nuc[64:72]),
                     float(nuc[75:84]), float(nuc[87:96])]
         inv.append(nuc_data)
-    
-    col_heads = ["nuclide", "atoms", "mass", "act", "b_energy", "a_energy", 
+
+    col_heads = ["nuclide", "atoms", "mass", "act", "b_energy", "a_energy",
                  "g-energy", "dose_rate"]
     inv = pd.DataFrame(inv, columns=col_heads)
     inv["element"] = inv["nuclide"].astype(str).str[0:2]

@@ -9,7 +9,9 @@ matplotlib.use('agg')
 
 
 def reduce_to_non_zero(variable, time):
-    # make sensible graphs for short half lives
+    """ make sensible graphs for short half lives
+        reduce to only positive no zero values for parameter and time
+    """
     zero_pos = ut.find_first_zero(variable)
     if zero_pos:
         variable = variable[:zero_pos]
@@ -17,20 +19,29 @@ def reduce_to_non_zero(variable, time):
     return variable, time
 
 
+def check_time_units(t_units):
+    """ convert time units to column heading, allowing sensible input """
+    # correct for sensible time unit requests, otherwise just use t_units
+    # if it is not a valid column name that will be picked up by the dataframe
+    if (t_units.lower() == "s") or (t_units.lower() == "seconds"):
+        t_units = "time_secs"
+    elif (t_units.lower() == "d") or (t_units.lower() == "days"):
+        t_units = "time_days"
+    elif (t_units.lower() == "h") or (t_units.lower() == "hours") or (
+          t_units.lower() == "hrs"):
+        t_units = "time_hours"
+    elif (t_units.lower() == "y") or (t_units.lower() == "yrs") or (
+          t_units.lower() == "years"):
+        t_units = "time_years"
+
+    return t_units
+
+
 def plot_act(sum_dat, offset=0, fname=None,
              vlines=None, hlines=None, y_units="Bq/kg", x_units="time_hours"):
     """ plots activity as function of time """
     act = sum_dat["act"]
-
-    # correct for sensible x unit requests, otherwise just use x_units
-    # if it is not a valid column name that will be picked up by the dataframe
-    if x_units == "s" or "seconds":
-        x_units = "time_secs"
-    elif x_units == "d" or "days":
-        x_units = "time_days"
-    elif x_units == "h" or "hours" or "hrs":
-        x_units = "time_hours"
-
+    x_units = check_time_units(x_units)
     time_vals = sum_dat[x_units]
 
     if y_units == "Bq/kg" or "Bq/g":
@@ -77,15 +88,7 @@ def plot_dose(sum_dat, offset=0, fname=None,
 
     dose_rate = sum_dat["dose_rate"]
     dose_rate = dose_rate * 1e6
-
-    # correct for sensible x unit requests, otherwise just use x_units
-    # if it is not a valid column name that will be picked up by the dataframe
-    if x_units == "s" or "seconds":
-        x_units = "time_secs"
-    elif x_units == "d" or "days":
-        x_units = "time_days"
-    elif x_units == "h" or "hours" or "hrs":
-        x_units = "time_hours"
+    x_units = check_time_units(x_units)
 
     time_vals = sum_dat[x_units]
 
@@ -175,14 +178,15 @@ def plot_pie(dom_data, title, fname=None, thres=1.0):
 
 def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
     """ plots a table of nuclides style plot of the given parameter """
-
+    # set up the array
     z_min = 0
-    z_max = 118
+    z_max = 118  # max possible Z value element Og
     a_min = 0
-    a_max = 294
+    a_max = 294  # max possible A value for Og
 
     data = np.zeros((a_max, z_max))
 
+    # reduce view to focus on an area
     if arange:
         a_min = arange[0]
         a_max = arange[1]
@@ -194,9 +198,11 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
     min_val = inv_dat[prop].min()+1e-8
     max_val = inv_dat[prop].max()
 
+    # map Z values to data frame
     zdict = neut_constants.Z_dict()
     inv_dat["Z"] = inv_dat["element"].map(zdict)
 
+    # map the values to the array positions
     for a in np.arange(a_min, a_max):
         for z in np.arange(z_min, z_max):
             df = inv_dat[(inv_dat["A"] == str(a)) & (inv_dat["Z"] == z)]
@@ -208,6 +214,7 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
 
             data[a][z] = value
 
+    # create the plot
     fig, ax = plt.subplots(figsize=(14, 8))
     im = plt.imshow(data, cmap='gnuplot', norm=LogNorm(vmin=min_val,
                     vmax=max_val))
