@@ -423,6 +423,7 @@ def parse_inventory(data):
     inv["element"] = inv["element"].str.strip()
     inv["A"] = inv["nuclide"].astype(str).str[2:]
     inv["A"] = inv["A"].str.strip()
+    inv["nuclide"] = inv["nuclide"].str.replace(" ", "")
 
     return inv
 

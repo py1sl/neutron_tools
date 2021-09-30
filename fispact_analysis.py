@@ -19,6 +19,14 @@ def reduce_to_non_zero(variable, time):
     return variable, time
 
 
+def is_nuc_present(inv, nuc):
+    """ checks if a nuclide is in an inventory"""
+    if nuc in inv["nuclide"].unique():
+        return True
+    else:
+        return False
+
+
 def check_time_units(t_units):
     """ convert time units to column heading, allowing sensible input """
     # correct for sensible time unit requests, otherwise just use t_units
@@ -174,6 +182,50 @@ def plot_pie(dom_data, title, fname=None, thres=1.0):
         plt.savefig(fname)
     else:
         plt.show()
+
+
+def plot_nuc_cont(fout, nuc_list, param="act", fname=None, total=False):
+    """  plots all nuclides in nuclist over all times steps"""
+    # clear old plots
+    plt.clf()
+
+    # get data
+    time_vals = fout.sumdat["time_hours"].unique()
+
+    for nuc in nuc_list:
+        vals = []
+
+        for ts in fout.timestep_data:
+            inv = ts.inventory
+            if is_nuc_present(inv, nuc):
+
+                val = inv.loc[inv["nuclide"] == nuc, param].iloc[0]
+                vals.append(val)
+            else:
+                vals.append(0)
+
+        plot = plt.plot(time_vals, vals, label=nuc)
+
+    if total:
+        vals = fout.sumdat[param]
+        plot = plt.plot(time_vals, vals, label="Total")
+
+    # make plot pretty
+    # set to x axis to log if longer than 10 hours
+    if max(time_vals) > 10:
+        plt.xscale("log")
+    plt.xlabel("Time hours")
+    plt.ylabel("bq/kg")
+    plt.yscale("log")
+    plt.legend()
+
+    # plot to screen or file
+    if fname:
+        plt.savefig(fname)
+        logging.info("plotted activity")
+    else:
+        plt.show()
+    return plot
 
 
 def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
