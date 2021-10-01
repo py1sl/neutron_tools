@@ -27,6 +27,12 @@ class support_function_tests(unittest.TestCase):
         self.assertEqual(len(v), 4)
         self.assertEqual(v, [20, 20, 20, 10])
 
+    def test_is_nuc_present(self):
+        inv = pd.DataFrame()
+        inv["nuclide"] = ["Ta181", "W180"]
+        self.assertEqual(fa.is_nuc_present(inv, "Ta181"), True)
+        self.assertEqual(fa.is_nuc_present(inv, "N45"), False)
+
 
 class plotting_tests(unittest.TestCase):
 
@@ -43,6 +49,14 @@ class plotting_tests(unittest.TestCase):
         # x_plot, y_plot = plot.get_xydata().T
         # self.assertEqual(plot.get_xlabel(), "time_hours")
         # self.assertEqual(plot.get_ylabel(), r"Dose rate $\mu$Sv/h")
+
+    def test_plot_pie(self):
+        test_data = pd.DataFrame()
+        test_data["act"] = [5, 20, 50, 25]
+        test_data["act_percent"] = [5, 20, 50, 25]
+        test_data["act_nuc"] = ["H3", "W180", "Ta182", "Co60"]
+
+        self.assertRaises(ValueError, fa.plot_pie, test_data, "", param="pyth")
 
 
 if __name__ == '__main__':

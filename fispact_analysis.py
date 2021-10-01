@@ -158,18 +158,24 @@ def plot_spectra(timestep, fname=None):
         plt.show()
 
 
-def plot_pie(dom_data, title, fname=None, thres=1.0):
+def plot_pie(dom_data, title, param="act",  fname=None, thres=1.0):
     """ """
-    dom_data = dom_data[dom_data["act_percent"] > thres]
+
+    # check valid param
+    if param not in dom_data.columns:
+        raise ValueError("Plot pie - parameter not recognised")
+
+    dom_data = dom_data[dom_data[param+"_percent"] > thres]
+    param_nuc = param + "_nuc"
 
     # cmap = plt.cm.prism
-    colors = plt.cm.Set1(np.arange(len(dom_data["act_nuc"]))/len(
-                         dom_data["act_nuc"]))
+    colors = plt.cm.Set1(np.arange(len(dom_data[param_nuc]))/len(
+                         dom_data[param_nuc]))
     plt.clf()
     fig = plt.figure(figsize=[10, 10])
     ax = fig.add_subplot(111)
 
-    pie_wedge_collection = ax.pie(dom_data["act"], labels=dom_data["act_nuc"],
+    pie_wedge_collection = ax.pie(dom_data[param], labels=dom_data[param_nuc],
                                   colors=colors, labeldistance=1.1,
                                   startangle=90)
 
