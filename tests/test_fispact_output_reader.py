@@ -33,7 +33,7 @@ class read_fis_out_test_case(unittest.TestCase):
         self.assertEqual(output.tot_fluence, 7.2e9)
         self.assertEqual(output.ave_flux, 6.0e6)
         self.assertEqual(output.num_cool_step, 0)
-        self.assertEqual(output.num_irrad_step, 3)      
+        self.assertEqual(output.num_irrad_step, 3)
         self.assertEqual(len(output.timestep_data), 9)
 
         # individual timestep checks
