@@ -34,6 +34,33 @@ class support_function_tests(unittest.TestCase):
         self.assertEqual(fa.is_nuc_present(inv, "N45"), False)
 
 
+class filtering_functions_tests(unittest.TestCase):
+    """ test for the inventoryfilters"""
+    def test_act_filter(self):
+        inv = pd.DataFrame()
+        inv["act"] = [10, 20, 30, 0, 40]
+        inv = fa.remove_stable(inv)
+        self.assertEqual(len(inv["act"]), 4)
+
+    def test_alpha_filter(self):
+        inv = pd.DataFrame()
+        inv["a_energy"] = [10, 20, 30, 0, 40]
+        inv = fa.filter_emits_alpha(inv)
+        self.assertEqual(len(inv["a_energy"]), 4)
+
+    def test_beta_filter(self):
+        inv = pd.DataFrame()
+        inv["b_energy"] = [10, 20, 30, 0, 40]
+        inv =  fa.filter_emits_beta(inv)
+        self.assertEqual(len(inv["b_energy"]), 4)
+
+    def test_gamma_filter(self):
+        inv = pd.DataFrame()
+        inv["g_energy"] = [10, 20, 30, 0, 40]
+        inv = fa.filter_emits_gamma(inv)
+        self.assertEqual(len(inv["g_energy"]), 4)
+
+
 class plotting_tests(unittest.TestCase):
 
     def test_dose_plot(self):

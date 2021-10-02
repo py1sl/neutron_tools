@@ -27,6 +27,30 @@ def is_nuc_present(inv, nuc):
         return False
 
 
+def remove_stable(inv):
+    """ removes stable isotopes from inventory listing"""
+    inv = inv[inv["act"] > 0.0]
+    return inv
+
+
+def filter_emits_gamma(inv):
+    """ remove stable or pure alpha or pure beta emitters  """
+    inv = inv[inv["g_energy"] > 0.0]
+    return inv
+
+
+def filter_emits_beta(inv):
+    """ remove stable or pure alpha or pure gamma emitters  """
+    inv = inv[inv["b_energy"] > 0.0]
+    return inv
+
+
+def filter_emits_alpha(inv):
+    """ remove stable or pure beta or pure gamma emitters  """
+    inv = inv[inv["a_energy"] > 0.0]
+    return inv
+
+
 def check_time_units(t_units):
     """ convert time units to column heading, allowing sensible input """
     # correct for sensible time unit requests, otherwise just use t_units
