@@ -27,12 +27,44 @@ class event():
         self.type = ""
         self.u = 0
         self.v = 0
-        self.e = 0
+        self.w = 0
         self.wgt = 1.0
         self.energy = 1
         self.par = 1
         self.cell = None
         self.time = 0
+        
+    def __eq__(self, other):
+        if not isinstance(other, event):
+            return NotImplementedError
+        same = True
+        
+        if self.x != other.x:
+            same = False
+        elif self.y != other.y:
+            same = False
+        elif self.z != other.z:
+            same = False
+        elif self.type != other.type:
+            same = False
+        elif self.u != other.u:
+            same = False
+        elif self.v != other.v:
+            same = False
+        elif self.w != other.w:
+            same = False
+        elif self.wgt != other.wgt:
+            same = False
+        elif self.par != other.par:
+            same = False
+        elif self.cell != other.cell:
+            same = False
+        elif self.time != other.time:
+            same = False
+        elif self.energy != other.energy:
+            same = False
+
+        return same
 
 
 def remove_header(lines):
