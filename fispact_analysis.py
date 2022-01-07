@@ -56,7 +56,7 @@ def output_mcnp_mat(inv, lib=".70c"):
         note: metastables are converted to ground state
     """
     zdict = neut_constants.Z_dict()
-    inv["Z"] = inv["element"].map(zdict) 
+    inv["Z"] = inv["element"].map(zdict)
     inv["ZAID"] = (inv["Z"] * 1000)
     inv["ZAID"] = inv["ZAID"] + inv["A"]
 

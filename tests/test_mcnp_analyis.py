@@ -57,7 +57,7 @@ class csv_test_case(unittest.TestCase):
             ma.csv_out(data, "output.txt")
 
         open_mock.assert_called_with("output.txt", "w")
-   
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -29,13 +29,13 @@ class event_test_case(unittest.TestCase):
         self.assertEqual(hists[0].events[0].w, 0.71935)
         self.assertEqual(hists[0].events[0].wgt, 1)
         self.assertEqual(hists[0].events[0].energy, 1.332)
-  
+
     def test_events_eq(self):
         hists = mpr.read_ptrac("test_output/ptrak_asc_all")
-        self.assertTrue(hists[0].events[0]==hists[0].events[0])
+        self.assertTrue(hists[0].events[0] == hists[0].events[0])
         self.assertEqual(hists[0].events[0], hists[0].events[0])
-        self.assertTrue(hists[0].events[0]!=hists[0].events[1])
-        self.assertFalse(hists[0].events[0]==hists[0].events[1])
+        self.assertTrue(hists[0].events[0] != hists[0].events[1])
+        self.assertFalse(hists[0].events[0] == hists[0].events[1])
 
 
 class history_test_case(unittest.TestCase):

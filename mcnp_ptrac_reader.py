@@ -33,12 +33,12 @@ class event():
         self.par = 1
         self.cell = None
         self.time = 0
-        
+
     def __eq__(self, other):
         if not isinstance(other, event):
             return NotImplementedError
         same = True
-        
+
         if self.x != other.x:
             same = False
         elif self.y != other.y:
@@ -133,7 +133,7 @@ def process_event(event_data):
         cur_event.wgt = event_data[15]
         cur_event.energy = event_data[14]
         cur_event.par = event_data[4]
-        cur_event.time = event_data[16]        
+        cur_event.time = event_data[16]
 
     return cur_event
 
@@ -169,7 +169,7 @@ def process_tracks(tracks):
             temp_line = temp_line + line
             event = process_event(temp_line)
             cur_history.events.append(event)
-        
+
         else:    # first line of a new event
             temp_line = line
 

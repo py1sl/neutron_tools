@@ -156,7 +156,7 @@ def process_geom(geom, cell):
     """ processes geometry part of a cell """
     surfaces = []
     cell.geom = geom
-    
+
     for part in geom:
         part = part.strip("()-")
         if "imp" in part.lower():
@@ -167,9 +167,9 @@ def process_geom(geom, cell):
                 surfaces.append(float(s))
         else:
             print(" part not recogninsed")
-    
+
     cell.surfaces = surfaces
-    
+
     return cell
 
 
@@ -184,7 +184,7 @@ def process_cell_block(bloc):
                 cell = process_geom(geom, cell)
                 cell_list.append(cell)
                 geom = []
-            
+
             cell = mcnp_cell()
             line = ut.string_cleaner(line)
             line = line.split(" ")
@@ -200,8 +200,8 @@ def process_cell_block(bloc):
 
     # add last cell
     cell = process_geom(geom, cell)
-    cell_list.append(cell) 
-    
+    cell_list.append(cell)
+
     return cell_list
 
 

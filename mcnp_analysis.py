@@ -89,17 +89,16 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
         if d.type == '2':
             y_vals = np.asarray(d.result[0])/bw
             splot = plt.step(np.asarray(d.eng),  y_vals)
-        elif d.type =='4' and len(d.cells) > 1:
+        elif d.type == '4' and len(d.cells) > 1:
             for cell in d.result:
                 y_vals = np.asarray(cell)/bw
                 splot = plt.step(np.asarray(d.eng),  y_vals)
             legend = d.cells
-                
+
         else:
             y_vals = np.asarray(d.result)/bw
             splot = plt.step(np.asarray(d.eng),  y_vals)
 
-       
         if err is True:
             abs_err = calc_err_abs(y_vals, d.err)
             mids = calc_mid_points(d.eng)
