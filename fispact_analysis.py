@@ -51,6 +51,24 @@ def filter_emits_alpha(inv):
     return inv
 
 
+def output_mcnp_mat(inv, lib=".70c"):
+    """ convert the fispact inventory into an MCNP material
+        note: metastables are converted to ground state
+    """
+    zdict = neut_constants.Z_dict()
+    inv["Z"] = inv["element"].map(zdict) 
+    inv["ZAID"] = (inv["Z"] * 1000)
+    inv["ZAID"] = inv["ZAID"] + inv["A"]
+
+    inv["atoms_norm"] = inv["atoms"] / inv["atoms"].sum()
+
+    matdf = inv[["ZAID", "atoms_norm"]]
+
+    matdf["output"] = "     " + inv["ZAID"].str + "  " + inv["atoms_norm"].str
+
+    return matdf
+
+
 def check_time_units(t_units):
     """ convert time units to column heading, allowing sensible input """
     # correct for sensible time unit requests, otherwise just use t_units

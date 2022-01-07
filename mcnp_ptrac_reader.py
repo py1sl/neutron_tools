@@ -147,6 +147,7 @@ def process_tracks(tracks):
     i = 0
     histories = []
     cur_history = None
+    temp_line = ""
 
     while i < len(tracks):
         line = tracks[i]

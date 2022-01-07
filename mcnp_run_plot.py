@@ -8,7 +8,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import datetime
 import argparse
-import logging
+import logging as ntlogger
 
 import neut_utilities as ut
 mpl.use('Agg')
@@ -19,7 +19,7 @@ def plot_nps_stats(path, fname=None):
         these are useful for identifing any long history issues
         process - read file, extract data, plot graphs
     """
-    ut.setup_logging()
+    ut.setup_ntlogger()
     lines = ut.get_lines(path)
 
     ctm = []    # computer time
@@ -68,7 +68,7 @@ def plot_nps_stats(path, fname=None):
 
     if fname:
         plt.savefig(fname)
-        logging.info("produced figure: %s", fname)
+        ntlogger.info("produced figure: %s", fname)
     else:
         plt.show()
 

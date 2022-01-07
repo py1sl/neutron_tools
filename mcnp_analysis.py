@@ -4,7 +4,7 @@ import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
 # import pandas as pd
-import logging
+import logging as ntlogger
 
 import neut_utilities as ut
 matplotlib.use('agg')
@@ -68,7 +68,7 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
     for d in data:
         plt.step(np.asarray(d.eng), np.asarray(d.result))
     plt.savefig(fname)
-    logging.info("produced figure: %s", fname)
+    ntlogger.info("produced figure: %s", fname)
 
 
 def plot_spectra(data, fname, title, sp="proton", err=False,
@@ -88,10 +88,18 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
         bw = calc_bin_width(d.eng)
         if d.type == '2':
             y_vals = np.asarray(d.result[0])/bw
+            splot = plt.step(np.asarray(d.eng),  y_vals)
+        elif d.type =='4' and len(d.cells) > 1:
+            for cell in d.result:
+                y_vals = np.asarray(cell)/bw
+                splot = plt.step(np.asarray(d.eng),  y_vals)
+            legend = d.cells
+                
         else:
             y_vals = np.asarray(d.result)/bw
+            splot = plt.step(np.asarray(d.eng),  y_vals)
 
-        splot = plt.step(np.asarray(d.eng),  y_vals)
+       
         if err is True:
             abs_err = calc_err_abs(y_vals, d.err)
             mids = calc_mid_points(d.eng)
@@ -109,7 +117,7 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
         plt.legend(legend)
 
     plt.savefig(fname)
-    logging.info("produced figure: %s", fname)
+    ntlogger.info("produced figure: %s", fname)
 
 
 def plot_spectra_ratio(data1, data2, fname, title):
@@ -126,7 +134,7 @@ def plot_spectra_ratio(data1, data2, fname, title):
 
     plt.plot(data1.eng, ratio)
     plt.savefig(fname)
-    logging.info("produced figure: %s", fname)
+    ntlogger.info("produced figure: %s", fname)
 
 
 def plot_run_comp(data, err, fname, title, xlab="Run #",
@@ -141,16 +149,16 @@ def plot_run_comp(data, err, fname, title, xlab="Run #",
     plt.xlim(xmin=0, xmax=len(x)+1)
     plt.errorbar(x, data, yerr=err, fmt='o')
     plt.savefig(fname)
-    logging.info("produced figure: %s", fname)
+    ntlogger.info("produced figure: %s", fname)
 
 
 def plot_en_time(data, fname):
     """ plotting energy time data"""
     plt.clf()
     if data.times is None:
-        logging.info("Error - no time bins")
+        ntlogger.info("Error - no time bins")
     if data.eng is None:
-        logging.info("Error - no energy bins")
+        ntlogger.info("Error - no energy bins")
     plt.xlabel("time")
     plt.ylabel("energy")
 
@@ -168,7 +176,7 @@ def plot_en_time(data, fname):
     """
     plt.colorbar()
     plt.savefig(fname)
-    logging.info("produced figure: %s", fname)
+    ntlogger.info("produced figure: %s", fname)
 
 
 def html_tab_out(data, fname):
@@ -190,7 +198,7 @@ def html_tab_out(data, fname):
 
     hs = open(fname, 'w')
     hs.write(strTable)
-    logging.info("produced html file: %s", fname)
+    ntlogger.info("produced html file: %s", fname)
 
 
 def csv_out(data, fname):
@@ -208,4 +216,4 @@ def csv_out(data, fname):
             lines.append(ltext)
 
     ut.write_lines(fname, lines)
-    logging.info("produced csv file: %s", fname)
+    ntlogger.info("produced csv file: %s", fname)

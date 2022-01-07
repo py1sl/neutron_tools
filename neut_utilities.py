@@ -2,10 +2,10 @@
 import logging
 
 
-def setup_logging():
-    msg_format = '%(levelname)s:%(message)s'
-    logging.basicConfig(format=msg_format, level=logging.DEBUG)
-    logging.info("Starting calculation")
+def setup_ntlogger():
+    ntlogger = logging.getLogger('nt_logger')
+    ntlogger.setLevel(level=logging.DEBUG)
+    return ntlogger
 
 
 def write_lines(path, lines):

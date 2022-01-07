@@ -9,6 +9,18 @@ import neut_utilities as ut
 import pandas as pd
 
 
+def energy_filter(data, energy):
+    """ filter emission lines based on energy """
+    data = data[data["energy_ev"] > energy]
+    return data
+
+
+def particle_filter(data, particle):
+    """ filter emission lines based on emission particle """
+    data = data[data["particle"] == particle]
+    return data
+
+
 def read_fispact_printlib(fpath):
     """  processes a fispact printlib file """
     averages = []
@@ -22,6 +34,11 @@ def read_fispact_printlib(fpath):
     with open(fpath, 'r') as plf:
         for line in plf:
             if "fispact run time" in line:
+                discrete_lines_df = pd.DataFrame()
+                discrete_lines_df["nuclide"] = nucs
+                discrete_lines_df["particle"] = particle
+                discrete_lines_df["energy_ev"] = energy
+                discrete_lines_df["intensity"] = intensity
                 break
             elif in_discrete:
                 if ("Type" not in line) and ("no spectral data" not in line):
@@ -43,12 +60,6 @@ def read_fispact_printlib(fpath):
 
             elif "A V E R A G E S" in line:
                 in_average = True
-
-    discrete_lines_df = pd.DataFrame()
-    discrete_lines_df["nuclide"] = nucs
-    discrete_lines_df["particle"] = particle
-    discrete_lines_df["energy_ev"] = energy
-    discrete_lines_df["intensity"] = intensity
 
     return discrete_lines_df
 

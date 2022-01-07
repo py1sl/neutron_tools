@@ -417,7 +417,7 @@ def parse_inventory(data):
         inv.append(nuc_data)
 
     col_heads = ["nuclide", "atoms", "mass", "act", "b_energy", "a_energy",
-                 "g-energy", "dose_rate"]
+                 "g_energy", "dose_rate"]
     inv = pd.DataFrame(inv, columns=col_heads)
     inv["element"] = inv["nuclide"].astype(str).str[0:2]
     inv["element"] = inv["element"].str.strip()

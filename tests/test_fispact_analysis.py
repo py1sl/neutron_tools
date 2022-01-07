@@ -27,12 +27,6 @@ class support_function_tests(unittest.TestCase):
         self.assertEqual(len(v), 4)
         self.assertEqual(v, [20, 20, 20, 10])
 
-    def test_is_nuc_present(self):
-        inv = pd.DataFrame()
-        inv["nuclide"] = ["Ta181", "W180"]
-        self.assertEqual(fa.is_nuc_present(inv, "Ta181"), True)
-        self.assertEqual(fa.is_nuc_present(inv, "N45"), False)
-
 
 class filtering_functions_tests(unittest.TestCase):
     """ test for the inventoryfilters"""
@@ -51,7 +45,7 @@ class filtering_functions_tests(unittest.TestCase):
     def test_beta_filter(self):
         inv = pd.DataFrame()
         inv["b_energy"] = [10, 20, 30, 0, 40]
-        inv =  fa.filter_emits_beta(inv)
+        inv = fa.filter_emits_beta(inv)
         self.assertEqual(len(inv["b_energy"]), 4)
 
     def test_gamma_filter(self):
@@ -59,6 +53,12 @@ class filtering_functions_tests(unittest.TestCase):
         inv["g_energy"] = [10, 20, 30, 0, 40]
         inv = fa.filter_emits_gamma(inv)
         self.assertEqual(len(inv["g_energy"]), 4)
+
+    def test_is_nuc_present(self):
+        inv = pd.DataFrame()
+        inv["nuclide"] = ["Ta181", "W180"]
+        self.assertEqual(fa.is_nuc_present(inv, "Ta181"), True)
+        self.assertEqual(fa.is_nuc_present(inv, "N45"), False)
 
 
 class plotting_tests(unittest.TestCase):
