@@ -28,7 +28,7 @@ class calc_mid_points_test(unittest.TestCase):
 
 class convert_to_df_test(unittest.TestCase):
 
-    def test_count_zeros_6col(self):
+    def test_convert_6col(self):
         meshtally_test = ma.meshtally()
         meshtally_test.ctype = "6col"
         meshtally_test.data = [['1.00', '3.00', '-2.00', '5.00', '0.00',
@@ -42,7 +42,7 @@ class convert_to_df_test(unittest.TestCase):
         self.assertEqual(meshtally_test.data['z'].iloc[0], 5.00)
         self.assertEqual(meshtally_test.data['rel_err'].iloc[0], 1.00)
 
-    def test_count_zeros_5col(self):
+    def test_convert_5col(self):
         meshtally_test = ma.meshtally()
         meshtally_test.ctype = "5col"
         meshtally_test.data = [['3.00', '-2.00', '5.00', '0.00',

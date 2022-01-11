@@ -18,13 +18,11 @@ def generate_mesh_header(mesh, output_data):
     return output_data
 
 
-def normalise_mesh(mesh):
+def normalise_to_half(mesh):
     """ normalise so highest point is a half """
-
     result = mesh.data["value"]
     result = result.astype(np.float)
     norm_const = 0.5/max(result)
-
     norm_data = result * norm_const
 
     return norm_data
@@ -32,10 +30,10 @@ def normalise_mesh(mesh):
 
 def do_magic(infile, ofile='wwinp'):
     """ generates a weight window file based on magic GVR method """
-    ut.setup_logging()
+    ut.setup_ntlogger()
 
     # read meshtal file
-    meshes = ma.read_mesh_tally_file(args.input)
+    meshes = ma.read_mesh_tally_file(infile)
 
     # set up output
     output_data = []
