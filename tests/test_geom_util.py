@@ -49,16 +49,78 @@ class geom_volume_test_case(unittest.TestCase):
         self.assertEqual(geom_utils.volume_cone(0.0, 1.0), 0.0)
 
 
+class geom_conversions_test_case(unittest.TestCase):
+    """Tests for coodinate conversion functions"""
+
+    def test_cartesian_to_cylindrical(self):
+        rho, theta, z = geom_utils.cartesian_to_cylindrical(1, 1, 1)
+        self.assertAlmostEqual(rho, np.sqrt(2))
+        self.assertAlmostEqual(theta, np.pi/4)
+        self.assertAlmostEqual(z, 1)
+
+    def test_cartesian_to_spherical(self):
+        r, theta, phi = geom_utils.cartesian_to_spherical(1, 1, 1)
+        self.assertAlmostEqual(r, np.sqrt(3))
+        self.assertAlmostEqual(theta, np.arccos(1/np.sqrt(3)))
+        self.assertAlmostEqual(phi, np.pi/4)
+
+    def test_cylindrical_to_cartesian(self):
+        x, y, z = geom_utils.cylindrical_to_cartesian(np.sqrt(2), np.pi/4, 1)
+        self.assertAlmostEqual(x, 1)
+        self.assertAlmostEqual(y, 1)
+        self.assertAlmostEqual(z, 1)
+
+    def test_cylindrical_to_spherical(self):
+        r, theta, phi = geom_utils.cylindrical_to_spherical(np.sqrt(2), np.pi/4, 1)
+        self.assertAlmostEqual(r, np.sqrt(3))
+        self.assertAlmostEqual(theta, np.arccos(1/np.sqrt(3)))
+        self.assertAlmostEqual(phi, np.pi/4)
+
+    def test_spherical_to_cartesian(self):
+        x, y, z = geom_utils.spherical_to_cartesian(np.sqrt(3), np.arccos(1/np.sqrt(3)), np.pi/4)
+        self.assertAlmostEqual(x, 1)
+        self.assertAlmostEqual(y, 1)
+        self.assertAlmostEqual(z, 1)
+
+    def test_spherical_to_cylindrical(self):
+        rho, theta, z = geom_utils.spherical_to_cylindrical(np.sqrt(3), np.arccos(1/np.sqrt(3)), np.pi/4)
+        self.assertAlmostEqual(rho, np.sqrt(2))
+        self.assertAlmostEqual(theta, np.pi/4)
+        self.assertEqual(z, 1)
+
+
 class geom_planes_test_case(unittest.TestCase):
     """ tests for plane functions"""
 
-    def test_dist_is_zero(self):
-        self.assertEqual(geom_utils.dist_between_planes(0.0, 0.0, 0.0, 0.0,
-                         0.0, 0.0, 0.0, 0.0), 0.0)
+    def test_dist_is_zero_same_plane(self):
+        self.assertEqual(geom_utils.dist_between_planes(1.0, 1.0, 1.0, 1.0,
+                         1.0, 1.0, 1.0, 1.0), 0.0)
+
+    def test_dist_is_zero_not_parallel(self):
+        self.assertEqual(geom_utils.dist_between_planes(1.0, 2.0, 3.0, 4.0,
+                         5.0, 6.0, 7.0, 8.0), 0.0)
 
     def test_angle_is_zero(self):
         self.assertEqual(geom_utils.angle_between_planes(0.0, 0.0, 0.0, 0.0,
                          0.0, 0.0, 0.0, 0.0), 0.0)
+
+    def test_dist_is_zero_point_plane(self):
+        self.assertEqual(geom_utils.dist_between_point_plane(0.0, 0.0, 0.0,
+                         0.0, 0.0, 0.0, 0.0), 0.0)
+
+    def test_sphere_plane_intersect(self):
+        self.assertRaises(ValueError, geom_utils.plane_sphere_intersect, 1.0, 1.0,
+                          1.0, 1.0, 1.0, 1.0, 1.0, -1.0)
+        self.assertRaises(ValueError, geom_utils.plane_sphere_intersect, 1.0, 0.0,
+                          0.0, 2.0, 0.0, 0.0, 0.0, 1.0)
+
+    def test_plane_plane_intersect(self):
+        self.assertRaises(ValueError, geom_utils.plane_plane_intersect, 1.0, 1.0,
+                          1.0, 1.0, 1.0, 1.0, 1.0, -1.0, 0.0)
+
+    def test_line_segment_plane_intersection(self):
+        np.testing.assert_array_almost_equal(geom_utils.line_segment_plane_intersection(np.array([0, 0, 0]),
+                         np.array([0, 0, 1]), 0, 0, 1, 0.5), np.array([0, 0, 0.5]))
 
 
 class geom_points_test_case(unittest.TestCase):
@@ -94,7 +156,20 @@ class geom_points_test_case(unittest.TestCase):
         self.assertEqual(geom_utils.midpoint_bet_points(2.0, 0.0, 0.0, 4.0,
                          0.0, 0.0), (3.0, 0.0, 0.0))
 
-    def test_rotate_point(self):
+    def test_rotate(self):
+        np.testing.assert_array_almost_equal(geom_utils.rotate_x(np.array([[1, 1, 1]]),
+                         np.array([0, 0, 0]), np.pi/2), np.array([[1, -1, 1]]))
+        np.testing.assert_array_almost_equal(geom_utils.rotate_y(np.array([[1, 1, 1]]),
+                         np.array([0, 0, 0]), np.pi/2), np.array([[1, 1, -1]]))
+        np.testing.assert_array_almost_equal(geom_utils.rotate_z(np.array([[1, 1, 1]]),
+                         np.array([0, 0, 0]), np.pi/2), np.array([[-1, 1, 1]]))
+
+    def test_translate(self):
+        np.testing.assert_array_almost_equal(geom_utils.translate(np.array([[0, 0, 0]]),
+                                             np.array([10, 10, 10])), np.array([[10, 10, 10]]))
+
+
+    """def test_rotate_point(self):
         x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi/2.0)
         self.assertEqual(y, 10)   # simple 90 degree rotate
         x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi)
@@ -102,7 +177,7 @@ class geom_points_test_case(unittest.TestCase):
         x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi*2.0)
         self.assertEqual(x, 10)   # 360 degree rotate
         x, y = geom_utils.rotate_point(0, 0, 10, 0, -np.pi*2.0)
-        self.assertEqual(x, 10)   # -360 degree rotate
+        self.assertEqual(x, 10)   # -360 degree rotate"""
 
 
 class geom_pythag_test_case(unittest.TestCase):
