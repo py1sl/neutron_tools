@@ -119,11 +119,20 @@ def line_segment_plane_intersection(p0, p1, x, y, z, d):
     Rearranging gives t = (d-(n.p0)) / n.(p1-p0)
     """
     plane = np.array([x, y, z, d])
-    if np.dot(p1-p0, plane[:3]) == 0:
-        return None  # Since line segment parallel to plane
-    t = t = plane[3] - np.dot(p0, plane[:3]) / np.dot(p1-p0, plane[:3])
 
-    return p0 + t*(p1-p0)
+    # If val < 0, the two points must lie either side of the plane and so the line
+    # segment must intersect the plane
+    val = (np.dot(p0, plane[:3])-d)*(np.dot(p1, plane[:3])-d)
+
+    if val < 0:
+        if np.dot(p1-p0, plane[:3]) == 0:
+            return None  # Since line segment parallel to plane
+        t = t = plane[3] - np.dot(p0, plane[:3]) / np.dot(p1-p0, plane[:3])
+
+        return p0 + t*(p1-p0)
+
+    elif val >= 0:
+        raise ValueError('Line segment does not intersect plane')
 
 
 def plane_sphere_intersect(x1, y1, z1, d, a, b, c, R):
