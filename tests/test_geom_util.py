@@ -169,17 +169,6 @@ class geom_points_test_case(unittest.TestCase):
                                              np.array([10, 10, 10])), np.array([[10, 10, 10]]))
 
 
-    """def test_rotate_point(self):
-        x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi/2.0)
-        self.assertEqual(y, 10)   # simple 90 degree rotate
-        x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi)
-        self.assertEqual(x, -10)   # simple 180 degree rotate
-        x, y = geom_utils.rotate_point(0, 0, 10, 0, np.pi*2.0)
-        self.assertEqual(x, 10)   # 360 degree rotate
-        x, y = geom_utils.rotate_point(0, 0, 10, 0, -np.pi*2.0)
-        self.assertEqual(x, 10)   # -360 degree rotate"""
-
-
 class geom_pythag_test_case(unittest.TestCase):
     """ tests for pythag functions"""
 
