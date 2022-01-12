@@ -8,6 +8,12 @@ import numpy as np
 import logging
 
 
+def evaluate_plane_eq(x, y, z, coeff_X, coeff_Y, coeff_Z, d):
+    """ calculate plane equation """
+    val = (coeff_X * x) + (coeff_Y * y) + (coeff_Z * z) - d
+    return val
+
+
 def angle_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
     """ calculate angle between planes cartesian form """
     # check planes are not identical or parrellel
@@ -31,7 +37,11 @@ def angle_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
 def dist_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
     """ calculate distance between two planes"""
 
-    # check planes are not identical
+    # Check if planes are parallel; if not then return 0 as they will intersect
+    if x1/x2 != y1/y2 != z1/z2:
+        return 0.0
+
+    # Check planes are not identical
     if x1 == x2 and y1 == y2 and z1 == z2 and d1 == d2:
         return 0.0
 
@@ -59,10 +69,124 @@ def dist_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
     return D
 
 
-def dist_between_point_plane():
-    """ """
-    dist = 0
+def dist_between_point_plane(x1, y1, z1, d, x2, y2, z2):
+    """Calculate minimum distance between a point and a plane
+       x1*x + y1*y + z1*z = d defines the plane; (x, y, z) is the point q lying in the plane
+       (x2, y2, z2) is the point p
+    """
+
+    # Check point does not lie in plane
+    if (x1*x2)+(y1*y2)+(z1*z2) == d:
+        return 0.0
+
+    x = 0.0
+    y = 0.0
+    z = 0.0
+
+    # Creates a point p that lies in the plane
+    if y1 != 0.0:
+        y = d / y1
+    elif z1 != 0.0:
+        z = d / z1
+    elif x1 != 0.0:
+        x = d / x1
+
+    check = evaluate_plane_eq(x, y, z, x1, y1, z1, d)
+    if check != 0.0:
+        logging.debug("warning check not equal to 0.0")
+        logging.debug(check)
+
+    xd = x - x2
+    yd = y - y2
+    zd = z - z2
+
+    # Let q be the point (x2, y2, z2). Shortest distance FROM POINT TO PLANE is (q-p).n_hat
+    dist = ((xd*x1)+(yd*y1)+(zd*z1))/np.sqrt(x1**2+y1**2+z1**2)
+
+    # Function designed to return signed distance as opposed to magnitude
+    # as allows more flexibility in interactions with other functions
+
     return dist
+
+
+def line_segment_plane_intersection(p0, p1, x, y, z, d):
+    """
+    Determines the coordinates of the intersection point between a line segment and a plane
+    Point on a plane p satisfies n.p = d
+    Point on a line s satisfies s = p0 + t*(p1-p0)
+    Need to find s = p
+    So n.s = n.(p0+t*(p1-p0)) = d
+    Rearranging gives t = (d-(n.p0)) / n.(p1-p0)
+    """
+    plane = np.array([x, y, z, d])
+    if np.dot(p1-p0, plane[:3]) == 0:
+        return None  # Since line segment parallel to plane
+    t = t = plane[3] - np.dot(p0, plane[:3]) / np.dot(p1-p0, plane[:3])
+
+    return p0 + t*(p1-p0)
+
+
+def plane_sphere_intersect(x1, y1, z1, d, a, b, c, R):
+    """Calculate the centre and radius of the circle produced at the intersection of a plane and sphere
+       x1*x + y1*y + z1*z = d defines the plane
+       (x-a)**2 + (y-b)**2 + (z-c)**2 = R**2 is the general equation of a sphere
+    """
+
+    if R <= 0:
+        raise ValueError('Circle does not exist')
+
+    # First find the distance between the centre of the sphere and the centre of the circle
+    # This is the shortest distance between the centre of the sphere and the plane
+    l = dist_between_point_plane(x1, y1, z1, d, a, b, c)
+
+    # Check to see if the plane and sphere intercept
+    if l > R:
+        raise ValueError('Plane and sphere do not intersect')
+
+    # Pythagoras then gives the radius of the circle
+    r = np.sqrt(R**2 - l**2)
+
+    centre_x = a + (l*x1)/np.sqrt(x1**2+y1**2+z1**2)
+    centre_y = b + (l*y1)/np.sqrt(x1**2+y1**2+z1**2)
+    centre_z = c + (l*z1)/np.sqrt(x1**2+y1**2+z1**2)
+
+    centre = np.array([centre_x, centre_y, centre_z])
+
+    return r, centre
+
+plane_sphere_intersect(1, 0, 0, 1, 0, 0, 0, 1)
+
+
+def plane_plane_intersect(x1, y1, z1, d1, x2, y2, z2, d2, z_ini):
+    """
+    Take equation of plane as x1*x + y1*y + z1*z = d1
+    Planes intersect at line p + qt, where t is a parameter.
+    Use normals to calculate cross product. This is the direction vector of the line, q.
+    Determine a point on the line by setting one coordinate to zero and solving the system of equations
+    """
+
+    if x1/x2 == y1/y2 == z1/z2:
+        raise ValueError('Planes are parallel and thus do not intersect.')
+
+    n1 = np.array([x1, y1, z1])
+    n2 = np.array([x2, y2, z2])
+
+    # Direction vector of line
+    n = np.cross(n1, n2)
+    n = n / np.sqrt(n[0]**2 + n[1]**2 + n[2]**2)
+
+    # To generate a point on the line, let z=z_ini - more flexible than just setting z=0
+
+    a = np.array([[x1, y1], [x2, y2]])
+    b = np.array([d1-(z1*z_ini), d2-(z2*z_ini)])
+    x = np.linalg.solve(a, b)
+
+    p = np.array([x[0], x[1], z_ini])
+
+    print(p, '+ t * ', n)
+
+    # Returns parameterised equation of the line of intersection, where t is a parameter
+    return p, n
 
 
 def dist_bet_points(x1, y1, z1, x2, y2, z2):
@@ -104,21 +228,75 @@ def coefficients_of_line_from_points(point_a, point_b):
     return m, c
 
 
-def rotate_point(ox, oy, px, py, angle):
+def rotate_x(point_list, o, theta):
     """
-    Rotate a point counterclockwise by a given angle around a given origin.
-    The angle should be given in radians.
-    ox, oy are origin point co-ords,
-    px, py are the point to rotate co-ords.
-    The origin and point are assumed to have a constant 3rd co-ord
-    i.e. they lie on an axial plane
-    Returns:
-        float, float: rotated point coordinates.
+    Rotates a point p anticlockwise about the x axis by an angle theta around a given origin o
+    Theta should be given in radians and o and p should be given in the form of numpy arrays
+    Returns array of rotated points
     """
 
-    qx = ox + np.cos(angle) * (px - ox) - np.sin(angle) * (py - oy)
-    qy = oy + np.sin(angle) * (px - ox) + np.cos(angle) * (py - oy)
-    return qx, qy
+    R = np.array([[1, 0, 0],
+                  [0, np.cos(theta), -np.sin(theta)],
+                  [0, np.sin(theta), np.cos(theta)]])
+
+    new_point_list = np.zeros(shape=(len(point_list), 3))
+
+    for i in range(len(point_list)):
+        new_point_list[i] = np.dot(R, (point_list[i].T - o.T))
+
+    return new_point_list
+
+
+def rotate_y(point_list, o, theta):
+    """
+    Rotates a point p anticlockwise about the y axis by an angle theta around a given origin o
+    Theta should be given in radians and o and p should be given in the form of numpy arrays
+    Returns array of rotated points
+    """
+
+    R = np.array([[np.cos(theta), 0, np.sin(theta)],
+                  [0, 1, 0],
+                  [-np.sin(theta), 0, np.cos(theta)]])
+
+    new_point_list = np.zeros(shape=(len(point_list), 3))
+
+    for i in range(len(point_list)):
+        new_point_list[i] = np.dot(R, (point_list[i].T - o.T))
+
+    return new_point_list
+
+
+def rotate_z(point_list, o, theta):
+    """
+    Rotates a point p anticlockwise about the z axis by an angle theta around a given origin o
+    Theta should be given in radians and o and p should be given in the form of numpy arrays
+    Returns array of rotated points
+    """
+
+    R = np.array([[np.cos(theta), -np.sin(theta), 0],
+                  [np.sin(theta), np.cos(theta), 0],
+                  [0, 0, 1]])
+
+    new_point_list = np.zeros(shape=(len(point_list), 3))
+
+    for i in range(len(point_list)):
+        new_point_list[i] = np.dot(R, (point_list[i].T - o.T))
+
+    return new_point_list
+
+
+def translate(point_list, translation):
+    """
+    Translates a point p by a translation vector
+    Points and translation vector should be given in the form of numpy arrays
+    """
+
+    new_point_list = np.zeros(shape=(len(point_list), 3))
+
+    for i in range(len(point_list)):
+        new_point_list[i] = point_list[i] + translation
+
+    return new_point_list
 
 
 def pythag_h(l1, l2):
@@ -217,12 +395,6 @@ def volume_cone(r, h):
     return volume
 
 
-def evaluate_plane_eq(x, y, z, coeff_X, coeff_Y, coeff_Z, d):
-    """ calculate plane equation """
-    val = (coeff_X * x) + (coeff_Y * y) + (coeff_Z * z) - d
-    return val
-
-
 def evaluate_sphere_eq(x1, y1, z1, x2, y2, z2, r):
     """ calc sphere equation
        x1, y1, z1 are the co-ords of the point being evaluated
@@ -292,3 +464,82 @@ def sphere_ray_intesect(x, y, z, ux, uy, uz, spherex, spherey,
     mu2 = -1 * ddot - np.sqrt((ddot*ddot) - (dp2) + (sphere_rad*sphere_rad))
 
     return (mu1, mu2)
+
+
+def cartesian_to_cylindrical(x, y, z):
+    """Converts Cartesian coordinates to cylindrical polar coordinates"""
+
+    rho = np.sqrt(x**2 + y**2)
+    if x >= 0:
+        phi = np.arctan(y/x)
+    elif x < 0:
+        phi = np.arctan(y/x) + np.pi
+    z_cyl = z
+
+    return (rho, phi, z_cyl)
+
+
+def cartesian_to_spherical(x, y, z):
+    """Converts Cartesian coordinates to spherical polar coordinates"""
+
+    r = np.sqrt(x**2 + y**2 + z**2)
+    theta = np.arccos(z/r)
+    if x >= 0:
+        phi = np.arctan(y/x)
+    elif x < 0:
+        phi = np.arctan(y/x) + np.pi
+
+    return (r, theta, phi)
+
+
+def cylindrical_to_cartesian(rho, phi, z_cyl):
+    """Converts cylindrical polar coordinates to Cartesian coordinates"""
+
+    if rho < 0:
+        raise ValueError('Invalid input')
+
+    x = rho*np.cos(phi)
+    y = rho*np.sin(phi)
+    z = z_cyl
+
+    return (x, y, z)
+
+
+def spherical_to_cartesian(r, theta, phi):
+    """Converts spherical polar coordinates to Cartesian coordinates"""
+
+    if r < 0:
+        raise ValueError('Invalid input')
+
+    x = r*np.sin(theta)*np.cos(phi)
+    y = r*np.sin(theta)*np.sin(phi)
+    z = r*np.cos(theta)
+
+    return (x, y, z)
+
+
+def spherical_to_cylindrical(r, theta, phi):
+    """Converts spherical polar coordinates to cylindrical polar coordinates"""
+
+    if r < 0:
+        raise ValueError('Invalid input')
+
+    rho = r*np.sin(theta)
+    theta_cyl = phi
+    z_cyl = r*np.cos(theta)
+
+    return (rho, theta_cyl, z_cyl)
+
+
+def cylindrical_to_spherical(rho, theta_cyl, z_cyl):
+    """Converts cylindrical polar coordinates to spherical polar coordinates"""
+
+    if rho < 0:
+        raise ValueError('Invalid input')
+
+    r = np.sqrt(rho**2 + z_cyl**2)
+    theta = np.arccos(z_cyl/r)
+    phi = theta_cyl
+
+    return (r, theta, phi)
+
