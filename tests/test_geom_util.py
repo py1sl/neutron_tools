@@ -121,6 +121,8 @@ class geom_planes_test_case(unittest.TestCase):
     def test_line_segment_plane_intersection(self):
         np.testing.assert_array_almost_equal(geom_utils.line_segment_plane_intersection(np.array([0, 0, 0]),
                          np.array([0, 0, 1]), 0, 0, 1, 0.5), np.array([0, 0, 0.5]))
+        self.assertRaises(ValueError, geom_utils.line_segment_plane_intersection, np.array([0, 0, 0]),
+                         np.array([0, 0, 1]), 0, 0, 1, 2)
 
 
 class geom_points_test_case(unittest.TestCase):
