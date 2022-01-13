@@ -57,8 +57,7 @@ def dist_between_planes(x1, y1, z1, d1, x2, y2, z2, d2):
 
     check = evaluate_plane_eq(x, y, z, x1, y1, z1, d1)
     if check != 0.0:
-        logging.debug("warning check not equal to 0.0")
-        logging.debug(check)
+        raise ValueError('Plane equation does not evaluate, check input.')
 
     top = (x2 * x)+(y2 * y)+(z2 * z) - d2
     bottom = (x2 * x2) + (y2 * y2) + (z2 * z2)
@@ -127,11 +126,11 @@ def line_segment_plane_intersection(p0, p1, x, y, z, d):
     if val < 0:
         if np.dot(p1-p0, plane[:3]) == 0:
             return None  # Since line segment parallel to plane
-        t = t = plane[3] - np.dot(p0, plane[:3]) / np.dot(p1-p0, plane[:3])
+        t = plane[3] - np.dot(p0, plane[:3]) / np.dot(p1-p0, plane[:3])
 
         return p0 + t*(p1-p0)
 
-    elif val >= 0:
+    else:
         raise ValueError('Line segment does not intersect plane')
 
 
@@ -142,28 +141,26 @@ def plane_sphere_intersect(x1, y1, z1, d, a, b, c, R):
     """
 
     if R <= 0:
-        raise ValueError('Circle does not exist')
+        raise ValueError('Sphere does not exist')
 
     # First find the distance between the centre of the sphere and the centre of the circle
     # This is the shortest distance between the centre of the sphere and the plane
-    l = dist_between_point_plane(x1, y1, z1, d, a, b, c)
+    centre_dist = dist_between_point_plane(x1, y1, z1, d, a, b, c)
 
-    # Check to see if the plane and sphere intercept
-    if l > R:
+    # Check to see if the plane and sphere intersect
+    if centre_dist > R:
         raise ValueError('Plane and sphere do not intersect')
 
     # Pythagoras then gives the radius of the circle
-    r = np.sqrt(R**2 - l**2)
+    r = np.sqrt(R**2 - centre_dist**2)
 
-    centre_x = a + (l*x1)/np.sqrt(x1**2+y1**2+z1**2)
-    centre_y = b + (l*y1)/np.sqrt(x1**2+y1**2+z1**2)
-    centre_z = c + (l*z1)/np.sqrt(x1**2+y1**2+z1**2)
+    centre_x = a + (centre_dist*x1)/np.sqrt(x1**2+y1**2+z1**2)
+    centre_y = b + (centre_dist*y1)/np.sqrt(x1**2+y1**2+z1**2)
+    centre_z = c + (centre_dist*z1)/np.sqrt(x1**2+y1**2+z1**2)
 
     centre = np.array([centre_x, centre_y, centre_z])
 
     return r, centre
-
-plane_sphere_intersect(1, 0, 0, 1, 0, 0, 0, 1)
 
 
 def plane_plane_intersect(x1, y1, z1, d1, x2, y2, z2, d2, z_ini):
@@ -191,8 +188,6 @@ def plane_plane_intersect(x1, y1, z1, d1, x2, y2, z2, d2, z_ini):
     x = np.linalg.solve(a, b)
 
     p = np.array([x[0], x[1], z_ini])
-
-    print(p, '+ t * ', n)
 
     # Returns parameterised equation of the line of intersection, where t is a parameter
     return p, n
@@ -250,8 +245,8 @@ def rotate_x(point_list, o, theta):
 
     new_point_list = np.zeros(shape=(len(point_list), 3))
 
-    for i in range(len(point_list)):
-        new_point_list[i] = np.dot(R, (point_list[i].T - o.T))
+    for i, point in enumerate(point_list):
+        new_point_list[i] = np.dot(R, (point.T - o.T))
 
     return new_point_list
 
@@ -269,8 +264,8 @@ def rotate_y(point_list, o, theta):
 
     new_point_list = np.zeros(shape=(len(point_list), 3))
 
-    for i in range(len(point_list)):
-        new_point_list[i] = np.dot(R, (point_list[i].T - o.T))
+    for i, point in enumerate(point_list):
+        new_point_list[i] = np.dot(R, (point.T - o.T))
 
     return new_point_list
 
@@ -288,8 +283,8 @@ def rotate_z(point_list, o, theta):
 
     new_point_list = np.zeros(shape=(len(point_list), 3))
 
-    for i in range(len(point_list)):
-        new_point_list[i] = np.dot(R, (point_list[i].T - o.T))
+    for i, point in enumerate(point_list):
+        new_point_list[i] = np.dot(R, (point.T - o.T))
 
     return new_point_list
 
@@ -302,8 +297,8 @@ def translate(point_list, translation):
 
     new_point_list = np.zeros(shape=(len(point_list), 3))
 
-    for i in range(len(point_list)):
-        new_point_list[i] = point_list[i] + translation
+    for i, point in enumerate(point_list):
+        new_point_list[i] = point + translation
 
     return new_point_list
 
@@ -481,11 +476,10 @@ def cartesian_to_cylindrical(x, y, z):
     rho = np.sqrt(x**2 + y**2)
     if x >= 0:
         phi = np.arctan(y/x)
-    elif x < 0:
+    else:
         phi = np.arctan(y/x) + np.pi
-    z_cyl = z
 
-    return (rho, phi, z_cyl)
+    return (rho, phi, z)
 
 
 def cartesian_to_spherical(x, y, z):
@@ -495,21 +489,20 @@ def cartesian_to_spherical(x, y, z):
     theta = np.arccos(z/r)
     if x >= 0:
         phi = np.arctan(y/x)
-    elif x < 0:
+    else:
         phi = np.arctan(y/x) + np.pi
 
     return (r, theta, phi)
 
 
-def cylindrical_to_cartesian(rho, phi, z_cyl):
+def cylindrical_to_cartesian(rho, phi, z):
     """Converts cylindrical polar coordinates to Cartesian coordinates"""
 
     if rho < 0:
         raise ValueError('Invalid input')
 
-    x = rho*np.cos(phi)
-    y = rho*np.sin(phi)
-    z = z_cyl
+    x = rho * np.cos(phi)
+    y = rho * np.sin(phi)
 
     return (x, y, z)
 
@@ -520,9 +513,9 @@ def spherical_to_cartesian(r, theta, phi):
     if r < 0:
         raise ValueError('Invalid input')
 
-    x = r*np.sin(theta)*np.cos(phi)
-    y = r*np.sin(theta)*np.sin(phi)
-    z = r*np.cos(theta)
+    x = r * np.sin(theta) * np.cos(phi)
+    y = r * np.sin(theta) * np.sin(phi)
+    z = r * np.cos(theta)
 
     return (x, y, z)
 
@@ -533,21 +526,21 @@ def spherical_to_cylindrical(r, theta, phi):
     if r < 0:
         raise ValueError('Invalid input')
 
-    rho = r*np.sin(theta)
+    rho = r * np.sin(theta)
     theta_cyl = phi
-    z_cyl = r*np.cos(theta)
+    z = r * np.cos(theta)
 
-    return (rho, theta_cyl, z_cyl)
+    return (rho, theta_cyl, z)
 
 
-def cylindrical_to_spherical(rho, theta_cyl, z_cyl):
+def cylindrical_to_spherical(rho, theta_cyl, z):
     """Converts cylindrical polar coordinates to spherical polar coordinates"""
 
     if rho < 0:
         raise ValueError('Invalid input')
 
-    r = np.sqrt(rho**2 + z_cyl**2)
-    theta = np.arccos(z_cyl/r)
+    r = np.sqrt(rho**2 + z**2)
+    theta = np.arccos(z/r)
     phi = theta_cyl
 
     return (r, theta, phi)
