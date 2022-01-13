@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import numpy as np
 import argparse
-import logging
+import logging as ntlogger
 import pandas as pd
 import neut_utilities as ut
 mpl.use('Agg')
@@ -36,7 +36,7 @@ def rel_err_hist(df, fname=None):
     plt.ylabel("Number of voxels")
     if fname:
         plt.savefig(fname)
-        logging.info("produced figure: %s", fname)
+        ntlogger.info("produced figure: %s", fname)
     else:
         plt.show()
 
@@ -132,7 +132,7 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None,
 
     if fname:
         plt.savefig(fname)
-        logging.info("produced figure: %s", fname)
+        ntlogger.info("produced figure: %s", fname)
     else:
         plt.show()
 
@@ -140,7 +140,7 @@ def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None,
 # TODO:
 def output_as_vtk():
     """ """
-    logging.debug("not ready yet")
+    ntlogger.debug("not ready yet")
 
 
 def find_nearest_mid(value, mids):
@@ -342,7 +342,7 @@ def read_mesh(tnum, data, tdict):
     mesh.idnum = tnum
     mesh.data = []
     mesh.ctype = "6col"
-    logging.info("reading mesh number: %s ", str(tnum))
+    ntlogger.info("reading mesh number: %s ", str(tnum))
     # reduce data to just the selected mesh tally
     start_pos = tdict[tnum]
     end_pos = find_next_mesh(tnum, tdict)
@@ -359,7 +359,7 @@ def read_mesh(tnum, data, tdict):
         if in_data:
             # v = " ".join(v.split())
             # mesh.data.append(v.split(" "))
-            logging.info("Guru meditation error")
+            ntlogger.info("Guru meditation error")
         elif "X direction:" in v:
             v = " ".join(v.split())
             mesh.x_bounds = v.split(" ")[2:]
@@ -385,21 +385,23 @@ def read_mesh(tnum, data, tdict):
             v = " ".join(v.split())
             mesh.ptype = v.split(" ")[0]
 
+    ntlogger.info("processing results: %s ", str(tnum))
     mesh_data = [" ".join(j.split()) for j in mesh_data[i:]]
     mesh.data = [j.split() for j in mesh_data[1:]]
+    ntlogger.info("converting to df: %s ", str(tnum))
     mesh.data = convert_to_df(mesh)
 
     mesh.x_mids = calc_mid_points(mesh.x_bounds)
     mesh.y_mids = calc_mid_points(mesh.y_bounds)
     mesh.z_mids = calc_mid_points(mesh.z_bounds)
-    logging.info("finished reading mesh number: %s ", str(tnum))
+    ntlogger.info("finished reading mesh number: %s ", str(tnum))
 
     return mesh
 
 
 def read_mesh_tally_file(fpath):
     """ reads all meshes in a meshtal file, returns a list of mesh objects """
-    logging.info('Reading MCNP meshtal file: %s', fpath)
+    ntlogger.info('Reading MCNP meshtal file: %s', fpath)
     all_data = ut.get_lines(fpath)
     tally_dict = find_mesh_tally_numbers(all_data)
     meshes = []

@@ -3,7 +3,7 @@ import mcnp_input_reader
 
 
 class cell_card_tests(unittest.TestCase):
-    #test for reading the cells part of input file
+    # test for reading the cells part of input file
 
     def test_1_line_mat_cells(self):
         # for mcnp input reader tests
@@ -18,12 +18,11 @@ class cell_card_tests(unittest.TestCase):
         self.assertEqual(len(cell.surfaces), 1)
         self.assertEqual(cell.surfaces, [1])
 
-    
     def test_1_line_void_cell(self):
         # test simple 1 line void cell
         bloc = ["1 0 (-1:23) (3 4 -5) imp:n=2"]
         cell = mcnp_input_reader.process_cell_block(bloc)[0]
-        
+
         self.assertEqual(cell.number, 1)
         self.assertEqual(cell.imp_n, 2)
         self.assertEqual(len(cell.surfaces), 5)
@@ -40,6 +39,7 @@ class cell_card_tests(unittest.TestCase):
         self.assertEqual(cell.density, -2.3)
         self.assertEqual(cell.imp_n, 1.0)
     """
+
 
 class surface_card_tests(unittest.TestCase):
     """ test for reading the surfaces part of input file"""

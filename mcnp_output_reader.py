@@ -2,7 +2,7 @@
 Reads MCNP output file
 """
 import argparse
-import logging
+import logging as ntlogger
 import numpy as np
 import pandas as pd
 import neut_utilities as ut
@@ -103,7 +103,7 @@ def read_version(lines):
     if line[:29] == "          Code Name & Version":
         version = line.split("=")[1]
         version = version.strip()
-    logging.debug("Version: %s", version)
+    ntlogger.debug("Version: %s", version)
     return version
 
 
@@ -119,8 +119,8 @@ def read_run_date(lines):
     date = data_line[-2]
     time = data_line[-1]
 
-    logging.debug("Start date: %s", date)
-    logging.debug("Start time: %s", time)
+    ntlogger.debug("Start date: %s", date)
+    ntlogger.debug("Start time: %s", time)
 
     return date, time
 
@@ -156,8 +156,8 @@ def get_tally_nums(lines):
             line = line.split(" ")[1]
             tal_num_list.append(line)
     tal_num_list = set(tal_num_list)
-    logging.debug("tally numbers:")
-    logging.debug(tal_num_list)
+    ntlogger.debug("tally numbers:")
+    ntlogger.debug(tal_num_list)
 
     return tal_num_list
 
@@ -213,9 +213,9 @@ def read_table60(lines):
 
 def print_tally_lines_to_file(lines, fname, tnum):
     """ prints tally section to a file for debugging """
-    if logging.getLogger().getEffectiveLevel() == 10:
+    if ntlogger.getLogger().getEffectiveLevel() == 10:
         fname = fname + str(tnum)+".txt"
-        logging.debug("writing " + fname)
+        ntlogger.debug("writing " + fname)
         ut.write_lines(fname, lines)
 
 
@@ -302,7 +302,7 @@ def process_e_t_userbin(data):
     try:
         res_df = pd.DataFrame(res_data, index=time_bins, columns=erg_bins)
     except ValueError:
-        logging.debug("cannot convert to dataframe ")
+        ntlogger.debug("cannot convert to dataframe ")
         res_df = res_data
 
     return time_bins, erg_bins, res_df, err_data
@@ -313,7 +313,7 @@ def find_term_line(lines):
     try:
         term_line = ut.find_line("      run terminated ", lines, 21)
     except ValueError:
-        logging.debug("Term line not found ")
+        ntlogger.debug("Term line not found ")
         term_line = None
     return term_line
 
@@ -324,7 +324,7 @@ def find_last_rendevous(lines):
 
     # the last one is generally at the end of the file, if not a complete run
     # therefore index of last complete set is the second last one
-    logging.debug("last index: %s", str(indexes[-2]))
+    ntlogger.debug("last index: %s", str(indexes[-2]))
     return indexes[-2]
 
 
@@ -335,7 +335,7 @@ def read_tally(lines, tnum, rnum=-1):
     # reduce to only the final result set
     term_line = find_term_line(lines)
     if term_line is None:
-        logging.debug("trying to find last complete rendevous")
+        ntlogger.debug("trying to find last complete rendevous")
         term_line = find_last_rendevous(lines)
 
     lines = lines[term_line:]
@@ -392,13 +392,13 @@ def read_tally(lines, tnum, rnum=-1):
     print_tally_lines_to_file(lines, "tally_test", tnum)
 
     # debug
-    logging.info('Reading tally %s', str(tnum))
-    logging.debug('Run term line number: %s', str(term_line))
-    logging.debug('Result start line number: %s', str(res_start_line))
-    logging.debug('tally end line number: %s', str(tal_end_line))
-    logging.debug('tally particle: %s', tally_data.particle)
-    logging.debug('tally nps: %s', str(tally_data.nps))
-    logging.debug('tally type: %s', str(tally_data.type))
+    ntlogger.info('Reading tally %s', str(tnum))
+    ntlogger.debug('Run term line number: %s', str(term_line))
+    ntlogger.debug('Result start line number: %s', str(res_start_line))
+    ntlogger.debug('tally end line number: %s', str(tal_end_line))
+    ntlogger.debug('tally particle: %s', tally_data.particle)
+    ntlogger.debug('tally nps: %s', str(tally_data.nps))
+    ntlogger.debug('tally type: %s', str(tally_data.type))
 
     # depending on tally type choose what to do now
     if tally_data.type == "4" or tally_data.type == "6":
@@ -410,7 +410,7 @@ def read_tally(lines, tnum, rnum=-1):
     elif tally_data.type == "8":
         tally_data = read_type_8(tally_data, lines)
     else:
-        logging.info("Tally type not recognised or supported")
+        ntlogger.info("Tally type not recognised or supported")
 
     # get statistical test outcomes
     # first check not all zeros
@@ -424,7 +424,7 @@ def read_type_8(tally_data, lines):
     """ process type 8 tally output data
         note: type 8 tally cannot have time bins
     """
-    logging.debug("pulse height tally")
+    ntlogger.debug("pulse height tally")
     # TODO: fix this hard coded part
     tally_data.cells = ["2"]  # this should not be hard coded
 
@@ -434,7 +434,7 @@ def read_type_8(tally_data, lines):
         cell_res_start = ut.find_line(cline + cell, lines,
                                       len(cell)+len(cline))
         if lines[cell_res_start + 1] == "      energy   ":
-            logging.debug("noticed energy")
+            ntlogger.debug("noticed energy")
             tally_data.eng = []
             loc_line_id2 = ut.find_line("      total    ",
                                         lines[cell_res_start + 1:], 15)
@@ -448,7 +448,7 @@ def read_type_8(tally_data, lines):
                 tally_data.err.append(float(line[4]))
         else:
             # single value result
-            logging.debug('tally e bin count = 1')
+            ntlogger.debug('tally e bin count = 1')
             line = lines[cell_res_start + 1]
             line = line.strip()
             line = line.split(" ")
@@ -456,14 +456,14 @@ def read_type_8(tally_data, lines):
             tally_data.err.append(float(line[1]))
 
     if tally_data.eng is not None:
-        logging.debug('tally e bin count: %s', len(tally_data.eng))
+        ntlogger.debug('tally e bin count: %s', len(tally_data.eng))
 
     return tally_data
 
 
 def read_type_surface(tally_data, lines):
     """ process type 1 or type 2 tally output data"""
-    logging.debug("Surface Tally")
+    ntlogger.debug("Surface Tally")
     tally_data.areas = []
     tally_data.surfaces = []
 
@@ -481,29 +481,29 @@ def read_type_surface(tally_data, lines):
         suf_val_line = suf_val_line.split(":")[1]
         tally_data.surfaces = suf_val_line.split(" ")[1:]
 
-        logging.debug("Tally surface numbers:")
-        logging.debug(tally_data.surfaces)
-        logging.debug("Tally surface areas:")
-        logging.debug(tally_data.areas)
+        ntlogger.debug("Tally surface numbers:")
+        ntlogger.debug(tally_data.surfaces)
+        ntlogger.debug("Tally surface areas:")
+        ntlogger.debug(tally_data.areas)
 
     first_surface_line_id = ut.find_line(" surface ", lines, 9)
-    logging.debug("first surface id %s", first_surface_line_id)
+    ntlogger.debug("first surface id %s", first_surface_line_id)
     if tally_data.type == "1":
         tally_data.surfaces = lines[first_surface_line_id].strip()
         tally_data.surfaces = [tally_data.surfaces.split()[-1]]
-        logging.debug("Tally surface numbers:")
-        logging.debug(tally_data.surfaces)
+        ntlogger.debug("Tally surface numbers:")
+        ntlogger.debug(tally_data.surfaces)
 
     loc = 0
     surface_line_id = first_surface_line_id
     res_df = []
     rel_err_df = []
     if "energy" in lines[first_surface_line_id + 1]:
-        logging.debug("energy bins only")
+        ntlogger.debug("energy bins only")
 
         for s in tally_data.surfaces:
             # find start and end points
-            logging.debug("Reading Surface: %s", s)
+            ntlogger.debug("Reading Surface: %s", s)
             tot_line_id = ut.find_line("      total  ",
                                        lines[surface_line_id:], 13)
             erg_lines = lines[surface_line_id+2:surface_line_id+tot_line_id]
@@ -538,10 +538,10 @@ def read_type_surface(tally_data, lines):
         tally_data.eng = erg
 
     elif "angle" in lines[first_surface_line_id+1]:
-        logging.debug("angle bins")
+        ntlogger.debug("angle bins")
 
         if lines[first_surface_line_id+2] == "      energy   ":
-            logging.debug("energy bins")
+            ntlogger.debug("energy bins")
             angles_bins = [-1.0]
 
             ebin = []
@@ -552,7 +552,7 @@ def read_type_surface(tally_data, lines):
                 if line[:11] == " angle  bin":
                     ang_float = process_ang_string(line)
                     angles_bins.append(ang_float)
-                    logging.debug(ang_float)
+                    ntlogger.debug(ang_float)
                 if line[:13] == "      total  ":
                     in_res = False
                     ebin = np.array(ebin)
@@ -578,12 +578,12 @@ def read_type_surface(tally_data, lines):
             tally_data.ang_bins = angles_bins
 
         else:
-            logging.debug("angle bins only")
+            ntlogger.debug("angle bins only")
     elif "time" in lines[first_surface_line_id+1]:
         end_line_id = ut.find_line(" ===", lines, 4)
         # check if energy bins as well as time
         if "energy" in lines[first_surface_line_id+2]:
-            logging.debug("energy & time bins")
+            ntlogger.debug("energy & time bins")
             tb, eb, res, err = process_e_t_userbin(
                            lines[first_surface_line_id+1:end_line_id])
             tally_data.times = tb
@@ -592,7 +592,7 @@ def read_type_surface(tally_data, lines):
             tally_data.err = err
         else:
             # just time bins
-            logging.debug("time bins only")
+            ntlogger.debug("time bins only")
             end_line_id = ut.find_ind(lines, "total") + 2
             lines = lines[first_surface_line_id+1:end_line_id]
 
@@ -603,7 +603,7 @@ def read_type_surface(tally_data, lines):
             tally_data.err = errs
 
     else:
-        logging.debug("single value only")
+        ntlogger.debug("single value only")
         line = lines[first_surface_line_id+1]
         line = line.strip()
         line = line.split(" ")
@@ -615,7 +615,7 @@ def read_type_surface(tally_data, lines):
 
 def read_type_cell(tally_data, lines):
     """ process type 4 or type 6 tally output data """
-    logging.debug("Volume tally")
+    ntlogger.debug("Volume tally")
     tally_data.vols = []
     tally_data.cells = []
     # find cells
@@ -648,13 +648,20 @@ def read_type_cell(tally_data, lines):
     lines = lines[line_id:]
     # loop for each cell
     for cell in tally_data.cells:
+        if cell == "a":
+            break
 
         results = []
         errs = []
-        cell_res_start = ut.find_ind(lines, cell)
+        ntlogger.debug("cell:")
+        ntlogger.debug(cell)
+        cell_res_start = ut.find_ind(lines, " "+cell+" ")
+
+        ntlogger.debug(lines[cell_res_start])
+        ntlogger.debug(lines[cell_res_start + 1])
         # energy binned data
         if lines[cell_res_start + 1] == "      energy   ":
-            logging.debug("noticed energy")
+            ntlogger.debug("noticed energy")
             tally_data.eng = []
             loc_line_id2 = ut.find_line("      total    ",
                                         lines[cell_res_start + 1:], 15)
@@ -673,7 +680,7 @@ def read_type_cell(tally_data, lines):
             end_line_id = ut.find_line(" ===", lines, 4)
             # check if energy bins as well as time
             if "energy" in lines[cell_res_start+2]:
-                logging.debug("energy & time bins")
+                ntlogger.debug("energy & time bins")
                 tb, eb, res, err = process_e_t_userbin(
                                lines[cell_res_start+1:end_line_id])
                 tally_data.times = tb
@@ -682,7 +689,7 @@ def read_type_cell(tally_data, lines):
                 tally_data.err = err
             else:
                 # just time bins
-                logging.debug("time bins only")
+                ntlogger.debug("time bins only")
                 end_line_id = ut.find_ind(lines, "total") + 2
                 lines = lines[cell_res_start+1:end_line_id]
 
@@ -697,8 +704,12 @@ def read_type_cell(tally_data, lines):
             data_line = lines[cell_res_start + 1]
             data_line = " ".join(data_line.split())
             data_line = data_line.split(" ")
-            tally_data.result.append(float(data_line[0]))
-            tally_data.err.append(float(data_line[1]))
+            if ("total" in data_line) or data_line[0] == "":
+                ntlogger.debug("skipping total line")
+            else:
+                ntlogger.debug(data_line[0])
+                tally_data.result.append(float(data_line[0]))
+                tally_data.err.append(float(data_line[1]))
 
     return tally_data
 
@@ -716,14 +727,14 @@ def read_type_5(tally_data, lines):
     tally_data.y = float(tally_data.y.strip())
     tally_data.z = loc_line[24:36]
     tally_data.z = float(tally_data.z.strip())
-    logging.debug("x: %s", tally_data.x)
-    logging.debug("y: %s", tally_data.y)
-    logging.debug("z: %s", tally_data.z)
+    ntlogger.debug("x: %s", tally_data.x)
+    ntlogger.debug("y: %s", tally_data.y)
+    ntlogger.debug("z: %s", tally_data.z)
     res_line = lines[loc_line_id + 1]
 
     # check if energy dependant
     if res_line == "      energy   ":
-        logging.debug("energy dependant")
+        ntlogger.debug("energy dependant")
         tally_data.eng = []
         total_line_id2 = ut.find_line("      total", lines[loc_line_id+1:], 11)
         erg_lines = lines[loc_line_id + 2:loc_line_id + total_line_id2+1]
@@ -735,7 +746,7 @@ def read_type_5(tally_data, lines):
             tally_data.result.append(float(line[3]))
             tally_data.err.append(float(line[4]))
     elif "time" in res_line:
-        logging.debug("found time")
+        ntlogger.debug("found time")
         # add time counter
         times = []
         t1_res = []
@@ -808,7 +819,7 @@ def read_type_5(tally_data, lines):
                 line = " ".join(line.split())
                 line = line.split(" ")
                 tcount = len(line[1:])
-                logging.debug("tcount: %s", tcount)
+                ntlogger.debug("tcount: %s", tcount)
 
                 for t in line[1:]:
                     times.append(t)
@@ -818,11 +829,11 @@ def read_type_5(tally_data, lines):
         # user bins used
         # assumes if user bins then also energy and time bins
         # curently extracts total flux not uncollided
-        logging.debug("Special user bin tally")
+        ntlogger.debug("Special user bin tally")
         user_bins = []
         user_bin_locs = []
         user_bin = res_line.split(" ")[-1]
-        logging.debug("User bin: %s", user_bin)
+        ntlogger.debug("User bin: %s", user_bin)
         user_bins.append(user_bin)
         user_bin_locs.append(0)
         for i, line in enumerate(lines[loc_line_id+1:]):
@@ -914,7 +925,7 @@ def read_output_file(path):
         input is a path the to an ouput file
         output is an mcnp output object
     """
-    logging.info('Reading MCNP output file: %s', path)
+    ntlogger.info('Reading MCNP output file: %s', path)
     ofile_data = ut.get_lines(path)
     mc_data = MCNPOutput()
 

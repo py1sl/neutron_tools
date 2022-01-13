@@ -58,20 +58,6 @@ class csv_test_case(unittest.TestCase):
 
         open_mock.assert_called_with("output.txt", "w")
 
-  """      
-class html_test_case(unittest.TestCase):
-     """ """
-     def test_html_out(self):
-        open_mock = mock_open()
-        single = mor.read_output_file("test_output/singles.io")
-        for tn in single.tally_data:
-            if tn.number == 4:
-                data = tn
-        with patch('__builtin__.open', open_mock, create=True):
-            ma.html_tab_out(data, "output.txt")
-
-        open_mock.assert_called_with("output.txt", "w")
- """    
 
 if __name__ == '__main__':
     unittest.main()

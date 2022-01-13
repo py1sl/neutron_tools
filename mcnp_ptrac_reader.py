@@ -3,7 +3,7 @@ Reads MCNP ptrac output file
 """
 # import datetime
 import argparse
-import logging
+import logging as ntlogger
 # import numpy as np
 import neut_utilities as ut
 
@@ -27,11 +27,44 @@ class event():
         self.type = ""
         self.u = 0
         self.v = 0
-        self.e = 0
+        self.w = 0
         self.wgt = 1.0
         self.energy = 1
         self.par = 1
         self.cell = None
+        self.time = 0
+
+    def __eq__(self, other):
+        if not isinstance(other, event):
+            return NotImplementedError
+        same = True
+
+        if self.x != other.x:
+            same = False
+        elif self.y != other.y:
+            same = False
+        elif self.z != other.z:
+            same = False
+        elif self.type != other.type:
+            same = False
+        elif self.u != other.u:
+            same = False
+        elif self.v != other.v:
+            same = False
+        elif self.w != other.w:
+            same = False
+        elif self.wgt != other.wgt:
+            same = False
+        elif self.par != other.par:
+            same = False
+        elif self.cell != other.cell:
+            same = False
+        elif self.time != other.time:
+            same = False
+        elif self.energy != other.energy:
+            same = False
+
+        return same
 
 
 def remove_header(lines):
@@ -65,16 +98,42 @@ def process_event(event_data):
     event_data = [float(i) for i in event_data]
     cur_event = event()
     cur_event.type = event_data[0]
-    cur_event.cell = event_data[3]
-    cur_event.x = event_data[8]
-    cur_event.y = event_data[9]
-    cur_event.z = event_data[10]
-    cur_event.u = event_data[11]
-    cur_event.v = event_data[12]
-    cur_event.w = event_data[13]
-    cur_event.wgt = event_data[14]
-    cur_event.energy = event_data[15]
-    cur_event.par = event_data[0]
+    if len(event_data) == 16:
+        cur_event.cell = event_data[2]
+        cur_event.x = event_data[7]
+        cur_event.y = event_data[8]
+        cur_event.z = event_data[9]
+        cur_event.u = event_data[10]
+        cur_event.v = event_data[11]
+        cur_event.w = event_data[12]
+        cur_event.wgt = event_data[14]
+        cur_event.energy = event_data[13]
+        cur_event.par = event_data[3]
+        cur_event.time = event_data[15]
+    elif len(event_data) == 15:
+        cur_event.cell = event_data[2]
+        cur_event.x = event_data[6]
+        cur_event.y = event_data[7]
+        cur_event.z = event_data[8]
+        cur_event.u = event_data[9]
+        cur_event.v = event_data[10]
+        cur_event.w = event_data[11]
+        cur_event.wgt = event_data[13]
+        cur_event.energy = event_data[12]
+        cur_event.par = event_data[3]
+        cur_event.time = event_data[14]
+    else:
+        cur_event.cell = event_data[3]
+        cur_event.x = event_data[8]
+        cur_event.y = event_data[9]
+        cur_event.z = event_data[10]
+        cur_event.u = event_data[11]
+        cur_event.v = event_data[12]
+        cur_event.w = event_data[13]
+        cur_event.wgt = event_data[15]
+        cur_event.energy = event_data[14]
+        cur_event.par = event_data[4]
+        cur_event.time = event_data[16]
 
     return cur_event
 
@@ -88,6 +147,7 @@ def process_tracks(tracks):
     i = 0
     histories = []
     cur_history = None
+    temp_line = ""
 
     while i < len(tracks):
         line = tracks[i]
@@ -95,26 +155,23 @@ def process_tracks(tracks):
         line = line.split(" ")
 
         # check if a new history
-        if len(line) == 2:
+        if len(line) == 2 or len(line) == 3:
             if cur_history:
                 histories.append(cur_history)
             cur_history = history()
-            cur_history.nps = line[0]
+            cur_history.nps = int(line[0])
 
         # check linelength to determine if a new event or a continuation
         # first event line of a history is shorter
-        elif len(line) == 7 or len(line) == 6:
-            temp_line = line
-            temp_line.append("0")
-
-        elif len(line) == 8:    # first line of a new event
-            temp_line = line
 
         elif len(line) == 9:    # continuation of an event
 
             temp_line = temp_line + line
             event = process_event(temp_line)
             cur_history.events.append(event)
+
+        else:    # first line of a new event
+            temp_line = line
 
         i = i + 1
 
@@ -130,7 +187,7 @@ def read_ptrac(path):
         returns a list of histories
     """
 
-    logging.info('Reading MCNP ptrac file: %s', path)
+    ntlogger.info('Reading MCNP ptrac file: %s', path)
     ofile_data = ut.get_lines(path)
 
     head, tracks = remove_header(ofile_data)
