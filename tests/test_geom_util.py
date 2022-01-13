@@ -69,24 +69,28 @@ class geom_conversions_test_case(unittest.TestCase):
         self.assertAlmostEqual(x, 1)
         self.assertAlmostEqual(y, 1)
         self.assertAlmostEqual(z, 1)
+        self.assertRaises(ValueError, geom_utils.cylindrical_to_cartesian, -1, np.pi/4, 1)
 
     def test_cylindrical_to_spherical(self):
         r, theta, phi = geom_utils.cylindrical_to_spherical(np.sqrt(2), np.pi/4, 1)
         self.assertAlmostEqual(r, np.sqrt(3))
         self.assertAlmostEqual(theta, np.arccos(1/np.sqrt(3)))
         self.assertAlmostEqual(phi, np.pi/4)
+        self.assertRaises(ValueError, geom_utils.cylindrical_to_spherical, -1, np.pi/4, 1)
 
     def test_spherical_to_cartesian(self):
         x, y, z = geom_utils.spherical_to_cartesian(np.sqrt(3), np.arccos(1/np.sqrt(3)), np.pi/4)
         self.assertAlmostEqual(x, 1)
         self.assertAlmostEqual(y, 1)
         self.assertAlmostEqual(z, 1)
+        self.assertRaises(ValueError, geom_utils.spherical_to_cartesian, -1, np.pi/4, np.pi/4)
 
     def test_spherical_to_cylindrical(self):
         rho, theta, z = geom_utils.spherical_to_cylindrical(np.sqrt(3), np.arccos(1/np.sqrt(3)), np.pi/4)
         self.assertAlmostEqual(rho, np.sqrt(2))
         self.assertAlmostEqual(theta, np.pi/4)
         self.assertEqual(z, 1)
+        self.assertRaises(ValueError, geom_utils.spherical_to_cylindrical, -1, np.pi/4, np.pi/4)
 
 
 class geom_planes_test_case(unittest.TestCase):
