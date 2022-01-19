@@ -8,20 +8,20 @@ class geom_evaluate_test_case(unittest.TestCase):
 
     def test_check_evaluate_plane_eq(self):
         self.assertEqual(geom_utils.evaluate_plane_eq(np.array([1.0, 1.0, 1.0]),
-                        3.0, np.array([1.0, 1.0, 1.0])), 0.0)
+                                                      3.0, np.array([1.0, 1.0, 1.0])), 0.0)
         self.assertEqual(geom_utils.evaluate_plane_eq(np.array([1.0, 1.0, 1.0]),
-                        2.0, np.array([1.0, 1.0, 1.0])), 1.0)
+                                                      2.0, np.array([1.0, 1.0, 1.0])), 1.0)
         self.assertEqual(geom_utils.evaluate_plane_eq(np.array([1.0, 1.0, 1.0]),
-                        4.0, np.array([1.0, 1.0, 1.0])), -1.0)
+                                                      4.0, np.array([1.0, 1.0, 1.0])), -1.0)
 
     def test_check_evaluate_sphere_eq(self):
         self.assertEqual(geom_utils.evaluate_sphere_eq(np.array([1.0, 0.0, 0.0]),
-                        np.array([0.0, 0.0, 0.0]), 1.0), 0.0)
+                                                       np.array([0.0, 0.0, 0.0]), 1.0), 0.0)
         self.assertEqual(geom_utils.evaluate_sphere_eq(np.array([2.0, 0.0, 0.0]),
-                        np.array([0.0, 0.0, 0.0]), 1.0), 3.0)
+                                                       np.array([0.0, 0.0, 0.0]), 1.0), 3.0)
         self.assertEqual(geom_utils.evaluate_sphere_eq(np.array([0.5, 0.0, 0.0]),
-                        np.array([0.0, 0.0, 0.0]), 1.0), -0.75)
-        
+                                                       np.array([0.0, 0.0, 0.0]), 1.0), -0.75)
+
     def test_check_evaluate_gq_eq(self):
         self.assertEqual(geom_utils.evaluate_gq_eq(np.array([0.0, 0.0, 0.0]),
                          np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), 0.0), 0.0)
@@ -29,7 +29,7 @@ class geom_evaluate_test_case(unittest.TestCase):
                          np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), 8.0), 1.0)
         self.assertEqual(geom_utils.evaluate_gq_eq(np.array([1.0, 1.0, 1.0]),
                          np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), 10.0), -1.0)
-    
+
 
 class geom_positive_quantity_test_case(unittest.TestCase):
     """ Tests check positive function"""
@@ -177,17 +177,17 @@ class geom_planes_test_case(unittest.TestCase):
         self.assertTrue(geom_utils.check_parallel_planes(np.array([1.0, 1.0, 1.0]),
                         np.array([2.0, 2.0, 2.0])))
         self.assertFalse(geom_utils.check_parallel_planes(np.array([1.0, 1.0, 1.0]),
-                        np.array([1.0, 2.0, 3.0])))
+                                                          np.array([1.0, 2.0, 3.0])))
 
     def test_angle_between_planes(self):
         self.assertEqual(geom_utils.angle_between_planes(np.array([1.0, 0.0, 0.0]), 0.0,
                          np.array([0.0, 1.0, 0.0]), 0.0), np.pi/2)
         self.assertRaises(ValueError, geom_utils.angle_between_planes, np.array([0.0, 0.0, 0.0]), 0.0,
-                         np.array([0.0, 0.0, 0.0]), 0.0)
+                          np.array([0.0, 0.0, 0.0]), 0.0)
         self.assertRaises(ValueError, geom_utils.angle_between_planes, np.array([1.0, 1.0, 1.0]), 1.0,
-                         np.array([1.0, 1.0, 1.0]), 1.0)
+                          np.array([1.0, 1.0, 1.0]), 1.0)
         self.assertRaises(ValueError, geom_utils.angle_between_planes, np.array([1.0, 1.0, 1.0]), 1.0,
-                         np.array([2.0, 2.0, 2.0]), 1.0)
+                          np.array([2.0, 2.0, 2.0]), 1.0)
 
     def test_dist_between_planes(self):
         self.assertEqual(geom_utils.dist_between_planes(np.array([1.0, 1.0, 1.0]), 1.0,
@@ -201,15 +201,15 @@ class geom_planes_test_case(unittest.TestCase):
         self.assertEqual(geom_utils.dist_between_planes(np.array([2.0, 4.0, -4.0]), 6.0,
                          np.array([1.0, 2.0, -2.0]), -9.0), -4.0)
         self.assertRaises(ValueError, geom_utils.dist_between_planes, np.array([0.0, 0.0, 0.0]), 0.0,
-                         np.array([0.0, 0.0, 0.0]), 0.0)
+                          np.array([0.0, 0.0, 0.0]), 0.0)
 
     def test_dist_between_point_plane(self):
         self.assertEqual(geom_utils.dist_between_point_plane(np.array([1.0, 2.0, 3.0]),
-                          6.0, np.array([1.0, 1.0, 1.0])), 0.0)
+                                                             6.0, np.array([1.0, 1.0, 1.0])), 0.0)
         self.assertEqual(geom_utils.dist_between_point_plane(np.array([1.0, 0.0, 0.0]),
-                          5.0, np.array([0.0, 0.0, 0.0])), 5.0)
+                                                             5.0, np.array([0.0, 0.0, 0.0])), 5.0)
         self.assertEqual(geom_utils.dist_between_point_plane(np.array([1.0, 0.0, 0.0]),
-                          0.0, np.array([5.0, 0.0, 0.0])), -5.0)
+                                                             0.0, np.array([5.0, 0.0, 0.0])), -5.0)
         self.assertRaises(ValueError, geom_utils.dist_between_point_plane, np.array([0.0, 0.0, 0.0]),
                           1.0, np.array([0.0, 0.0, 0.0]))
 
@@ -238,7 +238,6 @@ class geom_planes_test_case(unittest.TestCase):
                           1.0, np.array([1.0, 1.0, 1.0]), -1.0)
         self.assertRaises(ValueError, geom_utils.plane_sphere_intersect, np.array([1.0, 0.0, 0.0]),
                           2.0, np.array([0.0, 0.0, 0.0]), 1.0)
-
 
     def test_plane_plane_intersect(self):
         p, q = geom_utils.plane_plane_intersect(np.array([1.0, 0.0, 0.0]), 0.0,
@@ -290,11 +289,11 @@ class geom_points_test_case(unittest.TestCase):
 
     def test_rotate(self):
         np.testing.assert_array_almost_equal(geom_utils.rotate_x(np.array([[1, 1, 1]]),
-                         np.array([0, 0, 0]), np.pi/2), np.array([[1, -1, 1]]))
+                                                                 np.array([0, 0, 0]), np.pi/2), np.array([[1, -1, 1]]))
         np.testing.assert_array_almost_equal(geom_utils.rotate_y(np.array([[1, 1, 1]]),
-                         np.array([0, 0, 0]), np.pi/2), np.array([[1, 1, -1]]))
+                                                                 np.array([0, 0, 0]), np.pi/2), np.array([[1, 1, -1]]))
         np.testing.assert_array_almost_equal(geom_utils.rotate_z(np.array([[1, 1, 1]]),
-                         np.array([0, 0, 0]), np.pi/2), np.array([[-1, 1, 1]]))
+                                                                 np.array([0, 0, 0]), np.pi/2), np.array([[-1, 1, 1]]))
 
     def test_translate(self):
         np.testing.assert_array_almost_equal(geom_utils.translate(np.array([[0, 0, 0]]),
@@ -338,7 +337,7 @@ class sphere_intersect_test_case(unittest.TestCase):
 
     def test_sphere_ray_intersect(self):
         mu1, mu2 = geom_utils.sphere_ray_intersect(np.array([1.0, 0.0, 0.0]),
-                         np.array([2.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0]), 1.0)
+                                                   np.array([2.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0]), 1.0)
         self.assertEqual(mu1, 0.0)
         self.assertEqual(mu2, -4.0)
         self.assertRaises(ValueError, geom_utils.sphere_ray_intersect, np.array([1.0, 0.0, 0.0]),
@@ -365,18 +364,17 @@ class surface_sense_test_case(unittest.TestCase):
         sense = geom_utils.find_sense_sphere(np.array([0.0, 0.0, 0.0]), np.array([20.0, 0.0, 0.0]), 10)
         self.assertEqual(sense, -1)
         self.assertRaises(ValueError, geom_utils.find_sense_sphere, np.array([1.0, 0.0, 0.0]), np.array([0.0, 0.0, 0.0]), -1.0)
-        
+
     def test_sense_gq(self):
-        sense =  geom_utils.find_sense_gq(np.array([1.0, 1.0, 1.0]),
-                         np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), 8.0)
+        sense = geom_utils.find_sense_gq(np.array([1.0, 1.0, 1.0]),
+                                         np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), 8.0)
         self.assertEqual(sense, -1)
-        sense = geom_utils.find_sense_gq(np.array([0.0, 0.0, 0.0]), 
-                         np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), 0.0)
+        sense = geom_utils.find_sense_gq(np.array([0.0, 0.0, 0.0]),
+                                         np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), 0.0)
         self.assertEqual(sense, 0)
-        sense =  geom_utils.find_sense_gq(np.array([1.0, 1.0, 1.0]),
-                         np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), 10.0)
+        sense = geom_utils.find_sense_gq(np.array([1.0, 1.0, 1.0]),
+                                         np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]), 10.0)
         self.assertEqual(sense, 1)
-        
 
 
 if __name__ == '__main__':
