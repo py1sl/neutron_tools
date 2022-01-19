@@ -432,9 +432,8 @@ def evaluate_gq_eq(p, coeffs, k):
     p = [x, y,z] are the co-ords of the point of interest
     coeffs is a numpy array of coefficients A-J
     """
-    val = coeffs[0]*p[0]**2 + coeffs[1]*p[1]**2 + coeffs[2]*p[2]**2 + \
-          coeffs[3]*p[0]*p[1] + coeffs[4]*p[1]*p[2] + coeffs[5]*p[0]*p[2] + \
-          coeffs[6]*p[0] + coeffs[7]*p[1] + coeffs[8]*p[2] - k
+    val = coeffs[0]*p[0]**2 + coeffs[1]*p[1]**2 + coeffs[2]*p[2]**2 + coeffs[3]*p[0]*p[1] + \
+        coeffs[4]*p[1]*p[2] + coeffs[5]*p[0]*p[2] + coeffs[6]*p[0] + coeffs[7]*p[1] + coeffs[8]*p[2] - k
     return val
 
 
@@ -462,8 +461,8 @@ def find_sense_sphere(p, c, r):
     elif val == 0.0:
         logging.debug("on the sphere")
         return 0
-    
-    
+
+
 def find_sense_gq(p, coeffs, k):
     """ determine if a point is inside or outside a general quadratic"""
     val = evaluate_gq_eq(p, coeffs, k)
