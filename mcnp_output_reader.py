@@ -489,8 +489,13 @@ def read_type_surface(tally_data, lines):
     first_surface_line_id = ut.find_line(" surface ", lines, 9)
     ntlogger.debug("first surface id %s", first_surface_line_id)
     if tally_data.type == "1":
-        tally_data.surfaces = lines[first_surface_line_id].strip()
-        tally_data.surfaces = [tally_data.surfaces.split()[-1]]
+        surface_list = []
+        for line in lines[2:]:
+            if "surface" in line:
+                line = line.strip()
+                surface_list.append(line.split()[-1])
+        
+        tally_data.surfaces = surface_list
         ntlogger.debug("Tally surface numbers:")
         ntlogger.debug(tally_data.surfaces)
 
@@ -504,14 +509,13 @@ def read_type_surface(tally_data, lines):
         for s in tally_data.surfaces:
             # find start and end points
             ntlogger.debug("Reading Surface: %s", s)
+            surface_line_id = ut.find_line(" surface ", lines[loc:], 9)
+            surface_line_id = surface_line_id + loc
             tot_line_id = ut.find_line("      total  ",
                                        lines[surface_line_id:], 13)
             erg_lines = lines[surface_line_id+2:surface_line_id+tot_line_id]
-
-            surface_line_id = ut.find_line(" surface ", lines[loc:], 9)
-            surface_line_id = surface_line_id + loc
-
             loc = tot_line_id + 1
+
             # set arrays
             erg = []
             res = []
