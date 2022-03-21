@@ -606,6 +606,19 @@ def read_type_surface(tally_data, lines):
             tally_data.result = results
             tally_data.err = errs
 
+    elif len(tally_data.surfaces) > 1:
+        for s in tally_data.surfaces:
+        # find start and end points
+            ntlogger.debug("Reading Surface: %s", s)
+            surface_line_id = ut.find_line(" surface ", lines[loc:], 9)
+            surface_line_id = surface_line_id + loc
+            loc = surface_line_id + 1
+            line = lines[surface_line_id+1]
+            line = line.strip()
+            line = line.split(" ")
+            tally_data.result.append(float(line[0]))
+            tally_data.err.append(float(line[1]))
+
     else:
         ntlogger.debug("single value only")
         line = lines[first_surface_line_id+1]
