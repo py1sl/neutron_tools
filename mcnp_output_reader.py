@@ -514,8 +514,8 @@ def read_type_surface(tally_data, lines):
             tot_line_id = ut.find_line("      total  ",
                                        lines[surface_line_id:], 13)
             erg_lines = lines[surface_line_id+2:surface_line_id+tot_line_id]
-            loc = tot_line_id + 1
-
+            loc = surface_line_id + tot_line_id + 1
+            
             # set arrays
             erg = []
             res = []
