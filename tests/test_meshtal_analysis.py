@@ -30,7 +30,7 @@ class convert_to_df_test(unittest.TestCase):
 
     def test_count_zeros_6col(self):
         meshtally_test = ma.meshtally()
-        meshtally_test.ctype = "6col"
+        meshtally_test.ctype = "6col_e"
         meshtally_test.data = [['1.00', '3.00', '-2.00', '5.00', '0.00',
                                 '1.00'],
                                ['1.00', '5.00', '3.00', '6.00', '0.00',
@@ -61,7 +61,7 @@ class count_zeros_test(unittest.TestCase):
 
     def test_count_zeros_6col(self):
         meshtally_test = ma.meshtally()
-        meshtally_test.ctype = "6col"
+        meshtally_test.ctype = "6col_e"
         meshtally_test.data = [['1.00', '3.00', '-2.00', '5.00', '0.00',
                                 '1.00'],
                                ['1.00', '5.00', '3.00', '6.00', '0.00',
@@ -103,7 +103,7 @@ class read_mesh_file_tests(unittest.TestCase):
 
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
-        self.assertEqual(read_mesh.ctype, '6col')
+        self.assertEqual(read_mesh.ctype, '6col_e')
 
 
 class find_mesh_tally_num_test(unittest.TestCase):
@@ -118,9 +118,9 @@ class add_mesh_test(unittest.TestCase):
 
     def test_add_mesh_error(self):
         mesh1_test = ma.meshtally()
-        mesh1_test.ctype = "6col"
+        mesh1_test.ctype = "6col_e"
         mesh2_test = ma.meshtally()
-        mesh2_test.ctype = "6col"
+        mesh2_test.ctype = "6col_e"
 
         mesh1_test.x_bounds = (-9.0, -9.1)
         mesh1_test.y_bounds = (-9.0, -9.1)
@@ -134,9 +134,9 @@ class add_mesh_test(unittest.TestCase):
 
     def test_add_mesh(self):
         mesh3_test = ma.meshtally()
-        mesh3_test.ctype = "6col"
+        mesh3_test.ctype = "6col_e"
         mesh4_test = ma.meshtally()
-        mesh4_test.ctype = "6col"
+        mesh4_test.ctype = "6col_e"
 
         mesh3_test.data = [['1.000E+36', '-9.0', '-9.0', '1.4',
                             '7.329430e-07', '0.017765']]
@@ -197,7 +197,7 @@ class find_point_test(unittest.TestCase):
 
     def test_get_point(self):
         mesh3_test = ma.meshtally()
-        mesh3_test.ctype = "6col"
+        mesh3_test.ctype = "6col_e"
         mesh3_test.x_mids = [-9.0]
         mesh3_test.y_mids = [-9.0]
         mesh3_test.z_mids = [1.4]
