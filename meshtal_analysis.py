@@ -21,6 +21,7 @@ class meshtally:
     y_bounds = None
     z_bounds = None
     e_bounds = None
+    t_bounds = None
     data = None
     x_mids = None
     y_mids = None
@@ -150,8 +151,10 @@ def find_nearest_mid(value, mids):
 
 def convert_to_df(mesh):
     """ converts mesh.data in raw format to a pandas dataframe """
-    if mesh.ctype == "6col":
+    if mesh.ctype == "6col_e":
         cols = ("Energy", "x", "y", "z", "value", "rel_err")
+    elif mesh.ctype == "6col_t":
+        cols = ("Time", "x", "y", "z", "value", "rel_err")
     elif mesh.ctype == "5col":
         cols = ("x", "y", "z", "value", "rel_err")
 
@@ -161,6 +164,13 @@ def convert_to_df(mesh):
     data["z"] = pd.to_numeric(data["z"], downcast="float")
     data["value"] = pd.to_numeric(data["value"], downcast="float")
     data["rel_err"] = pd.to_numeric(data["rel_err"], downcast="float")
+    
+    if mesh.ctype == "6col_e":
+        data["Energy"] = pd.to_numeric(data["Energy"], downcast="float")
+    if mesh.ctype == "6col_t":
+        data.drop(data[data.Time == "Total"].index, inplace=True)
+        data.drop(data[data.Time == "0.000E+00"].index, inplace=True)
+        data["Time"] = pd.to_numeric(data["Time"], downcast="float")
 
     return data
 
@@ -236,6 +246,7 @@ def add_mesh(mesh1, mesh2):
     """ checks if boundaries of two meshes are equal
         and adds their values and errors
     """
+    # needs refactoring for different column number
     if ((mesh1.x_bounds != mesh2.x_bounds) or
             (mesh1.y_bounds != mesh2.y_bounds) or
             (mesh1.z_bounds != mesh2.z_bounds)):
@@ -341,7 +352,7 @@ def read_mesh(tnum, data, tdict):
     mesh = meshtally()
     mesh.idnum = tnum
     mesh.data = []
-    mesh.ctype = "6col"
+    mesh.ctype = "6col_e"
     ntlogger.info("reading mesh number: %s ", str(tnum))
     # reduce data to just the selected mesh tally
     start_pos = tdict[tnum]
@@ -372,10 +383,17 @@ def read_mesh(tnum, data, tdict):
         elif "Energy bin boundaries:" in v:
             v = " ".join(v.split())
             mesh.e_bounds = v.split(" ")[3:]
+        elif "Time bin boundaries:" in v:
+            v = " ".join(v.split())
+            mesh.t_bounds = v.split(" ")[3:]
+            print(mesh.t_bounds)
         elif ("Energy         X         Y         Z     Result" in v):
             in_data = True
             break
-
+        elif ("Time         X         Y         Z     Result" in v):
+            in_data = True
+            mesh.ctype = "6col_t"
+            break
         elif "X         Y         Z     Result" in v:
             in_data = True
             mesh.ctype = "5col"
