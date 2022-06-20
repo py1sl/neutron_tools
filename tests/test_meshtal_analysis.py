@@ -104,6 +104,17 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
         self.assertEqual(read_mesh.ctype, '6col_e')
+        
+    def test_read_time_bins_mesh(self):
+        timepath = "test_output/time_msht"
+        data = ut.get_lines(timepath)
+        read_mesh = ma.read_mesh(314, data, {314: 4})
+
+        self.assertEqual(read_mesh.ptype, 'neutron')
+        self.assertEqual(read_mesh.idnum, 314)
+        self.assertEqual(read_mesh.ctype, '6col_t')
+        self.assertEqual(len(read_mesh.t_bounds), 5)
+        self.assertEqual(read_mesh.t_bounds[0], "-1.00E+36")
 
 
 class find_mesh_tally_num_test(unittest.TestCase):

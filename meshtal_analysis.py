@@ -386,7 +386,6 @@ def read_mesh(tnum, data, tdict):
         elif "Time bin boundaries:" in v:
             v = " ".join(v.split())
             mesh.t_bounds = v.split(" ")[3:]
-            print(mesh.t_bounds)
         elif ("Energy         X         Y         Z     Result" in v):
             in_data = True
             break
