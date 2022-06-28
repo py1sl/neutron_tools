@@ -594,6 +594,24 @@ def read_type_surface(tally_data, lines):
             tally_data.eng = eb
             tally_data.result = res
             tally_data.err = err
+        elif len(tally_data.surfaces) > 1:
+            ntlogger.debug("time bins and multiple surfaces")
+            res_data = []
+            err_data = []
+            for sur in tally_data.surfaces:
+                end_pos = ut.find_ind(lines[first_surface_line_id:], "total")
+                end_line_id = end_pos + 2 + first_surface_line_id
+                sur_lines = lines[first_surface_line_id+1:end_line_id]
+                time_bins, results, errs = process_time_bin_only(sur_lines)
+                res_data.append(results)
+                err_data.append(errs)
+                first_surface_line_id = end_line_id + 1
+                
+  
+            tally_data.times = time_bins
+            tally_data.result = res_data
+            tally_data.err = err_data
+             
         else:
             # just time bins
             ntlogger.debug("time bins only")
