@@ -181,6 +181,90 @@ def process_tracks(tracks):
     return histories
 
 
+def write_all_hists_to_vtk(hists):
+    """ """
+    for i, hist in enumerate(hists):
+        fname = "hist_" + str(i) + ".vtk"
+        write_hist_vtk(hist, fname)
+
+
+def write_hist_vtk(hist, fname):
+    """ """
+    eve_count = len(hist.events)
+    event_type = []
+    x = []
+    y = []
+    z = []
+    u = []
+    v = []
+    w = []
+    erg = []
+    time = []
+    wgt = []
+    par_type = []
+    
+    for event in hist.events:
+        x.append(event.x)
+        y.append(event.y)
+        z.append(event.z)
+        u.append(event.u)
+        v.append(event.v)
+        w.append(event.w)
+        erg.append(event.energy)
+        time.append(event.time)
+        wgt.append(event.wgt)
+        par_type.append(event.par)
+        event_type.append(event.type)
+        
+    vtk_lines = ["# vtk DataFile Version 2.0",
+                 "Unstructured grid Example",
+                 "ASCII",
+                 "",
+                 "DATASET UNSTRUCTURED_GRID",
+                 "POINTS " +str(eve_count) + " float"]
+    
+    for j, pos in enumerate(x):
+        vtk_lines.append(str(x[j])+" "+str(y[j])+" "+str(z[j]))
+        
+    vtk_lines.append("CELL_TYPES " + str(eve_count))
+    j = 0
+    while j < eve_count:
+        j = j + 1
+        vtk_lines.append("1")
+    
+    vtk_lines.append("POINT_DATA " + str(eve_count))    
+    vtk_lines.append("SCALARS energy float 1")
+    vtk_lines.append("LOOKUP_TABLE default")
+    for j, pos in enumerate(erg):
+        vtk_lines.append(str(erg[j]))
+        
+    vtk_lines.append("SCALARS weight float 1")
+    vtk_lines.append("LOOKUP_TABLE default")
+    for j, pos in enumerate(wgt):
+        vtk_lines.append(str(wgt[j]))
+    
+    vtk_lines.append("SCALARS time float 1")
+    vtk_lines.append("LOOKUP_TABLE default")
+    for j, pos in enumerate(time):
+        vtk_lines.append(str(time[j]))        
+    
+    vtk_lines.append("SCALARS particle float 1")
+    vtk_lines.append("LOOKUP_TABLE default")
+    for j, pos in enumerate(par_type):
+        vtk_lines.append(str(par_type[j]))
+    
+    vtk_lines.append("SCALARS event float 1")
+    vtk_lines.append("LOOKUP_TABLE default")
+    for j, pos in enumerate(event_type):
+        vtk_lines.append(str(event_type[j]))
+        
+    vtk_lines.append("VECTORS vectors float")
+    for j, pos in enumerate(u):
+        vtk_lines.append(str(u[j]) +" " + str(v[j]) + " " + str(w[j]))
+    
+    ut.write_lines(fname, vtk_lines)
+
+
 def read_ptrac(path):
     """ reads and processes MCNP ptrac file
         input is a path to a file
