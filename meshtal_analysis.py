@@ -27,6 +27,9 @@ class meshtally:
     y_mids = None
     z_mids = None
     ctype = None
+    
+    e_mids = None
+    t_mids = None
 
 
 def rel_err_hist(df, fname=None):
@@ -175,7 +178,7 @@ def convert_to_df(mesh):
     return data
 
 
-def extract_line(mesh, p1, p2, erg=None):
+def extract_line(mesh, p1, p2, erg=None, time=None):
     """ currently support lines varying along a single axis
         p1 and p2 are tuples of the form (x,y,z) and
         describe two points on the line
@@ -199,17 +202,23 @@ def extract_line(mesh, p1, p2, erg=None):
 
     if erg:
         data = data[data["Energy"] == erg]
+    
+    if time:
+        data = data[data["Time"] == time]
 
     result = data["value"]
 
     return result
 
 
-def pick_point(x, y, z, mesh, erg=None):
+def pick_point(x, y, z, mesh, erg=None, time=None):
     """ find the mesh value for the voxel that  point x, y, z is in"""
     x = find_nearest_mid(x, mesh.x_mids)
     y = find_nearest_mid(y, mesh.y_mids)
     z = find_nearest_mid(z, mesh.z_mids)
+
+    erg = find_nearest_mid(erg, mesh.e_mids)
+    time = find_nearest_mid(time, mesh.t_mids)
 
     data = mesh.data
     data = data[data["x"] == x]
@@ -218,6 +227,9 @@ def pick_point(x, y, z, mesh, erg=None):
 
     if erg:
         data = data[data["Energy"] == erg]
+    
+    if time:
+        data = data[data["Time"] == time]
 
     result = data["value"]
 
@@ -268,10 +280,17 @@ def add_mesh(mesh1, mesh2):
         new_mesh.x_mids = mesh1.x_mids
         new_mesh.y_mids = mesh1.y_mids
         new_mesh.z_mids = mesh1.z_mids
+        
+        new_mesh.e_mids = mesh1.e_mids
+        new_mesh.t_mids = mesh1.t_mids     
 
         new_mesh.data['value'] = new_val
         new_mesh.data['rel_err'] = new_err
         new_mesh.data['Energy'] = mesh1.data['Energy']
+
+        #add time dependence
+        new_mesh.data["Time"] = mesh1.data["Time"]
+
         new_mesh.data['x'] = mesh1.data['x']
         new_mesh.data['y'] = mesh1.data['y']
         new_mesh.data['z'] = mesh1.data['z']
@@ -290,32 +309,29 @@ def convert_to_3d_array(mesh):
     midx = mesh.x_mids
     midy = mesh.y_mids
     midz = mesh.z_mids
+    mide = mesh.e_mids
+    midt = mesh.t_mids
 
-    vals = np.zeros((len(midx), len(midy), len(midz)))
-    err_vals = np.zeros((len(midx), len(midy), len(midz)))
+    vals = np.zeros((len(midx), len(midy), len(midz), len(mide), len)(midt))
+    err_vals = np.zeros((len(midx), len(midy), len(midz), len(mide), len(midt)))
 
     for r in data:
         i, = np.where(midx == r[1])
         j, = np.where(midy == r[2])
         k, = np.where(midz == r[3])
+        l, = np.where(mide == r[4])
+        m, = np.where(midt == r[5])
 
-        vals[i, j, k] = r[4]
-        err_vals[i, j, k] = r[5]
+        vals[i, j, k, l, m] = r[6]
+        err_vals[i, j, k, l, m] = r[7]
 
     return vals, err_vals
 
 
 def calc_mid_points(bounds):
     """ finds the mid points given a set of bounds """
-    mids = []
     bounds = np.array(bounds).astype(float)
-    i = 0
-    while i < len(bounds) - 1:
-        val = (bounds[i] + bounds[i+1]) / 2.0
-        val = round(val, 5)
-        mids.append(val)
-        i = i + 1
-
+    mids = (bounds[1:] + bounds[:-1]) * 0.5
     return mids
 
 
@@ -411,6 +427,9 @@ def read_mesh(tnum, data, tdict):
     mesh.x_mids = calc_mid_points(mesh.x_bounds)
     mesh.y_mids = calc_mid_points(mesh.y_bounds)
     mesh.z_mids = calc_mid_points(mesh.z_bounds)
+    
+    mesh.e_mids = calc_mid_points(mesh.e_bounds)
+    mesh.t_mids = calc_mid_points(mesh.t_bounds)
     ntlogger.info("finished reading mesh number: %s ", str(tnum))
 
     return mesh
