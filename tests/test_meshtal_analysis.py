@@ -202,22 +202,40 @@ class find_nearest_mid_test(unittest.TestCase):
         self.assertEqual(ma.find_nearest_mid(test_val_3, test_mids_3), 3.1)
         self.assertEqual(ma.find_nearest_mid(test_val_4, test_mids_4), 1)
         self.assertEqual(ma.find_nearest_mid(test_val_5, test_mids_5), -3.5)
+    
+    def test_find_nearest_mid_energy(self):
+        test_val_1 = 7.2
+        test_mids_1 = [7,11]
+        self.assertEqual(ma.find_nearest_mid(test_val_1, test_mids_1), 7)
 
 
 class find_point_test(unittest.TestCase):
 
     def test_get_point(self):
         mesh3_test = ma.meshtally()
+        mesh4_test = ma.meshtally()
+
         mesh3_test.ctype = "6col_e"
+        mesh4_test.ctype = "6col_t"
+
         mesh3_test.x_mids = [-9.0]
+        mesh4_test.xmids = [5.0]
+
         mesh3_test.y_mids = [-9.0]
+        mesh4_test.ymids = [5.0]
+
         mesh3_test.z_mids = [1.4]
+        mesh4_test.z_mids = [3.1]
 
         mesh3_test.data = [['1.000E+36', '-9.0', '-9.0', '1.4',
                             '7.329430e-07', '0.017765']]
+        mesh4_test.data = [['12.2', '5.0', '5.0', '3.1', '5.035e-6', '0.0014']]
         mesh3_test.data = ma.convert_to_df(mesh3_test)
+        mesh4_test.data = ma.convert_to_df(mesh4_test)
         result = ma.pick_point(-9, -9, 1.4, mesh3_test)
+        result = ma.pick_point(5.0,5.0,3.1, mesh4_test)
         self.assertAlmostEqual(float(result[0]), 7.329430e-07, 7)
+        self.assertAlmostEqual(float(result[0]), 5.035e-6, 7)
 
     def test_get_point_file(self):
         mesh = ma.read_mesh_tally_file(path)[0]
@@ -228,6 +246,22 @@ class find_point_test(unittest.TestCase):
         result = ma.pick_point(-9, -9, 9.4, mesh).iloc[0]
         self.assertAlmostEqual(result, 5.54340E-07, 7)
 
+
+class find_line_test(unittest.TestCase):
+    
+    def test_extract_line(self):
+        
+        mesh_test = ma.meshtally()
+        mesh_test.ctype = "6col_e"
+        mesh_test.xmids = [5.0]
+        mesh_test.ymids = [5.0]
+        mesh_test.zmids = [7.1]
+        mesh_test.data [['5e35', '5.0', '5.0', '7.1', '5.2e-7', '0.01']]
+        mesh_test.data = ma.convert_to_df(mesh_test)
+        result = ma.extract_line(mesh_test, ((5.0,5.0,7.1)), ((5.0,5.1,7.0)))
+        self.assertAlmostEqual(float(result[0]), 5.2e-7, 7)
+        
+        
 
 class upper_vals_test(unittest.TestCase):
 
