@@ -210,7 +210,7 @@ def extract_line(mesh, p1, p2, erg=None, time=None):
     return result
 
 
-def pick_point(x, y, z, mesh, erg=None, time=None):
+def pick_point(x, y, z, mesh, erg, time):
     """ find the mesh value for the voxel that  point x, y, z is in"""
     x = find_nearest_mid(x, mesh.x_mids)
     y = find_nearest_mid(y, mesh.y_mids)
@@ -223,11 +223,11 @@ def pick_point(x, y, z, mesh, erg=None, time=None):
     data = data[data["y"] == y]
     data = data[data["z"] == z]
 
-    if erg:
-        data = data[data["Energy"] == erg]
+    #if erg:
+    data = data[data["Energy"] == erg]
 
-    if time:
-        data = data[data["Time"] == time]
+    #if time:
+    data = data[data["Time"] == time]
 
     result = data["value"]
 
@@ -329,7 +329,7 @@ def convert_to_3d_array(mesh):
 def calc_mid_points(bounds):
     """ finds the mid points given a set of bounds """
     mids = []
-    bounds = np.array(bounds).size(len(bounds))
+    bounds = np.array([bounds]).astype(float)
     mids = (bounds[1:] + bounds[:-1]) * 0.5
     return mids
 
@@ -422,7 +422,10 @@ def read_mesh(tnum, data, tdict):
     mesh.data = [j.split() for j in mesh_data[1:]]
     ntlogger.info("converting to df: %s ", str(tnum))
     mesh.data = convert_to_df(mesh)
-
+    print(mesh.x_bounds)
+    print(type(mesh.x_bounds))
+    print(mesh.e_bounds)
+    print(type(mesh.e_bounds))
     mesh.x_mids = calc_mid_points(mesh.x_bounds)
     mesh.y_mids = calc_mid_points(mesh.y_bounds)
     mesh.z_mids = calc_mid_points(mesh.z_bounds)
