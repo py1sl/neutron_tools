@@ -426,15 +426,15 @@ def read_mesh(tnum, data, tdict):
     print(type(mesh.x_bounds))
     print(mesh.e_bounds)
     print(type(mesh.e_bounds))
-    mesh.x_mids = calc_mid_points(mesh.x_bounds.astype(float))
-    mesh.y_mids = calc_mid_points(mesh.y_bounds.astype(float))
-    mesh.z_mids = calc_mid_points(mesh.z_bounds.astype(float))
+    mesh.x_mids = calc_mid_points(np.array(mesh.x_bounds.astype(float)))
+    mesh.y_mids = calc_mid_points(np.array(mesh.y_bounds.astype(float)))
+    mesh.z_mids = calc_mid_points(np.array(mesh.z_bounds.astype(float)))
 
     if mesh.ctype == "6col_e":
         
-        mesh.e_mids = calc_mid_points(mesh.e_bounds.astype(float))
+        mesh.e_mids = calc_mid_points(np.array(mesh.e_bounds.astype(float)))
     elif mesh.ctype == "6col_t":
-        mesh.t_mids = calc_mid_points(mesh.t_bounds.astype(float))
+        mesh.t_mids = calc_mid_points(np.array(mesh.t_bounds.astype(float)))
     ntlogger.info("finished reading mesh number: %s ", str(tnum))
 
     return mesh
