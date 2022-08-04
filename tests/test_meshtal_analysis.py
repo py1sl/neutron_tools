@@ -104,6 +104,7 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
         self.assertEqual(read_mesh.ctype, '6col_e')
+        self.assertIsInstance(read_mesh.x_bounds, list)
 
     def test_read_time_bins_mesh(self):
         timepath = "test_output/time_msht"
@@ -256,7 +257,7 @@ class find_line_test(unittest.TestCase):
         mesh1_test.xmids = [5.0]
         mesh1_test.ymids = [5.0]
         mesh1_test.zmids = [7.1]
-        mesh1_test.data [['5e35', '5.0', '5.0', '7.1', '5.2e-7', '0.01']]
+        mesh1_test.data = [['5e35', '5.0', '5.0', '7.1', '5.2e-7', '0.01']]
         mesh1_test.data = ma.convert_to_df(mesh1_test)
         result = ma.extract_line(mesh1_test, ((5.0,5.0,7.1)), ((5.0,5.1,7.0)))
         self.assertAlmostEqual(float(result[0]), 5.2e-7, 7)
@@ -266,7 +267,7 @@ class find_line_test(unittest.TestCase):
         mesh2_test.xmids = [3.0]
         mesh2_test.ymids = [7.2]
         mesh2_test.zmids = [7.2]
-        mesh2_test.data [['5e35', '3.0', '7.2', '7.2', '4.4e-7', '0.01']]
+        mesh2_test.data = [['5e35', '3.0', '7.2', '7.2', '4.4e-7', '0.01']]
         mesh2_test.data = ma.convert_to_df(mesh2_test)
         result = ma.extract_line(mesh2_test, ((3.0,7.2,7.2)), ((3.0,7.2,7.2)))
         self.assertAlmostEqual(float(result[0]), 4.4e-7, 7)
