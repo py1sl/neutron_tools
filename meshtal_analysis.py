@@ -326,10 +326,10 @@ def convert_to_3d_array(mesh):
     return vals, err_vals
 
 
-def calc_mid_points(bounds, axis=0):
+def calc_mid_points(bounds):
     """ finds the mid points given a set of bounds """
     mids = []
-    bounds = np.array(bounds)
+    bounds = np.array(bounds).astype(float)
     mids = (bounds[1:] + bounds[:-1]) * 0.5
     return mids
 
