@@ -426,7 +426,7 @@ def read_mesh(tnum, data, tdict):
     print(type(mesh.x_bounds))
     print(mesh.e_bounds)
     print(type(mesh.e_bounds))
-    mesh.x_mids = calc_mid_points(mesh.x_bounds)
+    mesh.x_mids = calc_mid_points(mesh.x_bounds.astype(float))
     mesh.y_mids = calc_mid_points(mesh.y_bounds)
     mesh.z_mids = calc_mid_points(mesh.z_bounds)
 
