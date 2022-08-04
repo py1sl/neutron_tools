@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, time_mesh_improvements]
   pull_request:
     branches: [ master ]
 
