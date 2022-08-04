@@ -104,7 +104,7 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
         self.assertEqual(read_mesh.ctype, '6col_e')
-        self.assertIsInstance(read_mesh.x_bounds, list)
+        self.assertIsInstance(read_mesh.x_bounds, tuple)
 
     def test_read_time_bins_mesh(self):
         timepath = "test_output/time_msht"
