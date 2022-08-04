@@ -5,7 +5,7 @@ mesh tally tools
 """
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
+from matplotlib import colors
 import numpy as np
 import argparse
 import logging as ntlogger
@@ -27,7 +27,6 @@ class meshtally:
     y_mids = None
     z_mids = None
     ctype = None
-    
     e_mids = None
     t_mids = None
 
@@ -167,7 +166,7 @@ def convert_to_df(mesh):
     data["z"] = pd.to_numeric(data["z"], downcast="float")
     data["value"] = pd.to_numeric(data["value"], downcast="float")
     data["rel_err"] = pd.to_numeric(data["rel_err"], downcast="float")
-    
+
     if mesh.ctype == "6col_e":
         data["Energy"] = pd.to_numeric(data["Energy"], downcast="float")
     if mesh.ctype == "6col_t":
@@ -202,7 +201,7 @@ def extract_line(mesh, p1, p2, erg=None, time=None):
 
     if erg:
         data = data[data["Energy"] == erg]
-    
+
     if time:
         data = data[data["Time"] == time]
 
@@ -216,7 +215,6 @@ def pick_point(x, y, z, mesh, erg=None, time=None):
     x = find_nearest_mid(x, mesh.x_mids)
     y = find_nearest_mid(y, mesh.y_mids)
     z = find_nearest_mid(z, mesh.z_mids)
-
     erg = find_nearest_mid(erg, mesh.e_mids)
     time = find_nearest_mid(time, mesh.t_mids)
 
@@ -227,7 +225,7 @@ def pick_point(x, y, z, mesh, erg=None, time=None):
 
     if erg:
         data = data[data["Energy"] == erg]
-    
+
     if time:
         data = data[data["Time"] == time]
 
@@ -280,9 +278,9 @@ def add_mesh(mesh1, mesh2):
         new_mesh.x_mids = mesh1.x_mids
         new_mesh.y_mids = mesh1.y_mids
         new_mesh.z_mids = mesh1.z_mids
-        
+
         new_mesh.e_mids = mesh1.e_mids
-        new_mesh.t_mids = mesh1.t_mids     
+        new_mesh.t_mids = mesh1.t_mids
 
         new_mesh.data['value'] = new_val
         new_mesh.data['rel_err'] = new_err
@@ -295,7 +293,7 @@ def add_mesh(mesh1, mesh2):
         new_mesh.data['y'] = mesh1.data['y']
         new_mesh.data['z'] = mesh1.data['z']
 
-        return(new_mesh)
+        return new_mesh
 
 
 # TODO: need to deal with energy bins
@@ -312,7 +310,7 @@ def convert_to_3d_array(mesh):
     mide = mesh.e_mids
     midt = mesh.t_mids
 
-    vals = np.zeros((len(midx), len(midy), len(midz), len(mide), len)(midt))
+    vals = np.zeros((len(midx), len(midy), len(midz), len(mide), len(midt)))
     err_vals = np.zeros((len(midx), len(midy), len(midz), len(mide), len(midt)))
 
     for r in data:
@@ -416,7 +414,7 @@ def read_mesh(tnum, data, tdict):
 
         elif "mesh tally." in v:
             v = " ".join(v.split())
-            mesh.ptype = v.split(" ")[0]
+            mesh.ptype = v.split(' ')[0]
 
     ntlogger.info("processing results: %s ", str(tnum))
     mesh_data = [" ".join(j.split()) for j in mesh_data[i:]]
@@ -427,7 +425,7 @@ def read_mesh(tnum, data, tdict):
     mesh.x_mids = calc_mid_points(mesh.x_bounds)
     mesh.y_mids = calc_mid_points(mesh.y_bounds)
     mesh.z_mids = calc_mid_points(mesh.z_bounds)
-    
+
     mesh.e_mids = calc_mid_points(mesh.e_bounds)
     mesh.t_mids = calc_mid_points(mesh.t_bounds)
     ntlogger.info("finished reading mesh number: %s ", str(tnum))
@@ -440,11 +438,11 @@ def read_mesh_tally_file(fpath):
     ntlogger.info('Reading MCNP meshtal file: %s', fpath)
     all_data = ut.get_lines(fpath)
     tally_dict = find_mesh_tally_numbers(all_data)
-    meshes = []
+    mesh_list = []
     for tnum in tally_dict.keys():
         mesh = read_mesh(tnum, all_data, tally_dict)
-        meshes.append(mesh)
-    return meshes
+        mesh_list.append(mesh)
+    return mesh_list
 
 
 if __name__ == "__main__":
