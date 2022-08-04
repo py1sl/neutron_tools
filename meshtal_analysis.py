@@ -326,7 +326,7 @@ def convert_to_3d_array(mesh):
     return vals, err_vals
 
 
-def calc_mid_points(bounds, axis=0):
+def calc_mid_points(bounds):
     """ finds the mid points given a set of bounds """
     mids = []
     bounds = np.array(bounds).astype(float)
@@ -422,19 +422,15 @@ def read_mesh(tnum, data, tdict):
     mesh.data = [j.split() for j in mesh_data[1:]]
     ntlogger.info("converting to df: %s ", str(tnum))
     mesh.data = convert_to_df(mesh)
-    print(mesh.x_bounds)
-    print(type(mesh.x_bounds))
-    print(mesh.e_bounds)
-    print(type(mesh.e_bounds))
-    mesh.x_mids = calc_mid_points(np.array(mesh.x_bounds).astype(float))
-    mesh.y_mids = calc_mid_points(np.array(mesh.y_bounds).astype(float))
-    mesh.z_mids = calc_mid_points(np.array(mesh.z_bounds).astype(float))
 
+    mesh.x_mids = calc_mid_points(mesh.x_bounds)
+    mesh.y_mids = calc_mid_points(mesh.y_bounds)
+    mesh.z_mids = calc_mid_points(mesh.z_bounds)
+    
     if mesh.ctype == "6col_e":
-        
-        mesh.e_mids = calc_mid_points(np.array(mesh.e_bounds).astype(float))
-    elif mesh.ctype == "6col_t":
-        mesh.t_mids = calc_mid_points(np.array(mesh.t_bounds).astype(float))
+        mesh.e_mids = calc_mid_points(mesh.e_bounds)
+    if mesh.ctype == "6col_t":
+        mesh.t_mids = calc_mid_points(mesh.t_bounds)
     ntlogger.info("finished reading mesh number: %s ", str(tnum))
 
     return mesh
