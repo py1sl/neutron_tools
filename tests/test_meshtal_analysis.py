@@ -164,6 +164,7 @@ class add_mesh_test(unittest.TestCase):
         mesh4_test.x_bounds = (-8.9, -9.1)
         mesh4_test.y_bounds = (-8.9, -9.1)
         mesh4_test.z_bounds = (1.3, 1.5)
+        mesh3_test.e_bounds = (1.0e-3, 1e36)
 
         new_mesh_test = ma.add_mesh(mesh3_test, mesh4_test)
 
@@ -174,6 +175,16 @@ class add_mesh_test(unittest.TestCase):
                          1.3895760275772773e-06)
         self.assertEqual(new_mesh_test.data['rel_err'].iloc[0],
                          0.025778627023100853)
+        self.assertEqual(new_mesh_test.e_bounds, mesh3_test.e_bounds)
+        
+    def test_add_mesh_time(self):
+        
+        mesh3_test = ma.meshtally()
+        mesh3_test.ctype = "6col_t"
+        mesh4_test = ma.meshtally()
+        mesh4_test.ctype = "6col_t"
+        
+        
 
     def test_add_mesh_file(self):
         mesh = ma.read_mesh_tally_file(path)[0]
