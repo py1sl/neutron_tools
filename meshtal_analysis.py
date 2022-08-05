@@ -265,7 +265,7 @@ def add_mesh(mesh1, mesh2):
         raise ValueError('column types are not equal')
     if (mesh1.e_bounds != mesh2.e_bounds):
             raise ValueError(' energy bounds not equal')
-    if (mesh1.t_bounds != mesh2.e_bounds):
+    if (mesh1.t_bounds != mesh2.t_bounds):
             raise ValueError('time bounds are not equal')
     else:
         new_val = mesh1.data['value'] + mesh2.data['value']
