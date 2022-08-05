@@ -210,25 +210,24 @@ def extract_line(mesh, p1, p2, erg=None, time=None):
     return result
 
 
-def pick_point(x, y, z, mesh, erg, time):
+def pick_point(x, y, z, mesh, erg=None, time=None):
     """ find the mesh value for the voxel that  point x, y, z is in"""
     x = find_nearest_mid(x, mesh.x_mids)
     y = find_nearest_mid(y, mesh.y_mids)
     z = find_nearest_mid(z, mesh.z_mids)
-    erg = find_nearest_mid(erg, mesh.e_mids)
-    time = find_nearest_mid(time, mesh.t_mids)
 
     data = mesh.data
     data = data[data["x"] == x]
     data = data[data["y"] == y]
     data = data[data["z"] == z]
 
-    #if erg:
-    data = data[data["Energy"] == erg]
+    if erg:
+        data = data[data["Energy"] == erg]
+        erg = find_nearest_mid(erg, mesh.e_mids)
 
-    #if time:
-    data = data[data["Time"] == time]
-
+    if time:
+        data = data[data["Time"] == time]
+        time = find_nearest_mid(time, mesh.t_mids)
     result = data["value"]
 
     return result
@@ -260,8 +259,14 @@ def add_mesh(mesh1, mesh2):
     if ((mesh1.x_bounds != mesh2.x_bounds) or
             (mesh1.y_bounds != mesh2.y_bounds) or
             (mesh1.z_bounds != mesh2.z_bounds)):
-        raise ValueError('bounds not equal')
+        raise ValueError(' positionbounds not equal')
 
+    if mesh1.ctype != mesh2.ctype:
+        raise ValueError('column types are not equal')
+    if (mesh1.e_bounds != mesh2.e_bounds):
+            raise ValueError(' energy bounds not equal')
+    if (mesh1.t_bounds != mesh2.e_bounds):
+            raise ValueError('time bounds are not equal')
     else:
         new_val = mesh1.data['value'] + mesh2.data['value']
         new_err = np.sqrt((mesh1.data['rel_err'])**2 +
@@ -274,20 +279,22 @@ def add_mesh(mesh1, mesh2):
         new_mesh.x_bounds = mesh1.x_bounds
         new_mesh.y_bounds = mesh1.y_bounds
         new_mesh.z_bounds = mesh1.z_bounds
+        new_mesh.e_bounds = mesh1.e_bounds
+        new_mesh.t_bounds = mesh1.e_bounds
 
         new_mesh.x_mids = mesh1.x_mids
         new_mesh.y_mids = mesh1.y_mids
         new_mesh.z_mids = mesh1.z_mids
-
         new_mesh.e_mids = mesh1.e_mids
         new_mesh.t_mids = mesh1.t_mids
 
         new_mesh.data['value'] = new_val
         new_mesh.data['rel_err'] = new_err
-        new_mesh.data['Energy'] = mesh1.data['Energy']
 
-        #add time dependence
-        new_mesh.data["Time"] = mesh1.data["Time"]
+        if mesh1.ctype == "6col_e":
+            new_mesh.data['Energy'] = mesh1.data['Energy']
+        elif mesh1.ctype == "6col_t":
+            new_mesh.data["Time"] = mesh1.data["Time"]
 
         new_mesh.data['x'] = mesh1.data['x']
         new_mesh.data['y'] = mesh1.data['y']
@@ -426,7 +433,7 @@ def read_mesh(tnum, data, tdict):
     mesh.x_mids = calc_mid_points(mesh.x_bounds)
     mesh.y_mids = calc_mid_points(mesh.y_bounds)
     mesh.z_mids = calc_mid_points(mesh.z_bounds)
-    
+
     if mesh.ctype == "6col_e":
         mesh.e_mids = calc_mid_points(mesh.e_bounds)
     if mesh.ctype == "6col_t":
