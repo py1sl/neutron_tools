@@ -3,13 +3,13 @@
 
 import meshtal_analysis as ma
 import neut_utilities as ut
-import numpy as np
 import unittest
 
 path = "test_output/cup_low_res.imsht"
 timepath = "test_output/time_msht"
 
 class calc_mid_points_test(unittest.TestCase):
+
 
     def test_calc_mid_points(self):
         test_data_1 = [1.0, 9.0]
@@ -237,7 +237,7 @@ class find_nearest_mid_test(unittest.TestCase):
 
     def test_find_nearest_mid_energy(self):
         test_val_1 = 7.2
-        test_mids_1 = [7,11]
+        test_mids_1 = [7, 11]
         self.assertEqual(ma.find_nearest_mid(test_val_1, test_mids_1), 7)
 
 
@@ -265,7 +265,7 @@ class find_point_test(unittest.TestCase):
         mesh3_test.data = ma.convert_to_df(mesh3_test)
         mesh4_test.data = ma.convert_to_df(mesh4_test)
         result1 = ma.pick_point(-9, -9, 1.4, mesh3_test)
-        result2 = ma.pick_point(5.0,5.0,3.1, mesh4_test)
+        result2 = ma.pick_point(5.0, 5.0, 3.1, mesh4_test)
         self.assertAlmostEqual(float(result1[0]), 7.329430e-07, 7)
         self.assertAlmostEqual(float(result2[0]), 5.035e-6, 7)
 
@@ -290,7 +290,7 @@ class find_line_test(unittest.TestCase):
         mesh1_test.z_mids = [7.1]
         mesh1_test.data = [['5e35', '5.0', '5.0', '7.1', '5.2e-7', '0.01']]
         mesh1_test.data = ma.convert_to_df(mesh1_test)
-        result = ma.extract_line(mesh1_test, ((5.0,5.0,7.1)), ((5.0,5.1,7.0)))
+        result = ma.extract_line(mesh1_test, ((5.0, 5.0, 7.1)), ((5.0, 5.1, 7.0)))
         self.assertAlmostEqual(float(result[0]), 5.2e-7, 7)
 
         mesh2_test = ma.meshtally()
@@ -300,7 +300,7 @@ class find_line_test(unittest.TestCase):
         mesh2_test.z_mids = [7.2]
         mesh2_test.data = [['5e35', '3.0', '7.2', '7.2', '4.4e-7', '0.01']]
         mesh2_test.data = ma.convert_to_df(mesh2_test)
-        result = ma.extract_line(mesh2_test, ((3.0,7.2,7.2)), ((3.0,7.2,7.2)))
+        result = ma.extract_line(mesh2_test, ((3.0, 7.2, 7.2)), ((3.0, 7.2, 7.2)))
         self.assertAlmostEqual(float(result[0]), 4.4e-7, 7)
 
 
