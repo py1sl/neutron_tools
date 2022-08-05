@@ -280,7 +280,7 @@ def add_mesh(mesh1, mesh2):
         new_mesh.y_bounds = mesh1.y_bounds
         new_mesh.z_bounds = mesh1.z_bounds
         new_mesh.e_bounds = mesh1.e_bounds
-        new_mesh.t_bounds = mesh1.e_bounds
+        new_mesh.t_bounds = mesh1.t_bounds
 
         new_mesh.x_mids = mesh1.x_mids
         new_mesh.y_mids = mesh1.y_mids
