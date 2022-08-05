@@ -23,7 +23,7 @@ class calc_mid_points_test(unittest.TestCase):
         self.assertEqual(ma.calc_mid_points(test_data_3), [1.25])
         self.assertEqual(ma.calc_mid_points(test_data_4), [0.0])
         self.assertEqual(ma.calc_mid_points(test_data_5), [-1.25])
-        self.assertEqual(ma.calc_mid_points(test_data_6), [1.5, 2.5, 3.5])
+        self.assertCountEqual(ma.calc_mid_points(test_data_6), [1.5, 2.5, 3.5]).all()
 
 
 class convert_to_df_test(unittest.TestCase):
@@ -104,7 +104,6 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
         self.assertEqual(read_mesh.ctype, '6col_e')
-        self.assertIsInstance(read_mesh.x_bounds, tuple)
 
     def test_read_time_bins_mesh(self):
         timepath = "test_output/time_msht"
