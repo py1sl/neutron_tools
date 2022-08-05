@@ -264,9 +264,9 @@ def add_mesh(mesh1, mesh2):
     if mesh1.ctype != mesh2.ctype:
         raise ValueError('column types are not equal')
     if (mesh1.e_bounds != mesh2.e_bounds):
-            raise ValueError(' energy bounds not equal')
+        raise ValueError(' energy bounds not equal')
     if (mesh1.t_bounds != mesh2.t_bounds):
-            raise ValueError('time bounds are not equal')
+        raise ValueError('time bounds are not equal')
     else:
         new_val = mesh1.data['value'] + mesh2.data['value']
         new_err = np.sqrt((mesh1.data['rel_err'])**2 +
@@ -280,7 +280,7 @@ def add_mesh(mesh1, mesh2):
         new_mesh.y_bounds = mesh1.y_bounds
         new_mesh.z_bounds = mesh1.z_bounds
         new_mesh.e_bounds = mesh1.e_bounds
-        new_mesh.t_bounds = mesh1.e_bounds
+        new_mesh.t_bounds = mesh1.t_bounds
 
         new_mesh.x_mids = mesh1.x_mids
         new_mesh.y_mids = mesh1.y_mids
