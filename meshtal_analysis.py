@@ -338,7 +338,7 @@ def calc_mid_points(bounds):
     mids = []
     bounds = np.array(bounds).astype(float)
     mids = (bounds[1:] + bounds[:-1]) * 0.5
-    return mids
+    return mids.tolist()
 
 
 def count_zeros(mesh):
