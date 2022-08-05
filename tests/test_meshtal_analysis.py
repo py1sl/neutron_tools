@@ -16,14 +16,14 @@ class calc_mid_points_test(unittest.TestCase):
         test_data_3 = [1.0, 1.5]
         test_data_4 = [-1.0, 1.0]
         test_data_5 = [-1.0, -1.5]
-        test_data_6 = [1.0, 2.0, 3.0, 4.0]
+        test_data_6 = np.array([1.0, 2.0, 3.0, 4.0])
 
         self.assertEqual(ma.calc_mid_points(test_data_1), [5.0])
         self.assertEqual(ma.calc_mid_points(test_data_2), [0.5])
         self.assertEqual(ma.calc_mid_points(test_data_3), [1.25])
         self.assertEqual(ma.calc_mid_points(test_data_4), [0.0])
         self.assertEqual(ma.calc_mid_points(test_data_5), [-1.25])
-        self.all(assertEqual(ma.calc_mid_points(test_data_6), [1.5, 2.5, 3.5]))
+        self.assertEqual(np.array(ma.calc_mid_points(test_data_6)), [1.5, 2.5, 3.5])
 
 
 class convert_to_df_test(unittest.TestCase):
