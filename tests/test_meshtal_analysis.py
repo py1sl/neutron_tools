@@ -7,7 +7,7 @@ import numpy as np
 import unittest
 
 path = "test_output/cup_low_res.imsht"
-
+timepath = "test_output/time_msht"
 
 class calc_mid_points_test(unittest.TestCase):
 
@@ -97,6 +97,7 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(mesh[0].ptype, 'photon')
         self.assertEqual(mesh[0].idnum, 214)
         self.assertEqual(length, 1000)
+        self.assertAlmostEqual(mesh[0].e_mids[0], 1.00E36, 7)
 
     def test_read_mesh(self):
         data = ut.get_lines(path)
@@ -107,7 +108,6 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(read_mesh.ctype, '6col_e')
 
     def test_read_time_bins_mesh(self):
-        timepath = "test_output/time_msht"
         data = ut.get_lines(timepath)
         read_mesh = ma.read_mesh(314, data, {314: 4})
 
@@ -116,6 +116,7 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(read_mesh.ctype, '6col_t')
         self.assertEqual(len(read_mesh.t_bounds), 5)
         self.assertEqual(read_mesh.t_bounds[0], "-1.00E+36")
+        self.assertAlmostEqual(read_mesh.t_mids[0], 0,7)
 
 
 class find_mesh_tally_num_test(unittest.TestCase):
