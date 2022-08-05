@@ -23,7 +23,7 @@ class calc_mid_points_test(unittest.TestCase):
         self.assertEqual(ma.calc_mid_points(test_data_3), [1.25])
         self.assertEqual(ma.calc_mid_points(test_data_4), [0.0])
         self.assertEqual(ma.calc_mid_points(test_data_5), [-1.25])
-        self.assertCountEqual(ma.calc_mid_points(test_data_6), [1.5, 2.5, 3.5].all())
+        self.assertEqual(ma.calc_mid_points(test_data_6), [1.5, 2.5, 3.5])
 
 
 class convert_to_df_test(unittest.TestCase):
@@ -87,12 +87,12 @@ class read_mesh_file_tests(unittest.TestCase):
         length = len(mesh[0].data)
 
         self.assertEqual(mesh[0].x_bounds[1], '-8.00')
-        self.assertEqual(mesh[0].x_mids[2], -5.0)
+        self.assertAlmostEqual(mesh[0].x_mids[2], -5.0)
         self.assertEqual(mesh[0].e_bounds[1], '1.00E+36')
         self.assertEqual(mesh[0].y_bounds[2], '-6.00')
-        self.assertEqual(mesh[0].y_mids[3], -3.00)
+        self.assertAlmostEqual(mesh[0].y_mids[3], -3.00)
         self.assertEqual(mesh[0].z_bounds[2], '2.20')
-        self.assertEqual(mesh[0].z_mids[1], 1.4)
+        self.assertAlmostEqual(mesh[0].z_mids[1], 1.4)
         self.assertEqual(mesh[0].ptype, 'photon')
         self.assertEqual(mesh[0].idnum, 214)
         self.assertEqual(length, 1000)
@@ -232,10 +232,10 @@ class find_point_test(unittest.TestCase):
         mesh4_test.data = [['12.2', '5.0', '5.0', '3.1', '5.035e-6', '0.0014']]
         mesh3_test.data = ma.convert_to_df(mesh3_test)
         mesh4_test.data = ma.convert_to_df(mesh4_test)
-        result = ma.pick_point(-9, -9, 1.4, mesh3_test)
-        result = ma.pick_point(5.0,5.0,3.1, mesh4_test)
-        self.assertAlmostEqual(float(result[0]), 7.329430e-07, 7)
-        self.assertAlmostEqual(float(result[0]), 5.035e-6, 7)
+        result1 = ma.pick_point(-9, -9, 1.4, mesh3_test)
+        result2 = ma.pick_point(5.0,5.0,3.1, mesh4_test)
+        self.assertAlmostEqual(float(result1[0]), 7.329430e-07, 7)
+        self.assertAlmostEqual(float(result2[0]), 5.035e-6, 7)
 
     def test_get_point_file(self):
         mesh = ma.read_mesh_tally_file(path)[0]
