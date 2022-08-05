@@ -26,6 +26,7 @@ class calc_mid_points_test(unittest.TestCase):
         self.assertEqual(ma.calc_mid_points(test_data_5), [-1.25])
         self.assertEqual([1.5,2.5,3.5], [1.5, 2.5, 3.5])
         print(ma.calc_mid_points(test_data_6))
+        print(type(ma.calc_mid_points(test_data_6)))
         #self.assertEqual(calc_mid_points(test_data_6), [1.5, 2.5, 3.5])
 
 
