@@ -165,6 +165,7 @@ class add_mesh_test(unittest.TestCase):
         mesh4_test.y_bounds = (-8.9, -9.1)
         mesh4_test.z_bounds = (1.3, 1.5)
         mesh3_test.e_bounds = (1.0e-3, 1e36)
+        mesh4_test.e_bounds  (1.0e-3, 1e36)
 
         new_mesh_test = ma.add_mesh(mesh3_test, mesh4_test)
 
