@@ -23,7 +23,7 @@ class calc_mid_points_test(unittest.TestCase):
         self.assertEqual(ma.calc_mid_points(test_data_3), [1.25])
         self.assertEqual(ma.calc_mid_points(test_data_4), [0.0])
         self.assertEqual(ma.calc_mid_points(test_data_5), [-1.25])
-        self.assertCountEqual(ma.calc_mid_points(test_data_6), [1.5, 2.5, 3.5]).all()
+        self.assertCountEqual(ma.calc_mid_points(test_data_6), [1.5, 2.5, 3.5].all())
 
 
 class convert_to_df_test(unittest.TestCase):
@@ -219,10 +219,10 @@ class find_point_test(unittest.TestCase):
         mesh4_test.ctype = "6col_t"
 
         mesh3_test.x_mids = [-9.0]
-        mesh4_test.xmids = [5.0]
+        mesh4_test.x_mids = [5.0]
 
         mesh3_test.y_mids = [-9.0]
-        mesh4_test.ymids = [5.0]
+        mesh4_test.y_mids = [5.0]
 
         mesh3_test.z_mids = [1.4]
         mesh4_test.z_mids = [3.1]
@@ -253,9 +253,9 @@ class find_line_test(unittest.TestCase):
 
         mesh1_test = ma.meshtally()
         mesh1_test.ctype = "6col_e"
-        mesh1_test.xmids = [5.0]
-        mesh1_test.ymids = [5.0]
-        mesh1_test.zmids = [7.1]
+        mesh1_test.x_mids = [5.0]
+        mesh1_test.y_mids = [5.0]
+        mesh1_test.z_mids = [7.1]
         mesh1_test.data = [['5e35', '5.0', '5.0', '7.1', '5.2e-7', '0.01']]
         mesh1_test.data = ma.convert_to_df(mesh1_test)
         result = ma.extract_line(mesh1_test, ((5.0,5.0,7.1)), ((5.0,5.1,7.0)))
@@ -263,9 +263,9 @@ class find_line_test(unittest.TestCase):
 
         mesh2_test = ma.meshtally()
         mesh2_test.ctype = "6col_t"
-        mesh2_test.xmids = [3.0]
-        mesh2_test.ymids = [7.2]
-        mesh2_test.zmids = [7.2]
+        mesh2_test.x_mids = [3.0]
+        mesh2_test.y_mids = [7.2]
+        mesh2_test.z_mids = [7.2]
         mesh2_test.data = [['5e35', '3.0', '7.2', '7.2', '4.4e-7', '0.01']]
         mesh2_test.data = ma.convert_to_df(mesh2_test)
         result = ma.extract_line(mesh2_test, ((3.0,7.2,7.2)), ((3.0,7.2,7.2)))
