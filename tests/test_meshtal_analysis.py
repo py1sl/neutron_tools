@@ -3,6 +3,7 @@
 
 import meshtal_analysis as ma
 import neut_utilities as ut
+import numpy as np
 import unittest
 
 path = "test_output/cup_low_res.imsht"
