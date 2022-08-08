@@ -259,7 +259,7 @@ def add_mesh(mesh1, mesh2):
     if ((mesh1.x_bounds != mesh2.x_bounds) or
             (mesh1.y_bounds != mesh2.y_bounds) or
             (mesh1.z_bounds != mesh2.z_bounds)):
-        raise ValueError(' positionbounds not equal')
+        raise ValueError(' position bounds not equal')
 
     if mesh1.ctype != mesh2.ctype:
         raise ValueError('column types are not equal')
