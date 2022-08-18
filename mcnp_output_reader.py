@@ -380,7 +380,11 @@ def read_tally(lines, tnum, rnum=-1):
 
     tally_data.particle = ut.string_cleaner(tally_data.particle)
     tally_data.nps = ut.string_cleaner(lines[res_start_line][28:40])
-    tally_data.nps = int(tally_data.nps)
+    try:
+        tally_data.nps = int(tally_data.nps)
+    except ValueError:
+        ntlogger.debug('NPS value not an int, could be large value')
+        
     tally_data.type = type
 
     # limit lines to just the tally data

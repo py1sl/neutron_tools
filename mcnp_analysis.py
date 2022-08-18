@@ -87,13 +87,18 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
     for d in data:
         bw = calc_bin_width(d.eng)
         if d.type == '2':
-            y_vals = np.asarray(d.result[0])/bw
+            
+            y_vals = np.asarray(d.result)/bw
             splot = plt.step(np.asarray(d.eng),  y_vals)
         elif d.type == '4' and len(d.cells) > 1:
             for cell in d.result:
                 y_vals = np.asarray(cell)/bw
                 splot = plt.step(np.asarray(d.eng),  y_vals)
             legend = d.cells
+        elif d.type == '4' and len(d.cells) == 1:
+            for cell in d.result:
+                y_vals = np.asarray(cell)/bw
+                splot = plt.step(np.asarray(d.eng),  y_vals)           
 
         else:
             y_vals = np.asarray(d.result)/bw
@@ -127,7 +132,8 @@ def plot_spectra_ratio(data1, data2, fname, title):
     plt.ylabel("ratio")
     plt.xscale('log')
     if data1.type == '2':
-        ratio = np.asarray(data1.result[0])/np.asarray(data2.result[0])
+        
+        ratio = np.asarray(data1.result)/np.asarray(data2.result)
     else:
         ratio = np.asarray(data1.result)/np.asarray(data2.result)
 
