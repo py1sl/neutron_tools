@@ -10,7 +10,8 @@ import logging
 
 def check_plane_exists(n):
     if np.all(n == 0):
-        raise ValueError('At least one plane has all zero coefficients and so does not exist.')
+        raise ValueError(
+            'At least one plane has all zero coefficients and so does not exist.')
 
 
 def check_parallel_planes(n1, n2):
@@ -31,7 +32,8 @@ def angle_between_planes(n1, d1, n2, d2):
     check_plane_exists(n1)
     check_plane_exists(n2)
     if check_parallel_planes(n1, n2):
-        raise ValueError('Planes are either identical or parallel. They do not intersect.')
+        raise ValueError(
+            'Planes are either identical or parallel. They do not intersect.')
 
     numerator = np.sqrt(np.dot(n1, n2)**2)
 
@@ -52,7 +54,8 @@ def dist_between_planes(n1, d1, n2, d2):
     Planes should be inputted in the form n.p = d with n = [a, b, c]
     """
 
-    # Check if planes exist and are parallel. If not parallel return 0 as they will intersect
+    # Check if planes exist and are parallel. If not parallel return 0 as they
+    # will intersect
     check_plane_exists(n1)
     check_plane_exists(n2)
     if not check_parallel_planes(n1, n2):
@@ -65,7 +68,7 @@ def dist_between_planes(n1, d1, n2, d2):
     d2 *= ratio
 
     # Shortest distance FROM PLANE 1 TO PLANE 2 is:
-    D = (d2-d1) / np.linalg.norm(n2)
+    D = (d2 - d1) / np.linalg.norm(n2)
 
     # Function designed to return signed distance as opposed to magnitude
     # as allows more flexibility in interactions with other functions
@@ -102,11 +105,12 @@ def dist_between_point_plane(n, d, p):
 
     check = evaluate_plane_eq(n, d, p_0)
     if check != 0.0:
-        logging.debug("Warning check not equal to 0.0 in function dist_between_point_plane.")
+        logging.debug(
+            "Warning check not equal to 0.0 in function dist_between_point_plane.")
         logging.debug(check)
 
     # Shortest distance FROM POINT TO PLANE is (p_0-p).n_hat
-    dist = np.dot(p_0-p, n) / np.linalg.norm(n)
+    dist = np.dot(p_0 - p, n) / np.linalg.norm(n)
 
     # Function designed to return signed distance as opposed to magnitude
     # as allows more flexibility in interactions with other functions
@@ -126,17 +130,18 @@ def line_segment_plane_intersection(p0, p1, n, d):
     check_plane_exists(n)
 
     # Necessary to avoid division by zero
-    if np.dot(p1-p0, n) == 0:
-        raise ValueError('Line segment parallel to plane so does not intersect')
+    if np.dot(p1 - p0, n) == 0:
+        raise ValueError(
+            'Line segment parallel to plane so does not intersect')
 
     # If val < 0, the two points must lie either side of the plane and so the line
     # segment must intersect the plane
     val = (np.dot(p0, n) - d) * (np.dot(p1, n) - d)
 
     if val < 0:
-        t = d - np.dot(p0, n) / np.dot(p1-p0, n)
+        t = d - np.dot(p0, n) / np.dot(p1 - p0, n)
 
-        return p0 + t*(p1-p0)
+        return p0 + t * (p1 - p0)
 
     else:
         raise ValueError('Line segment does not intersect plane')
@@ -154,7 +159,8 @@ def plane_sphere_intersect(n, d, p, R):
     check_positive(R)
 
     # First find the distance between the centre of the sphere and the centre of the circle
-    # This is the shortest distance between the centre of the sphere and the plane
+    # This is the shortest distance between the centre of the sphere and the
+    # plane
     centre_dist = dist_between_point_plane(n, d, p)
 
     # Check to see if the plane and sphere intersect
@@ -164,7 +170,7 @@ def plane_sphere_intersect(n, d, p, R):
     # Pythagoras then gives the radius of the circle
     r = np.sqrt(R**2 - centre_dist**2)
 
-    centre_coords = p + (centre_dist*n)/np.linalg.norm(n)
+    centre_coords = p + (centre_dist * n) / np.linalg.norm(n)
 
     return r, centre_coords
 
@@ -182,22 +188,25 @@ def plane_plane_intersect(n1, d1, n2, d2, z_ini):
     check_plane_exists(n2)
 
     if check_parallel_planes(n1, n2):
-        raise ValueError('Planes are either identical or parallel. They do not intersect.')
+        raise ValueError(
+            'Planes are either identical or parallel. They do not intersect.')
 
     # Direction vector of line
     q = np.cross(n1, n2)
     q = q / np.linalg.norm(q)
 
     # To generate a point on the line, let z=z_ini - more flexible than just setting z=0
-    # Necessary to be able to solve fort the x, y coordinates of the point on the line
+    # Necessary to be able to solve fort the x, y coordinates of the point on
+    # the line
 
     a = np.array([[n1[0], n1[1]], [n2[0], n2[1]]])
-    b = np.array([d1-(n1[2]*z_ini), d2-(n2[2]*z_ini)])
+    b = np.array([d1 - (n1[2] * z_ini), d2 - (n2[2] * z_ini)])
     x = np.linalg.solve(a, b)
 
     p = np.array([x[0], x[1], z_ini])
 
-    # Returns the point on the line and the direction of the line of intersection
+    # Returns the point on the line and the direction of the line of
+    # intersection
     return p, q
 
 
@@ -214,7 +223,7 @@ def midpoint_bet_points(p1, p2):
     """ calculate the mid point between 2 points
         returns a tuple of the x, y, z co-ords of the mid point
     """
-    p = (p1+p2)/2
+    p = (p1 + p2) / 2
 
     return p
 
@@ -311,7 +320,7 @@ def pythag_h(l1, l2):
         logging.debug('One of the side lengths of the triangle is zero.')
         return 0.0
 
-    hyp = np.sqrt((l1**2)+(l2**2))
+    hyp = np.sqrt((l1**2) + (l2**2))
     return hyp
 
 
@@ -330,7 +339,7 @@ def perim_circle(r):
 def area_circle(r):
     """calculate area of a circle"""
     check_positive(r)
-    area = np.pi*r*r
+    area = np.pi * r * r
     return area
 
 
@@ -363,7 +372,7 @@ def area_cone_surf(r, h):
     """calculate surface area of conical surface (not including area of circular base)"""
     check_positive(r)
     check_positive(h)
-    t1 = np.sqrt((r*r)+(h*h))
+    t1 = np.sqrt((r * r) + (h * h))
     area = np.pi * r * t1
     return area
 
@@ -371,7 +380,7 @@ def area_cone_surf(r, h):
 def volume_sphere(r):
     """ calculate volume of sphere """
     check_positive(r)
-    volume = (4/3) * np.pi * r**3
+    volume = (4 / 3) * np.pi * r**3
     return volume
 
 
@@ -402,7 +411,7 @@ def volume_cyl_shell(r1, r2, h):
 
 def volume_cone(r, h):
     """ calculate volume cone """
-    volume = volume_cyl(r, h) * (1/3)
+    volume = volume_cyl(r, h) * (1 / 3)
     return volume
 
 
@@ -432,8 +441,8 @@ def evaluate_gq_eq(p, coeffs, k):
     p = [x, y,z] are the co-ords of the point of interest
     coeffs is a numpy array of coefficients A-J
     """
-    val = coeffs[0]*p[0]**2 + coeffs[1]*p[1]**2 + coeffs[2]*p[2]**2 + coeffs[3]*p[0]*p[1] + \
-        coeffs[4]*p[1]*p[2] + coeffs[5]*p[0]*p[2] + coeffs[6]*p[0] + coeffs[7]*p[1] + coeffs[8]*p[2] - k
+    val = coeffs[0] * p[0]**2 + coeffs[1] * p[1]**2 + coeffs[2] * p[2]**2 + coeffs[3] * p[0] * p[1] + coeffs[4] * \
+        p[1] * p[2] + coeffs[5] * p[0] * p[2] + coeffs[6] * p[0] + coeffs[7] * p[1] + coeffs[8] * p[2] - k
     return val
 
 
@@ -480,7 +489,7 @@ def project_ray(p0, u, mu):
     Calculate the new co-ordinates
     for moving mu along the unit vector direct
     """
-    p1 = p0 + (u*mu)
+    p1 = p0 + (u * mu)
 
     return p1
 
@@ -491,8 +500,8 @@ def sphere_ray_intersect(p, u, sphere_centre, sphere_rad):
     dp = p - sphere_centre
     dp2 = np.linalg.norm(dp)**2
     ddot = np.dot(dp, u)
-    mu1 = (-1*ddot) + np.sqrt(ddot**2 - dp2 + sphere_rad**2)
-    mu2 = (-1*ddot) - np.sqrt(ddot**2 - dp2 + sphere_rad**2)
+    mu1 = (-1 * ddot) + np.sqrt(ddot**2 - dp2 + sphere_rad**2)
+    mu2 = (-1 * ddot) - np.sqrt(ddot**2 - dp2 + sphere_rad**2)
 
     return (mu1, mu2)
 
@@ -502,9 +511,9 @@ def cartesian_to_cylindrical(x, y, z):
 
     rho = np.sqrt(x**2 + y**2)
     if x >= 0:
-        phi = np.arctan(y/x)
+        phi = np.arctan(y / x)
     else:
-        phi = np.arctan(y/x) + np.pi
+        phi = np.arctan(y / x) + np.pi
 
     return (rho, phi, z)
 
@@ -513,11 +522,11 @@ def cartesian_to_spherical(x, y, z):
     """Converts Cartesian coordinates to spherical polar coordinates"""
 
     r = np.sqrt(x**2 + y**2 + z**2)
-    theta = np.arccos(z/r)
+    theta = np.arccos(z / r)
     if x >= 0:
-        phi = np.arctan(y/x)
+        phi = np.arctan(y / x)
     else:
-        phi = np.arctan(y/x) + np.pi
+        phi = np.arctan(y / x) + np.pi
 
     return (r, theta, phi)
 
@@ -539,7 +548,7 @@ def cylindrical_to_spherical(rho, theta_cyl, z):
     check_positive(rho)
 
     r = np.sqrt(rho**2 + z**2)
-    theta = np.arccos(z/r)
+    theta = np.arccos(z / r)
     phi = theta_cyl
 
     return (r, theta, phi)

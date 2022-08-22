@@ -104,7 +104,7 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
         self.assertEqual(read_mesh.ctype, '6col_e')
-        
+
     def test_read_time_bins_mesh(self):
         timepath = "test_output/time_msht"
         data = ut.get_lines(timepath)
@@ -180,7 +180,7 @@ class add_mesh_test(unittest.TestCase):
         self.assertEqual(new_mesh_test.y_bounds, mesh.y_bounds)
         self.assertEqual(new_mesh_test.z_bounds, mesh.z_bounds)
         self.assertEqual(new_mesh_test.data['value'].iloc[0],
-                         2*mesh.data['value'].iloc[0])
+                         2 * mesh.data['value'].iloc[0])
 
 
 class find_nearest_mid_test(unittest.TestCase):

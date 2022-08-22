@@ -17,8 +17,8 @@ class conversion_test_case(unittest.TestCase):
     """ test for conversions"""
 
     def test_time_conv(self):
-        self.assertEqual(nc.years_to_seconds(1), 365*24*60*60)
-        self.assertEqual(nc.years_to_hrs(1), 365*24)
+        self.assertEqual(nc.years_to_seconds(1), 365 * 24 * 60 * 60)
+        self.assertEqual(nc.years_to_hrs(1), 365 * 24)
         self.assertEqual(nc.years_to_days(1), 365)
 
     def test_act_conv(self):
