@@ -214,8 +214,8 @@ def read_table60(lines):
 def print_tally_lines_to_file(lines, fname, tnum):
     """ prints tally section to a file for debugging """
     if ntlogger.getLogger().getEffectiveLevel() == 10:
-        fname = fname + str(tnum)+".txt"
         ntlogger.debug("writing " + fname)
+        fname = fname + str(tnum)+".txt" 
         ut.write_lines(fname, lines)
 
 
@@ -418,8 +418,8 @@ def read_tally(lines, tnum, rnum=-1):
 
     # get statistical test outcomes
     # first check not all zeros
-    # if np.array(tally_data.result).any():
-    # tally_data.stat_tests = read_stat_tests(lines)
+    if np.array(tally_data.result).any():
+        tally_data.stat_tests = read_stat_tests(lines)
 
     return tally_data
 
@@ -956,6 +956,7 @@ def read_stat_tests(lines):
     stat_line = lines[stat_res_line_id]
     stat_line = ut.string_cleaner(stat_line)
     stat_line = stat_line.split(" ")[1:]
+
     return stat_line
 
 
@@ -973,7 +974,7 @@ def read_output_file(path):
     mc_data.version = read_version(ofile_data)
     mc_data.date, mc_data.start_time = read_run_date(ofile_data)
     mc_data.comments, mc_data.warnings = read_comments_warnings(ofile_data)
-
+    mc_data.num_rendevous = count_rendevous(ofile_data)
     # read specific tables
     # mc_data.t60 = read_table60(ofile_data)
 
