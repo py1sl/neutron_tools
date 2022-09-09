@@ -30,16 +30,17 @@ class meshtally:
 
 
 class slice_object:
-    
+
     values = None
     errors = None
     nearest_mid = None
     error_bars = None
     slice_i = None
-    slice_j= None
+    slice_j = None
     i_lab = None
     j_lab = None
     plane = None
+
 
 def rel_err_hist(df, fname=None):
     """ Plots a histogram of the relative errors"""
@@ -58,7 +59,7 @@ def rel_err_hist(df, fname=None):
 
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
-#plot slice calls extract slice
+# plot slice calls extract slice
 def extract_slice(mesh, value, plane, erg, time):
     """ plots a slice through the mesh"""
     data = mesh.data
@@ -112,8 +113,8 @@ def extract_slice(mesh, value, plane, erg, time):
 
 def plot_slice(mesh, value, plane, err=False, fname=None, erg=None, time=None):
     """ plots a slice through the mesh"""
-    lmin=1e-15
-    lmax=1e-3
+    lmin = 1e-15
+    lmax = 1e-3
     plt.clf()
     slices = extract_slice(mesh, value, plane, erg, time)
 
@@ -146,6 +147,7 @@ def plot_slice(mesh, value, plane, err=False, fname=None, erg=None, time=None):
     else:
         plt.show()
     return slices
+
 
 # TODO:
 def output_as_vtk():
@@ -188,7 +190,7 @@ def filter_energy_time(data, erg=None, time=None):
     if erg:
         data = data[data["Energy"] == erg]
     if time:
-        data = data[data["Time"] == time]    
+        data = data[data["Time"] == time]
     return data
 
 
