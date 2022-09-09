@@ -27,9 +27,19 @@ class meshtally:
     y_mids = None
     z_mids = None
     ctype = None
-    e_mids = None
-    t_mids = None
 
+
+class slice_object:
+    
+    values = None
+    errors = None
+    nearest_mid = None
+    error_bars = None
+    slice_i = None
+    slice_j= None
+    i_lab = None
+    j_lab = None
+    plane = None
 
 def rel_err_hist(df, fname=None):
     """ Plots a histogram of the relative errors"""
@@ -48,97 +58,94 @@ def rel_err_hist(df, fname=None):
 
 # TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
-def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None,
-               err=False, norm=1.0, erg=None):
+#plot slice calls extract slice
+def extract_slice(mesh, value, plane, erg, time):
     """ plots a slice through the mesh"""
-    plt.clf()
     data = mesh.data
-    # filter by energy if needed
-    if erg:
-        data = data[data["Energy"] == erg]
+    slices = slice_object()
+    # filter by energy/time if needed
+    data = filter_energy_time(data, erg, time)
 
     if plane == "XZ":
-        midx = mesh.x_mids
-        midy = mesh.z_mids
-        v_mid = mesh.y_mids
+        slices.slice_i = mesh.x_mids
+        slices.slice_j = mesh.z_mids
+        slices.nearest_mid = mesh.y_mids
         v_ind = "y"
-        # ipos = "x"
-        # jpos = "z"
-        ilab = "X co-ord (cm)"
-        jlab = "Z co-ord (cm)"
+        slices.i_lab = "X co-ord (cm)"
+        slices.j_lab = "Z co-ord (cm)"
     elif plane == "XY":
-        midx = mesh.x_mids
-        midy = mesh.y_mids
-        v_mid = mesh.z_mids
+        slices.slice_i = mesh.x_mids
+        slices.slice_j = mesh.y_mids
+        slices.nearest_mid = mesh.z_mids
         v_ind = "z"
-        # ipos = "x"
-        # jpos = "y"
-
-        ilab = "X co-ord (cm)"
-        jlab = "Y co-ord (cm)"
+        slices.i_lab = "X co-ord (cm)"
+        slices.j_lab = "Y co-ord (cm)"
     elif plane == "YZ":
-        midx = mesh.y_mids
-        midy = mesh.z_mids
-        v_mid = mesh.x_mids
+        slices.slice_i = mesh.y_mids
+        slices.slice_j = mesh.z_mids
+        slices.nearest_mid = mesh.x_mids
         v_ind = "x"
-        # ipos = "y"
-        # jpos = "z"
-
-        ilab = "Y co-ord (cm)"
-        jlab = "Z co-ord (cm)"
+        slices.i_lab = "Y co-ord (cm)"
+        slices.j_lab = "Z co-ord (cm)"
 
     # find closest mid point
-    value = find_nearest_mid(value, v_mid)
+    value = find_nearest_mid(value, slices.nearest_mid)
 
     # filter to just the values in the plane
     data = data[data[v_ind] == value]
 
     # now find the slice values
-    vals = np.zeros((len(midy), len(midx)))
-    err_vals = np.zeros((len(midy), len(midx)))
+    slices.values = np.zeros((len(slices.slice_j), len(slices.slice_i)))
+    slices.errors = np.zeros((len(slices.slice_j), len(slices.slice_i)))
 
     for (_, __, x, y, ____, val, rerr) in data.itertuples():
 
         x = np.float64(x)
         y = np.float64(y)
-        i, = np.where(midx == x)
-        j, = np.where(midy == y)
+        i, = np.where(slices.slice_i == x)
+        j, = np.where(slices.slice_j == y)
+        slices.values[j, i] = val
+        slices.errors[j, i] = rerr
 
-        vals[j, i] = val
-        err_vals[j, i] = rerr
+    return slices
 
-    # now plot
-    if err:
+
+def plot_slice(mesh, value, plane, err=False, fname=None, erg=None, time=None):
+    """ plots a slice through the mesh"""
+    lmin=1e-15
+    lmax=1e-3
+    plt.clf()
+    slices = extract_slice(mesh, value, plane, erg, time)
+
+    if slices.error_bars:
         plt.subplot(2, 1, 2)
-        plt.pcolormesh(midx, midy, err_vals)
+        plt.pcolormesh(slices.slice_i, slices.slice_j, slices.errors)
         title = plane + " Slice at " + str(value) + " of mesh "
         title = title + str(mesh.idnum) + " rel err"
         plt.title(title)
         plt.colorbar()
-        plt.xlabel(ilab)
-        plt.ylabel(jlab)
-        plt.xlim(xmin=min(midx), xmax=max(midx))
-        plt.ylim(ymin=min(midy), ymax=max(midy))
+        plt.xlabel(slices.i_lab)
+        plt.ylabel(slices.j_lab)
+        plt.xlim(xmin=min(slices.slice_i), xmax=max(slices.slice_i))
+        plt.ylim(ymin=min(slices.slice_j), ymax=max(slices.slice_j))
 
         plt.subplot(2, 1, 1)
         plt.tight_layout()
 
-    plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
+    plt.pcolormesh(slices.slice_i, slices.slice_j, slices.values, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
     title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
     plt.title(title)
-
     plt.colorbar()
-    plt.xlabel(ilab)
-    plt.ylabel(jlab)
-    plt.xlim(xmin=min(midx), xmax=max(midx))
-    plt.ylim(ymin=min(midy), ymax=max(midy))
-
+    plt.xlabel(slices.i_lab)
+    plt.ylabel(slices.j_lab)
+    plt.xlim(xmin=min(slices.slice_i), xmax=max(slices.slice_i))
+    plt.ylim(ymin=min(slices.slice_j), ymax=max(slices.slice_j))
     if fname:
         plt.savefig(fname)
         ntlogger.info("produced figure: %s", fname)
     else:
         plt.show()
-
+    return slices
 
 # TODO:
 def output_as_vtk():
@@ -177,6 +184,14 @@ def convert_to_df(mesh):
     return data
 
 
+def filter_energy_time(data, erg=None, time=None):
+    if erg:
+        data = data[data["Energy"] == erg]
+    if time:
+        data = data[data["Time"] == time]    
+    return data
+
+
 def extract_line(mesh, p1, p2, erg=None, time=None):
     """ currently support lines varying along a single axis
         p1 and p2 are tuples of the form (x,y,z) and
@@ -199,11 +214,7 @@ def extract_line(mesh, p1, p2, erg=None, time=None):
         z = find_nearest_mid(z, mesh.z_mids)
         data = data[data["z"] == z]
 
-    if erg:
-        data = data[data["Energy"] == erg]
-
-    if time:
-        data = data[data["Time"] == time]
+    data = filter_energy_time(data, erg, time)
 
     result = data["value"]
 
@@ -221,13 +232,8 @@ def pick_point(x, y, z, mesh, erg=None, time=None):
     data = data[data["y"] == y]
     data = data[data["z"] == z]
 
-    if erg:
-        data = data[data["Energy"] == erg]
-        erg = find_nearest_mid(erg, mesh.e_mids)
+    data = filter_energy_time(data, erg, time)
 
-    if time:
-        data = data[data["Time"] == time]
-        time = find_nearest_mid(time, mesh.t_mids)
     result = data["value"]
 
     return result
@@ -285,8 +291,6 @@ def add_mesh(mesh1, mesh2):
         new_mesh.x_mids = mesh1.x_mids
         new_mesh.y_mids = mesh1.y_mids
         new_mesh.z_mids = mesh1.z_mids
-        new_mesh.e_mids = mesh1.e_mids
-        new_mesh.t_mids = mesh1.t_mids
 
         new_mesh.data['value'] = new_val
         new_mesh.data['rel_err'] = new_err
@@ -314,30 +318,25 @@ def convert_to_3d_array(mesh):
     midx = mesh.x_mids
     midy = mesh.y_mids
     midz = mesh.z_mids
-    mide = mesh.e_mids
-    midt = mesh.t_mids
 
-    vals = np.zeros((len(midx), len(midy), len(midz), len(mide), len(midt)))
-    err_vals = np.zeros((len(midx), len(midy), len(midz), len(mide), len(midt)))
+    vals = np.zeros((len(midx), len(midy), len(midz)))
+    err_vals = np.zeros((len(midx), len(midy), len(midz)))
 
     for r in data:
         i, = np.where(midx == r[1])
         j, = np.where(midy == r[2])
         k, = np.where(midz == r[3])
-        l, = np.where(mide == r[4])
-        m, = np.where(midt == r[5])
 
-        vals[i, j, k, l, m] = r[6]
-        err_vals[i, j, k, l, m] = r[7]
+        vals[i, j, k] = r[4]
+        err_vals[i, j, k] = r[5]
 
     return vals, err_vals
 
 
 def calc_mid_points(bounds):
     """ finds the mid points given a set of bounds """
-    mids = []
     bounds = np.array(bounds).astype(float)
-    mids = (bounds[1:] + bounds[:-1]) * 0.5
+    mids = np.round((bounds[1:] + bounds[:-1]) * 0.5, 5)
     return mids.tolist()
 
 
@@ -434,10 +433,6 @@ def read_mesh(tnum, data, tdict):
     mesh.y_mids = calc_mid_points(mesh.y_bounds)
     mesh.z_mids = calc_mid_points(mesh.z_bounds)
 
-    if mesh.ctype == "6col_e":
-        mesh.e_mids = calc_mid_points(mesh.e_bounds)
-    if mesh.ctype == "6col_t":
-        mesh.t_mids = calc_mid_points(mesh.t_bounds)
     ntlogger.info("finished reading mesh number: %s ", str(tnum))
 
     return mesh
