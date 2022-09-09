@@ -312,16 +312,16 @@ class find_line_test(unittest.TestCase):
     def test_extract_line_file(self):
 
         mesh_test = ma.read_mesh_tally_file(path)[0]
-        result_1 = ma.extract_line(mesh_test, ((-9, -7,6.2)), ((-9, -5, 1.4))).iloc[0]
+        result_1 = ma.extract_line(mesh_test, ((-9, -7, 6.2)), ((-9, -5, 1.4))).iloc[0]
         self.assertAlmostEqual(result_1, 6.38182e-7, 7)
 
-        #test for energy and time
+        # test for energy and time
         result_2 = ma.extract_line(mesh_test, ((-9, -9, -0.2)), ((-9, -7, 4.6)), 1e36).iloc[1]
         self.assertAlmostEqual(result_2, 7.32943e-7, 7)
 
         mesh_test_time = ma.read_mesh_tally_file(timepath)[0]
         result_3 = ma.extract_line(mesh_test_time, ((-180, 25, 11)), ((-180, 25, 33)), 0.0).iloc[0]
-        self.assertAlmostEqual(result_3,6.17596e-7, 7)
+        self.assertAlmostEqual(result_3, 6.17596e-7, 7)
 
 
 class upper_vals_test(unittest.TestCase):
