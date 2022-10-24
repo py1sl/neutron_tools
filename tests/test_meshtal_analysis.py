@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 import meshtal_analysis as ma
 import neut_utilities as ut
 import unittest
 
 path = "test_output/cup_low_res.imsht"
+meshes_path = "test_output/meshes.imsht"
 timepath = "test_output/time_msht"
 
 
@@ -374,12 +376,23 @@ class slice_tests(unittest.TestCase):
         mesh = ma.read_mesh_tally_file(path)[0]
         value = 1
         plane = "XY"
-        slices = ma.plot_slice(mesh, value, plane, erg=1e36)
+        slices = ma.plot_slice(mesh, value, plane, err=True, erg=1e36)
         self.assertEqual(slices.i_lab, "X co-ord (cm)")
         self.assertEqual(slices.j_lab, "Y co-ord (cm)")
         self.assertEqual(slices.slice_i[0], -9.0)
         self.assertEqual(slices.slice_j[0], -9.0)
 
-
+class read_multiple_meshes_test(unittest.TestCase):
+    
+    def test_read_multiple_meshes(self):
+        
+        meshes = ma.read_mesh_tally_file(meshes_path)
+        self.assertEqual(meshes[1].idnum, 14)
+        self.assertEqual(meshes[2].idnum, 24)
+        self.assertEqual(meshes[1].ctype, "5col")
+        self.assertEqual(meshes[0].x_mids[0], -20.00)
+        self.assertEqual(meshes[0].e_bounds[0], '0.00E+00')
+        self.assertEqual(meshes[0].z_bounds[0], '-25.00')
+        
 if __name__ == '__main__':
     unittest.main()
