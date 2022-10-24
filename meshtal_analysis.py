@@ -389,41 +389,41 @@ def read_mesh(tnum, data, tdict):
     # read through and assign mesh variables
     in_data = False
 
-    for i, v in enumerate(mesh_data):
+    for i, line in enumerate(mesh_data):
         if in_data:
             # v = " ".join(v.split())
             # mesh.data.append(v.split(" "))
             ntlogger.info("Guru meditation error")
-        elif "X direction:" in v:
-            v = " ".join(v.split())
-            mesh.x_bounds = v.split(" ")[2:]
-        elif "Y direction:" in v:
-            v = " ".join(v.split())
-            mesh.y_bounds = v.split(" ")[2:]
-        elif "Z direction:" in v:
-            v = " ".join(v.split())
-            mesh.z_bounds = v.split(" ")[2:]
-        elif "Energy bin boundaries:" in v:
-            v = " ".join(v.split())
-            mesh.e_bounds = v.split(" ")[3:]
-        elif "Time bin boundaries:" in v:
-            v = " ".join(v.split())
-            mesh.t_bounds = v.split(" ")[3:]
-        elif ("Energy         X         Y         Z     Result" in v):
+        elif "X direction:" in line:
+            line = " ".join(line.split())
+            mesh.x_bounds = line.split(" ")[2:]
+        elif "Y direction:" in line:
+            line = " ".join(line.split())
+            mesh.y_bounds = line.split(" ")[2:]
+        elif "Z direction:" in line:
+            line = " ".join(line.split())
+            mesh.z_bounds = line.split(" ")[2:]
+        elif "Energy bin boundaries:" in line:
+            line = " ".join(line.split())
+            mesh.e_bounds = line.split(" ")[3:]
+        elif "Time bin boundaries:" in line:
+            line = " ".join(line.split())
+            mesh.t_bounds = line.split(" ")[3:]
+        elif ("Energy         X         Y         Z     Result" in line):
             in_data = True
             break
-        elif ("Time         X         Y         Z     Result" in v):
+        elif ("Time         X         Y         Z     Result" in line):
             in_data = True
             mesh.ctype = "6col_t"
             break
-        elif "X         Y         Z     Result" in v:
+        elif "X         Y         Z     Result" in line:
             in_data = True
             mesh.ctype = "5col"
             break
 
-        elif "mesh tally." in v:
-            v = " ".join(v.split())
-            mesh.ptype = v.split(' ')[0]
+        elif "mesh tally." in line:
+            line = " ".join(line.split())
+            mesh.ptype = line.split(' ')[0]
 
     ntlogger.info("processing results: %s ", str(tnum))
     mesh_data = [" ".join(j.split()) for j in mesh_data[i:]]
