@@ -29,11 +29,14 @@ def write_points_file(path, x, y, z):
 
     write_lines(path, out_data)
 
+
 def get_lines(path):
-    """ reads file at path line by line and returns a list with 1 entry per line """
-    with open(path) as file:
-        lines = [line for line in file] 
+    """ reads file at path and returns a list with 1 entry per line """
+    with open(path) as f:
+        lines = f.read().splitlines()
+    f.close()
     return lines
+
 
 def find_line(text, lines, num):
     """ finds first index of the line in lines where the text is present
@@ -76,6 +79,3 @@ def find_first_zero(val_list):
             return i
             break
     return None
-
-
-            
