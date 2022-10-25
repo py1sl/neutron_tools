@@ -266,8 +266,8 @@ class find_point_test(unittest.TestCase):
 
         result1 = ma.pick_point(-9, -9, 1.4, mesh3_test, erg=1e36)
         result2 = ma.pick_point(5.0, 5.0, 3.1, mesh4_test, time=0)
-        self.assertAlmostEqual(result1[0], 7.329430e-07, 7)
-        self.assertAlmostEqual(result2[0], 5.035e-6, 7)
+        self.assertAlmostEqual(float(result1[0]), 7.329430e-07, 7)
+        self.assertAlmostEqual(float(result2[0]), 5.035e-6, 7)
 
     def test_get_point_file(self):
         mesh = ma.read_mesh_tally_file(path)[0]
@@ -318,8 +318,8 @@ class find_line_test(unittest.TestCase):
         self.assertAlmostEqual(result_1, 6.38182e-7, 7)
 
         # test for energy and time
-        result_2 = ma.extract_line(mesh_test, ((-9, -9, -0.2)), ((-9, -7, 4.6)), 1e36).iloc[1]
-        self.assertAlmostEqual(result_2, 7.32943e-7, 7)
+        result_2 = ma.extract_line(mesh_test, ((-9, -9, -0.2)), ((-9, -7, 4.6)), 1e36).iloc[0]
+        self.assertAlmostEqual(result_2, 6.38182e-07, 7)
 
         mesh_test_time = ma.read_mesh_tally_file(timepath)[0]
         result_3 = ma.extract_line(mesh_test_time, ((-180, 25, 11)), ((-180, 25, 33)), 0.0).iloc[0]
@@ -361,7 +361,7 @@ class filter_energy_time_tests(unittest.TestCase):
         data = mesh.data
         filtered_energy_data = (ma.filter_energy_time(data, erg=1e36))
         values = filtered_energy_data["value"]
-        self.assertAlmostEqual(values[0], 6.38182e-7)
+        self.assertAlmostEqual(float(values[0]), 6.38182e-7)
 
         mesh_time = ma.read_mesh_tally_file(timepath)[0]
         data = mesh_time.data
