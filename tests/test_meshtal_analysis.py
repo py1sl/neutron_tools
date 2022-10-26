@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 import meshtal_analysis as ma
 import neut_utilities as ut
 import unittest
 
-path = "test_output/cup_low_res.imsht"
-meshes_path = "test_output/meshes.imsht"
-timepath = "test_output/time_msht"
+
+path = r"C:/Users/Elmos PC/neutron_tools/tests/test_output/cup_low_res.imsht"
+meshes_path = r"C:/Users/Elmos PC/neutron_tools/tests/test_output/meshes.imsht"
+timepath = r"C:/Users/Elmos PC/neutron_tools/tests/test_output/time_msht"
 
 
 class calc_mid_points_test(unittest.TestCase):
@@ -264,9 +264,9 @@ class find_point_test(unittest.TestCase):
         mesh3_test.data = ma.convert_to_df(mesh3_test)
         mesh4_test.data = ma.convert_to_df(mesh4_test)
 
-        result1 = ma.pick_point(-9, -9, 1.4, mesh3_test, erg=1e36)
-        result2 = ma.pick_point(5.0, 5.0, 3.1, mesh4_test, time=0)
-        self.assertAlmostEqual(float(result1[0]), 7.329430e-07, 7)
+        result1 = ma.pick_point(-9, -9, 1.4, mesh3_test, erg=1e36).iloc[0]
+        result2 = ma.pick_point(5.0, 5.0, 3.1, mesh4_test, time=0).iloc[0]
+        self.assertAlmostEqual(float(result1), 7.329430e-07, 7)
         self.assertAlmostEqual(float(result2[0]), 5.035e-6, 7)
 
     def test_get_point_file(self):
@@ -314,8 +314,8 @@ class find_line_test(unittest.TestCase):
     def test_extract_line_file(self):
 
         mesh_test = ma.read_mesh_tally_file(path)[0]
-        result_1 = ma.extract_line(mesh_test, ((-9, -7, 6.2)), ((-9, -5, 1.4))).iloc[0]
-        self.assertAlmostEqual(result_1, 6.38182e-7, 7)
+        result_1 = ma.extract_line(mesh_test, ((-9, -7, 6.2)), ((-9, -5, 1.4)))
+        self.assertAlmostEqual(result_1[0], 6.38182e-7, 7)
 
         # test for energy and time
         result_2 = ma.extract_line(mesh_test, ((-9, -9, -0.2)), ((-9, -7, 4.6)), 1e36).iloc[0]
@@ -359,13 +359,13 @@ class filter_energy_time_tests(unittest.TestCase):
     def test_filter_energy_time_file(self):
         mesh = ma.read_mesh_tally_file(path)[0]
         data = mesh.data
-        filtered_energy_data = (ma.filter_energy_time(data, erg=1e36))
+        filtered_energy_data = (ma.filter_energy_time(data, erg=1.00E+36))
         values = filtered_energy_data["value"]
         self.assertAlmostEqual(float(values[0]), 6.38182e-7)
 
         mesh_time = ma.read_mesh_tally_file(timepath)[0]
         data = mesh_time.data
-        filtered_time_data = ma.filter_energy_time(data, time=0)
+        filtered_time_data = ma.filter_energy_time(data, time=1e5)
         values = filtered_time_data["value"]
         self.assertAlmostEqual(values[1000], 6.17596e-07)
 
