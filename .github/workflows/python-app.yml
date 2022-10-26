@@ -37,4 +37,4 @@ jobs:
         pwd
         export PYTHONPATH=$PYTHONPATH:$(pwd)
         cd tests
-        pytest --cov=..
+        python -m pytest --cov=..
