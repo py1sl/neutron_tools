@@ -35,6 +35,8 @@ jobs:
     - name: Test with pytest
       run: |
         pwd
-        export PYTHONPATH=$PYTHONPATH:$(/home/runner/work/neutron_tools)
+        export PYTHONPATH=$PYTHONPATH:$(pwd)
         cd tests
-        python -m pytest --cov=..
+        pwd
+        ls
+        pytest --cov=..
