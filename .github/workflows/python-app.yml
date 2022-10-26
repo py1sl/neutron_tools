@@ -5,9 +5,8 @@ name: Python application
 
 on:
   push:
-    branches: [ master, time_mesh_improvements]
-  pull_request:
-    branches: [ master ]
+    branches: [time_mesh_improvements]
+
 
 jobs:
   build:
@@ -38,4 +37,4 @@ jobs:
         pwd
         export PYTHONPATH=$PYTHONPATH:$(pwd)
         cd tests
-        pytest --cov=..
+        python -m pytest 
