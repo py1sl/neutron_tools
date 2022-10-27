@@ -14,31 +14,33 @@ import neut_utilities as ut
 mpl.use('Agg')
 
 class meshtally:
-    idnum = None
-    ptype = None
-    x_bounds = None
-    y_bounds = None
-    z_bounds = None
-    e_bounds = None
-    t_bounds = None
-    data = None
-    x_mids = None
-    y_mids = None
-    z_mids = None
-    ctype = None
+    """Mesh tally object data""""
+    def __init__(self):
+        idnum = None
+        ptype = None
+        x_bounds = None
+        y_bounds = None
+        z_bounds = None
+        e_bounds = None
+        t_bounds = None
+        data = None
+        x_mids = None
+        y_mids = None
+        z_mids = None
+        ctype = None
 
 
 class slice_object:
-
-    values = None
-    errors = None
-    nearest_mid = None
-    error_bars = None
-    slice_i = None
-    slice_j = None
-    i_lab = None
-    j_lab = None
-    value = None
+    """Slice object containing data info"""
+    def __init__(self):
+        values = None
+        errors = None
+        axis_mids = None
+        slice_i = None
+        slice_j = None
+        i_lab = None
+        j_lab = None
+        value = None
 
 
 def rel_err_hist(df, fname=None):
@@ -76,27 +78,30 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
     if plane == "XZ":
         slice_obj.slice_i = mesh.x_mids
         slice_obj.slice_j = mesh.z_mids
-        slice_obj.nearest_mid = mesh.y_mids
+        slice_obj.axis_mids = mesh.y_mids
         v_ind = "y"
         slice_obj.i_lab = "X co-ord (cm)"
         slice_obj.j_lab = "Z co-ord (cm)"
     elif plane == "XY":
         slice_obj.slice_i = mesh.x_mids
         slice_obj.slice_j = mesh.y_mids
-        slice_obj.nearest_mid = mesh.z_mids
+        slice_obj.axis_mids = mesh.z_mids
         v_ind = "z"
         slice_obj.i_lab = "X co-ord (cm)"
         slice_obj.j_lab = "Y co-ord (cm)"
     elif plane == "YZ":
         slice_obj.slice_i = mesh.y_mids
         slice_obj.slice_j = mesh.z_mids
-        slice_obj.nearest_mid = mesh.x_mids
+        slice_obj.axis_mids = mesh.x_mids
         v_ind = "x"
         slice_obj.i_lab = "Y co-ord (cm)"
         slice_obj.j_lab = "Z co-ord (cm)"
-
+    else:
+        "Catch plane not recognised"
+        raise ValueError("Plane not recognised format : XZ, XY, YZ")
+    
     # find closest mid point
-    slice_obj.value = find_nearest_mid(value, slice_obj.nearest_mid)
+    slice_obj.value = find_nearest_mid(value, slice_obj.axis_mids)
 
     # filter to just the values in the plane
     data = data[data[v_ind] == slice_obj.value]
@@ -117,8 +122,8 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
     return slice_obj
 
 
-def create_plot(slice_obj, values, title, ax):
-    plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values,  norm=colors.LogNorm())
+def create_plot(slice_obj, values, title, ax, lmin, lmax):
+    plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values,  norm=colors.LogNorm(vmin=lmin, vmax =lmax))
     plt.colorbar(plot, ax=ax)
     ax.set_title(title)
     ax.set_xlabel(slice_obj.i_lab)
@@ -128,19 +133,19 @@ def create_plot(slice_obj, values, title, ax):
     return ax
 
 
-def plot_slice(mesh, value, plane, err=False, fname=None, erg=None, time=None):
+def plot_slice(mesh, value, plane, lmin, lmax, err=False, fname=None, erg=None, time=None):
     """ plots a slice through the mesh"""
     plt.clf()
     slice_obj = extract_slice(mesh, value, plane, erg, time)
     fig = plt.figure()
     ax = fig.add_subplot(211)
     title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
-    ax = create_plot(slice_obj, slice_obj.values, title, ax)
+    ax = create_plot(slice_obj, slice_obj.values, title, ax, lmin, lmax)
 
     if err:
         title = title + " rel err"
         ax1 = fig.add_subplot(212)
-        ax1 = create_plot(slice_obj, slice_obj.errors, title,  ax1)
+        ax1 = create_plot(slice_obj, slice_obj.errors, title,  ax1, lmin, lmax)
 
     if fname:
         fig.savefig(fname)
@@ -384,8 +389,6 @@ def read_mesh(tnum, data, tdict):
 
     for i, line in enumerate(mesh_data):
         if in_data:
-            # v = " ".join(v.split())
-            # mesh.data.append(v.split(" "))
             ntlogger.info("Guru meditation error")
         elif "X direction:" in line:
             line = " ".join(line.split())
