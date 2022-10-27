@@ -14,7 +14,7 @@ import neut_utilities as ut
 mpl.use('Agg')
 
 class meshtally:
-    """Mesh tally object data""""
+    """Mesh tally object data"""
     def __init__(self):
         idnum = None
         ptype = None
