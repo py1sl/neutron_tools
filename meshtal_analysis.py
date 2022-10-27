@@ -13,6 +13,7 @@ import pandas as pd
 import neut_utilities as ut
 mpl.use('Agg')
 
+
 class meshtally:
     idnum = None
     ptype = None
@@ -38,7 +39,7 @@ class slice_object:
     slice_j = None
     i_lab = None
     j_lab = None
-    value = None
+    plane = None
 
 
 def rel_err_hist(df, fname=None):
@@ -55,100 +56,97 @@ def rel_err_hist(df, fname=None):
 
     return plot[0]
 
-def filter_energy_time(data, erg=None, time=None):
-    """ Filters columns by energy or time parameter"""
-    if erg:
-        data = data[np.isclose(data["Energy"], erg)]
-    if time:
-        data = data[np.isclose(data["Time"], time)]
-    return data
 
-
+# TODO: need to deal with energy bins
 # TODO: need to generalize to any axis
 # plot slice calls extract slice
-def extract_slice(mesh, value, plane, erg=None, time=None):
+def extract_slice(mesh, value, plane, erg, time):
     """ plots a slice through the mesh"""
     data = mesh.data
-    slice_obj = slice_object()
+    slices = slice_object()
     # filter by energy/time if needed
     data = filter_energy_time(data, erg, time)
 
     if plane == "XZ":
-        slice_obj.slice_i = mesh.x_mids
-        slice_obj.slice_j = mesh.z_mids
-        slice_obj.nearest_mid = mesh.y_mids
+        slices.slice_i = mesh.x_mids
+        slices.slice_j = mesh.z_mids
+        slices.nearest_mid = mesh.y_mids
         v_ind = "y"
-        slice_obj.i_lab = "X co-ord (cm)"
-        slice_obj.j_lab = "Z co-ord (cm)"
+        slices.i_lab = "X co-ord (cm)"
+        slices.j_lab = "Z co-ord (cm)"
     elif plane == "XY":
-        slice_obj.slice_i = mesh.x_mids
-        slice_obj.slice_j = mesh.y_mids
-        slice_obj.nearest_mid = mesh.z_mids
+        slices.slice_i = mesh.x_mids
+        slices.slice_j = mesh.y_mids
+        slices.nearest_mid = mesh.z_mids
         v_ind = "z"
-        slice_obj.i_lab = "X co-ord (cm)"
-        slice_obj.j_lab = "Y co-ord (cm)"
+        slices.i_lab = "X co-ord (cm)"
+        slices.j_lab = "Y co-ord (cm)"
     elif plane == "YZ":
-        slice_obj.slice_i = mesh.y_mids
-        slice_obj.slice_j = mesh.z_mids
-        slice_obj.nearest_mid = mesh.x_mids
+        slices.slice_i = mesh.y_mids
+        slices.slice_j = mesh.z_mids
+        slices.nearest_mid = mesh.x_mids
         v_ind = "x"
-        slice_obj.i_lab = "Y co-ord (cm)"
-        slice_obj.j_lab = "Z co-ord (cm)"
+        slices.i_lab = "Y co-ord (cm)"
+        slices.j_lab = "Z co-ord (cm)"
 
     # find closest mid point
-    slice_obj.value = find_nearest_mid(value, slice_obj.nearest_mid)
+    value = find_nearest_mid(value, slices.nearest_mid)
 
     # filter to just the values in the plane
-    data = data[data[v_ind] == slice_obj.value]
+    data = data[data[v_ind] == value]
 
     # now find the slice values
-    slice_obj.values = np.zeros((len(slice_obj.slice_j), len(slice_obj.slice_i)))
-    slice_obj.errors = np.zeros((len(slice_obj.slice_j), len(slice_obj.slice_i)))
+    slices.values = np.zeros((len(slices.slice_j), len(slices.slice_i)))
+    slices.errors = np.zeros((len(slices.slice_j), len(slices.slice_i)))
 
     for (_, __, x, y, ____, val, rerr) in data.itertuples():
 
         x = np.float64(x)
         y = np.float64(y)
-        i, = np.where(slice_obj.slice_i == x)
-        j, = np.where(slice_obj.slice_j == y)
-        slice_obj.values[j, i] = val
-        slice_obj.errors[j, i] = rerr
+        i, = np.where(slices.slice_i == x)
+        j, = np.where(slices.slice_j == y)
+        slices.values[j, i] = val
+        slices.errors[j, i] = rerr
 
-    return slice_obj
-
-
-def create_plot(slice_obj, values, title, ax):
-    plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values,  norm=colors.LogNorm())
-    plt.colorbar(plot, ax=ax)
-    ax.set_title(title)
-    ax.set_xlabel(slice_obj.i_lab)
-    ax.set_ylabel(slice_obj.j_lab)
-    ax.set_xlim(xmin=min(slice_obj.slice_i), xmax=max(slice_obj.slice_i))
-    ax.set_ylim(ymin=min(slice_obj.slice_j), ymax=max(slice_obj.slice_j))
-    return ax
+    return slices
 
 
 def plot_slice(mesh, value, plane, err=False, fname=None, erg=None, time=None):
     """ plots a slice through the mesh"""
+    lmin = 1e-15
+    lmax = 1e-3
     plt.clf()
-    slice_obj = extract_slice(mesh, value, plane, erg, time)
-    
-    fig = plt.figure()
-    ax = fig.add_subplot(211)
+    slices = extract_slice(mesh, value, plane, erg, time)
+
+    if slices.error_bars:
+        plt.subplot(2, 1, 2)
+        plt.pcolormesh(slices.slice_i, slices.slice_j, slices.errors)
+        title = plane + " Slice at " + str(value) + " of mesh "
+        title = title + str(mesh.idnum) + " rel err"
+        plt.title(title)
+        plt.colorbar()
+        plt.xlabel(slices.i_lab)
+        plt.ylabel(slices.j_lab)
+        plt.xlim(xmin=min(slices.slice_i), xmax=max(slices.slice_i))
+        plt.ylim(ymin=min(slices.slice_j), ymax=max(slices.slice_j))
+
+        plt.subplot(2, 1, 1)
+        plt.tight_layout()
+
+    plt.pcolormesh(slices.slice_i, slices.slice_j, slices.values, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
     title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
-    ax = create_plot(slice_obj, slice_obj.values, title, ax)
-
-    if err:
-        title = title + " rel err"
-        ax1 = fig.add_subplot(212)
-        ax1 = create_plot(slice_obj, slice_obj.errors, title,  ax1)
-
+    plt.title(title)
+    plt.colorbar()
+    plt.xlabel(slices.i_lab)
+    plt.ylabel(slices.j_lab)
+    plt.xlim(xmin=min(slices.slice_i), xmax=max(slices.slice_i))
+    plt.ylim(ymin=min(slices.slice_j), ymax=max(slices.slice_j))
     if fname:
-        fig.savefig(fname)
+        plt.savefig(fname)
         ntlogger.info("produced figure: %s", fname)
     else:
         plt.show()
-    return slice_obj
+    return slices
 
 
 # TODO:
@@ -188,6 +186,14 @@ def convert_to_df(mesh):
     return data
 
 
+def filter_energy_time(data, erg=None, time=None):
+    if erg:
+        data = data[data["Energy"] == erg]
+    if time:
+        data = data[data["Time"] == time]
+    return data
+
+
 def extract_line(mesh, p1, p2, erg=None, time=None):
     """ currently support lines varying along a single axis
         p1 and p2 are tuples of the form (x,y,z) and
@@ -196,8 +202,6 @@ def extract_line(mesh, p1, p2, erg=None, time=None):
     """
 
     data = mesh.data
-    #filter for energy/time selection
-    data = filter_energy_time(data, erg, time)
     # find and filter the constant axis
     if p1[0] == p2[0]:
         x = p1[0]
@@ -212,13 +216,15 @@ def extract_line(mesh, p1, p2, erg=None, time=None):
         z = find_nearest_mid(z, mesh.z_mids)
         data = data[data["z"] == z]
 
+    data = filter_energy_time(data, erg, time)
+
     result = data["value"]
 
     return result
 
 
 def pick_point(x, y, z, mesh, erg=None, time=None):
-    """ find the mesh value for the voxel that  point x, y, z is in and also matches time/energy parameter"""
+    """ find the mesh value for the voxel that  point x, y, z is in"""
     x = find_nearest_mid(x, mesh.x_mids)
     y = find_nearest_mid(y, mesh.y_mids)
     z = find_nearest_mid(z, mesh.z_mids)
@@ -439,11 +445,11 @@ def read_mesh_tally_file(fpath):
     ntlogger.info('Reading MCNP meshtal file: %s', fpath)
     all_data = ut.get_lines(fpath)
     tally_dict = find_mesh_tally_numbers(all_data)
-    meshes = []
+    mesh_list = []
     for tnum in tally_dict.keys():
         mesh = read_mesh(tnum, all_data, tally_dict)
-        meshes.append(mesh)
-    return meshes
+        mesh_list.append(mesh)
+    return mesh_list
 
 
 if __name__ == "__main__":
