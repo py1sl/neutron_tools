@@ -5,14 +5,13 @@ mesh tally tools
 """
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
+from matplotlib import colors
 import numpy as np
 import argparse
 import logging as ntlogger
 import pandas as pd
 import neut_utilities as ut
 mpl.use('Agg')
-
 
 class meshtally:
     idnum = None
@@ -29,6 +28,19 @@ class meshtally:
     ctype = None
 
 
+class slice_object:
+
+    values = None
+    errors = None
+    nearest_mid = None
+    error_bars = None
+    slice_i = None
+    slice_j = None
+    i_lab = None
+    j_lab = None
+    value = None
+
+
 def rel_err_hist(df, fname=None):
     """ Plots a histogram of the relative errors"""
 
@@ -43,99 +55,99 @@ def rel_err_hist(df, fname=None):
 
     return plot[0]
 
-
-# TODO: need to deal with energy bins
-# TODO: need to generalize to any axis
-def plot_slice(mesh, value, plane="XY", lmin=1e-15, lmax=1e-3, fname=None,
-               err=False, norm=1.0, erg=None):
-    """ plots a slice through the mesh"""
-    plt.clf()
-    data = mesh.data
-    # filter by energy if needed
+def filter_energy_time(data, erg=None, time=None):
+    """ Filters columns by energy or time parameter"""
     if erg:
-        data = data[data["Energy"] == erg]
+        data = data[np.isclose(data["Energy"], erg)]
+    if time:
+        data = data[np.isclose(data["Time"], time)]
+    return data
+
+
+# TODO: need to generalize to any axis
+# plot slice calls extract slice
+def extract_slice(mesh, value, plane, erg=None, time=None):
+    """ plots a slice through the mesh"""
+    data = mesh.data
+    slice_obj = slice_object()
+    # filter by energy/time if needed
+    data = filter_energy_time(data, erg, time)
 
     if plane == "XZ":
-        midx = mesh.x_mids
-        midy = mesh.z_mids
-        v_mid = mesh.y_mids
+        slice_obj.slice_i = mesh.x_mids
+        slice_obj.slice_j = mesh.z_mids
+        slice_obj.nearest_mid = mesh.y_mids
         v_ind = "y"
-        # ipos = "x"
-        # jpos = "z"
-        ilab = "X co-ord (cm)"
-        jlab = "Z co-ord (cm)"
+        slice_obj.i_lab = "X co-ord (cm)"
+        slice_obj.j_lab = "Z co-ord (cm)"
     elif plane == "XY":
-        midx = mesh.x_mids
-        midy = mesh.y_mids
-        v_mid = mesh.z_mids
+        slice_obj.slice_i = mesh.x_mids
+        slice_obj.slice_j = mesh.y_mids
+        slice_obj.nearest_mid = mesh.z_mids
         v_ind = "z"
-        # ipos = "x"
-        # jpos = "y"
-
-        ilab = "X co-ord (cm)"
-        jlab = "Y co-ord (cm)"
+        slice_obj.i_lab = "X co-ord (cm)"
+        slice_obj.j_lab = "Y co-ord (cm)"
     elif plane == "YZ":
-        midx = mesh.y_mids
-        midy = mesh.z_mids
-        v_mid = mesh.x_mids
+        slice_obj.slice_i = mesh.y_mids
+        slice_obj.slice_j = mesh.z_mids
+        slice_obj.nearest_mid = mesh.x_mids
         v_ind = "x"
-        # ipos = "y"
-        # jpos = "z"
-
-        ilab = "Y co-ord (cm)"
-        jlab = "Z co-ord (cm)"
+        slice_obj.i_lab = "Y co-ord (cm)"
+        slice_obj.j_lab = "Z co-ord (cm)"
 
     # find closest mid point
-    value = find_nearest_mid(value, v_mid)
+    slice_obj.value = find_nearest_mid(value, slice_obj.nearest_mid)
 
     # filter to just the values in the plane
-    data = data[data[v_ind] == value]
+    data = data[data[v_ind] == slice_obj.value]
 
     # now find the slice values
-    vals = np.zeros((len(midy), len(midx)))
-    err_vals = np.zeros((len(midy), len(midx)))
+    slice_obj.values = np.zeros((len(slice_obj.slice_j), len(slice_obj.slice_i)))
+    slice_obj.errors = np.zeros((len(slice_obj.slice_j), len(slice_obj.slice_i)))
 
     for (_, __, x, y, ____, val, rerr) in data.itertuples():
 
         x = np.float64(x)
         y = np.float64(y)
-        i, = np.where(midx == x)
-        j, = np.where(midy == y)
+        i, = np.where(slice_obj.slice_i == x)
+        j, = np.where(slice_obj.slice_j == y)
+        slice_obj.values[j, i] = val
+        slice_obj.errors[j, i] = rerr
 
-        vals[j, i] = val
-        err_vals[j, i] = rerr
+    return slice_obj
 
-    # now plot
-    if err:
-        plt.subplot(2, 1, 2)
-        plt.pcolormesh(midx, midy, err_vals)
-        title = plane + " Slice at " + str(value) + " of mesh "
-        title = title + str(mesh.idnum) + " rel err"
-        plt.title(title)
-        plt.colorbar()
-        plt.xlabel(ilab)
-        plt.ylabel(jlab)
-        plt.xlim(xmin=min(midx), xmax=max(midx))
-        plt.ylim(ymin=min(midy), ymax=max(midy))
 
-        plt.subplot(2, 1, 1)
-        plt.tight_layout()
+def create_plot(slice_obj, values, title, ax):
+    plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values,  norm=colors.LogNorm())
+    plt.colorbar(plot, ax=ax)
+    ax.set_title(title)
+    ax.set_xlabel(slice_obj.i_lab)
+    ax.set_ylabel(slice_obj.j_lab)
+    ax.set_xlim(xmin=min(slice_obj.slice_i), xmax=max(slice_obj.slice_i))
+    ax.set_ylim(ymin=min(slice_obj.slice_j), ymax=max(slice_obj.slice_j))
+    return ax
 
-    plt.pcolormesh(midx, midy, vals, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
+
+def plot_slice(mesh, value, plane, err=False, fname=None, erg=None, time=None):
+    """ plots a slice through the mesh"""
+    plt.clf()
+    slice_obj = extract_slice(mesh, value, plane, erg, time)
+    fig = plt.figure()
+    ax = fig.add_subplot(211)
     title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
-    plt.title(title)
+    ax = create_plot(slice_obj, slice_obj.values, title, ax)
 
-    plt.colorbar()
-    plt.xlabel(ilab)
-    plt.ylabel(jlab)
-    plt.xlim(xmin=min(midx), xmax=max(midx))
-    plt.ylim(ymin=min(midy), ymax=max(midy))
+    if err:
+        title = title + " rel err"
+        ax1 = fig.add_subplot(212)
+        ax1 = create_plot(slice_obj, slice_obj.errors, title,  ax1)
 
     if fname:
-        plt.savefig(fname)
+        fig.savefig(fname)
         ntlogger.info("produced figure: %s", fname)
     else:
         plt.show()
+    return slice_obj
 
 
 # TODO:
@@ -164,7 +176,7 @@ def convert_to_df(mesh):
     data["z"] = pd.to_numeric(data["z"], downcast="float")
     data["value"] = pd.to_numeric(data["value"], downcast="float")
     data["rel_err"] = pd.to_numeric(data["rel_err"], downcast="float")
-    
+
     if mesh.ctype == "6col_e":
         data["Energy"] = pd.to_numeric(data["Energy"], downcast="float")
     if mesh.ctype == "6col_t":
@@ -175,7 +187,7 @@ def convert_to_df(mesh):
     return data
 
 
-def extract_line(mesh, p1, p2, erg=None):
+def extract_line(mesh, p1, p2, erg=None, time=None):
     """ currently support lines varying along a single axis
         p1 and p2 are tuples of the form (x,y,z) and
         describe two points on the line
@@ -197,16 +209,15 @@ def extract_line(mesh, p1, p2, erg=None):
         z = find_nearest_mid(z, mesh.z_mids)
         data = data[data["z"] == z]
 
-    if erg:
-        data = data[data["Energy"] == erg]
-
+    #filter for energy/time selection
+    data = filter_energy_time(data, erg, time)
     result = data["value"]
 
     return result
 
 
-def pick_point(x, y, z, mesh, erg=None):
-    """ find the mesh value for the voxel that  point x, y, z is in"""
+def pick_point(x, y, z, mesh, erg=None, time=None):
+    """ find the mesh value for the voxel that  point x, y, z is in and also matches time/energy parameter"""
     x = find_nearest_mid(x, mesh.x_mids)
     y = find_nearest_mid(y, mesh.y_mids)
     z = find_nearest_mid(z, mesh.z_mids)
@@ -216,8 +227,7 @@ def pick_point(x, y, z, mesh, erg=None):
     data = data[data["y"] == y]
     data = data[data["z"] == z]
 
-    if erg:
-        data = data[data["Energy"] == erg]
+    data = filter_energy_time(data, erg, time)
 
     result = data["value"]
 
@@ -250,8 +260,14 @@ def add_mesh(mesh1, mesh2):
     if ((mesh1.x_bounds != mesh2.x_bounds) or
             (mesh1.y_bounds != mesh2.y_bounds) or
             (mesh1.z_bounds != mesh2.z_bounds)):
-        raise ValueError('bounds not equal')
+        raise ValueError(' position bounds not equal')
 
+    if mesh1.ctype != mesh2.ctype:
+        raise ValueError('column types are not equal')
+    if (mesh1.e_bounds != mesh2.e_bounds):
+        raise ValueError(' energy bounds not equal')
+    if (mesh1.t_bounds != mesh2.t_bounds):
+        raise ValueError('time bounds are not equal')
     else:
         new_val = mesh1.data['value'] + mesh2.data['value']
         new_err = np.sqrt((mesh1.data['rel_err'])**2 +
@@ -264,6 +280,8 @@ def add_mesh(mesh1, mesh2):
         new_mesh.x_bounds = mesh1.x_bounds
         new_mesh.y_bounds = mesh1.y_bounds
         new_mesh.z_bounds = mesh1.z_bounds
+        new_mesh.e_bounds = mesh1.e_bounds
+        new_mesh.t_bounds = mesh1.t_bounds
 
         new_mesh.x_mids = mesh1.x_mids
         new_mesh.y_mids = mesh1.y_mids
@@ -271,12 +289,17 @@ def add_mesh(mesh1, mesh2):
 
         new_mesh.data['value'] = new_val
         new_mesh.data['rel_err'] = new_err
-        new_mesh.data['Energy'] = mesh1.data['Energy']
+
+        if mesh1.ctype == "6col_e":
+            new_mesh.data['Energy'] = mesh1.data['Energy']
+        elif mesh1.ctype == "6col_t":
+            new_mesh.data["Time"] = mesh1.data["Time"]
+
         new_mesh.data['x'] = mesh1.data['x']
         new_mesh.data['y'] = mesh1.data['y']
         new_mesh.data['z'] = mesh1.data['z']
 
-        return(new_mesh)
+        return new_mesh
 
 
 # TODO: need to deal with energy bins
@@ -307,16 +330,9 @@ def convert_to_3d_array(mesh):
 
 def calc_mid_points(bounds):
     """ finds the mid points given a set of bounds """
-    mids = []
     bounds = np.array(bounds).astype(float)
-    i = 0
-    while i < len(bounds) - 1:
-        val = (bounds[i] + bounds[i+1]) / 2.0
-        val = round(val, 5)
-        mids.append(val)
-        i = i + 1
-
-    return mids
+    mids = np.round((bounds[1:] + bounds[:-1]) * 0.5, 5)
+    return mids.tolist()
 
 
 def count_zeros(mesh):
@@ -366,41 +382,41 @@ def read_mesh(tnum, data, tdict):
     # read through and assign mesh variables
     in_data = False
 
-    for i, v in enumerate(mesh_data):
+    for i, line in enumerate(mesh_data):
         if in_data:
             # v = " ".join(v.split())
             # mesh.data.append(v.split(" "))
             ntlogger.info("Guru meditation error")
-        elif "X direction:" in v:
-            v = " ".join(v.split())
-            mesh.x_bounds = v.split(" ")[2:]
-        elif "Y direction:" in v:
-            v = " ".join(v.split())
-            mesh.y_bounds = v.split(" ")[2:]
-        elif "Z direction:" in v:
-            v = " ".join(v.split())
-            mesh.z_bounds = v.split(" ")[2:]
-        elif "Energy bin boundaries:" in v:
-            v = " ".join(v.split())
-            mesh.e_bounds = v.split(" ")[3:]
-        elif "Time bin boundaries:" in v:
-            v = " ".join(v.split())
-            mesh.t_bounds = v.split(" ")[3:]
-        elif ("Energy         X         Y         Z     Result" in v):
+        elif "X direction:" in line:
+            line = " ".join(line.split())
+            mesh.x_bounds = line.split(" ")[2:]
+        elif "Y direction:" in line:
+            line = " ".join(line.split())
+            mesh.y_bounds = line.split(" ")[2:]
+        elif "Z direction:" in line:
+            line = " ".join(line.split())
+            mesh.z_bounds = line.split(" ")[2:]
+        elif "Energy bin boundaries:" in line:
+            line = " ".join(line.split())
+            mesh.e_bounds = line.split(" ")[3:]
+        elif "Time bin boundaries:" in line:
+            line = " ".join(line.split())
+            mesh.t_bounds = line.split(" ")[3:]
+        elif ("Energy         X         Y         Z     Result" in line):
             in_data = True
             break
-        elif ("Time         X         Y         Z     Result" in v):
+        elif ("Time         X         Y         Z     Result" in line):
             in_data = True
             mesh.ctype = "6col_t"
             break
-        elif "X         Y         Z     Result" in v:
+        elif "X         Y         Z     Result" in line:
             in_data = True
             mesh.ctype = "5col"
             break
 
-        elif "mesh tally." in v:
-            v = " ".join(v.split())
-            mesh.ptype = v.split(" ")[0]
+        elif "mesh tally." in line:
+            line = " ".join(line.split())
+            mesh.ptype = line.split(' ')[0]
 
     ntlogger.info("processing results: %s ", str(tnum))
     mesh_data = [" ".join(j.split()) for j in mesh_data[i:]]
@@ -411,6 +427,7 @@ def read_mesh(tnum, data, tdict):
     mesh.x_mids = calc_mid_points(mesh.x_bounds)
     mesh.y_mids = calc_mid_points(mesh.y_bounds)
     mesh.z_mids = calc_mid_points(mesh.z_bounds)
+
     ntlogger.info("finished reading mesh number: %s ", str(tnum))
 
     return mesh
