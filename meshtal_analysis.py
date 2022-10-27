@@ -269,19 +269,23 @@ def add_mesh(mesh1, mesh2):
 
     if mesh1.ctype != mesh2.ctype:
         raise ValueError('column types are not equal')
-    if (mesh1.e_bounds != mesh2.e_bounds):
-        raise ValueError(' energy bounds not equal')
-    if (mesh1.t_bounds != mesh2.t_bounds):
-        raise ValueError('time bounds are not equal')
+    if mesh1.ctype == "6col_e":
+        col = "Energy"
+        if (mesh1.e_bounds != mesh2.e_bounds):
+            raise ValueError(' energy bounds not equal')
+    elif mesh1.ctype == "6col_t":
+        col = "Time"
+        if (mesh1.t_bounds != mesh2.t_bounds):
+            raise ValueError('time bounds are not equal')
     else:
         new_val = mesh1.data['value'] + mesh2.data['value']
         new_err = np.sqrt((mesh1.data['rel_err'])**2 +
                           (mesh2.data['rel_err'])**2)
 
         new_mesh = meshtally()
-        cols = ("Energy", "x", "y", "z", "value", "rel_err")
+        cols = (col, "x", "y", "z", "value", "rel_err")
         new_mesh.data = pd.DataFrame(columns=cols)
-        new_mesh.ctype = "6col"
+        new_mesh.ctype = mesh1.ctype
         new_mesh.x_bounds = mesh1.x_bounds
         new_mesh.y_bounds = mesh1.y_bounds
         new_mesh.z_bounds = mesh1.z_bounds
