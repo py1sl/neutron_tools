@@ -145,6 +145,7 @@ class add_mesh_test(unittest.TestCase):
             ma.add_mesh(mesh1_test, mesh2_test)
 
     def test_add_mesh(self):
+
         mesh3_test = ma.meshtally()
         mesh3_test.ctype = "6col_e"
         mesh4_test = ma.meshtally()
@@ -181,29 +182,28 @@ class add_mesh_test(unittest.TestCase):
 
         mesh3_test = ma.meshtally()
         mesh3_test.ctype = "6col_t"
-        mesh4_test = ma.meshtally()
-        mesh4_test.ctype = "6col_t"
-
         mesh3_test.data = [['1.3e5', '-9.0', '-9.0', '1.4',
                             '7.329430e-07', '0.017765']]
-        mesh4_test.data = [['1.3e5', '-9.0', '-9.0', '1.4',
-                            '6.566330e-07', '0.018680']]
         mesh3_test.data = ma.convert_to_df(mesh3_test)
-        mesh4_test.data = ma.convert_to_df(mesh4_test)
-
         mesh3_test.x_bounds = (-8.9, -9.1)
         mesh3_test.y_bounds = (-8.9, -9.1)
         mesh3_test.z_bounds = (1.3, 1.5)
+        mesh3_test.t_bounds = (1.0e5, 1.5e5)
+
+        mesh4_test = ma.meshtally()
+        mesh4_test.ctype = "6col_t"
+        mesh4_test.data = [['1.3e5', '-9.0', '-9.0', '1.4', '6.566330e-07', '0.018680']]
+        mesh4_test.data = ma.convert_to_df(mesh4_test)
         mesh4_test.x_bounds = (-8.9, -9.1)
         mesh4_test.y_bounds = (-8.9, -9.1)
         mesh4_test.z_bounds = (1.3, 1.5)
-        mesh3_test.t_bounds = (1.0e5, 1.5e5)
         mesh4_test.t_bounds = (1.0e5, 1.5e5)
         new_mesh_test = ma.add_mesh(mesh3_test, mesh4_test)
 
         self.assertEqual(new_mesh_test.t_bounds, mesh3_test.t_bounds)
 
     def test_add_mesh_file(self):
+
         mesh = ma.read_mesh_tally_file(path)[0]
         new_mesh_test = ma.add_mesh(mesh, mesh)
         self.assertEqual(new_mesh_test.x_bounds, mesh.x_bounds)
@@ -375,7 +375,7 @@ class slice_tests(unittest.TestCase):
         mesh = ma.read_mesh_tally_file(path)[0]
         value = 1
         plane = "XY"
-        slices = ma.plot_slice(mesh, value, plane, erg=1e36)
+        slices = ma.plot_slice(mesh, value, plane, lmin=1e-15, lmax=1e-3, erg=1e36)
         self.assertEqual(slices.i_lab, "X co-ord (cm)")
         self.assertEqual(slices.j_lab, "Y co-ord (cm)")
         self.assertEqual(slices.slice_i[0], -9.0)

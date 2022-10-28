@@ -273,7 +273,7 @@ def add_mesh(mesh1, mesh2):
         col = "Energy"
         if (mesh1.e_bounds != mesh2.e_bounds):
             raise ValueError(' energy bounds not equal')
-    elif mesh1.ctype == "6col_t":
+    if mesh1.ctype == "6col_t":
         col = "Time"
         if (mesh1.t_bounds != mesh2.t_bounds):
             raise ValueError('time bounds are not equal')
@@ -289,20 +289,19 @@ def add_mesh(mesh1, mesh2):
         new_mesh.x_bounds = mesh1.x_bounds
         new_mesh.y_bounds = mesh1.y_bounds
         new_mesh.z_bounds = mesh1.z_bounds
-        new_mesh.e_bounds = mesh1.e_bounds
-        new_mesh.t_bounds = mesh1.t_bounds
-
-        new_mesh.x_mids = mesh1.x_mids
-        new_mesh.y_mids = mesh1.y_mids
-        new_mesh.z_mids = mesh1.z_mids
-
+        
+        new_mesh.x_mids = calc_mid_points(mesh1.x_bounds)
+        new_mesh.y_mids = calc_mid_points(mesh1.y_bounds)
+        new_mesh.z_mids = calc_mid_points(mesh1.z_bounds)
         new_mesh.data['value'] = new_val
         new_mesh.data['rel_err'] = new_err
 
         if mesh1.ctype == "6col_e":
             new_mesh.data['Energy'] = mesh1.data['Energy']
+            new_mesh.e_bounds = mesh1.e_bounds
         elif mesh1.ctype == "6col_t":
             new_mesh.data["Time"] = mesh1.data["Time"]
+            new_mesh.t_bounds = mesh1.t_bounds
 
         new_mesh.data['x'] = mesh1.data['x']
         new_mesh.data['y'] = mesh1.data['y']
