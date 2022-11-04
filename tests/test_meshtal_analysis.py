@@ -85,7 +85,7 @@ class count_zeros_test(unittest.TestCase):
 class read_mesh_file_tests(unittest.TestCase):
 
     def test_read_mesh_file(self):
-        mesh = ma.read_mesh_tally_file(path)
+        mesh = ma.read_mesh(path)
         length = len(mesh[0].data)
 
         self.assertEqual(mesh[0].x_bounds[1], '-8.00')
@@ -100,16 +100,15 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(length, 1000)
 
     def test_read_mesh(self):
-        data = ut.get_lines(path)
-        read_mesh = ma.read_mesh(214, data, {214: 4})
+        read_mesh = ma.read_mesh(path)[0]
 
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
         self.assertEqual(read_mesh.ctype, '6col_e')
 
     def test_read_time_bins_mesh(self):
-        data = ut.get_lines(timepath)
-        read_mesh = ma.read_mesh(314, data, {314: 4})
+       
+        read_mesh = ma.read_mesh(timepath)[0]
 
         self.assertEqual(read_mesh.ptype, 'neutron')
         self.assertEqual(read_mesh.idnum, 314)
@@ -117,14 +116,14 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(len(read_mesh.t_bounds), 5)
         self.assertEqual(read_mesh.t_bounds[0], "-1.00E+36")
 
-
+"""""
 class find_mesh_tally_num_test(unittest.TestCase):
 
     def test_find_mesh_tally_num(self):
         data = ut.get_lines(path)
 
         self.assertEqual(ma.find_mesh_tally_numbers(data), {214: 4})
-
+"""""
 
 class add_mesh_test(unittest.TestCase):
 
@@ -204,7 +203,7 @@ class add_mesh_test(unittest.TestCase):
 
     def test_add_mesh_file(self):
 
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_mesh(path)[0]
         new_mesh_test = ma.add_mesh(mesh, mesh)
         self.assertEqual(new_mesh_test.x_bounds, mesh.x_bounds)
         self.assertEqual(new_mesh_test.y_bounds, mesh.y_bounds)
@@ -269,14 +268,14 @@ class find_point_test(unittest.TestCase):
         self.assertAlmostEqual(result2[0], 5.035e-6, 7)
 
     def test_get_point_file(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_mesh(path)[0]
         result = ma.pick_point(-9, -9, 1.4, mesh).iloc[0]
         self.assertAlmostEqual(result, 7.329430e-07, 7)
         # test energy
         result = ma.pick_point(-8.9, -8.9, 1.4, mesh, 1e36).iloc[0]
         self.assertAlmostEqual(result, 7.329430e-07, 7)
         # test time
-        mesh_time = ma.read_mesh_tally_file(timepath)[0]
+        mesh_time = ma.read_mesh(timepath)[0]
         result = ma.pick_point(-9, -9, 9.4, mesh_time, time=1e5).iloc[0]
         self.assertAlmostEqual(result, 1.0428E-06, 7)
 
@@ -312,7 +311,7 @@ class find_line_test(unittest.TestCase):
 
     def test_extract_line_file(self):
 
-        mesh_test = ma.read_mesh_tally_file(path)[0]
+        mesh_test = ma.read_mesh(path)[0]
         result_1 = ma.extract_line(mesh_test, ((-9, -7, 6.2)), ((-9, -5, 1.4))).iloc[0]
         self.assertAlmostEqual(result_1, 6.38182e-7, 7)
 
@@ -320,7 +319,7 @@ class find_line_test(unittest.TestCase):
         result_2 = ma.extract_line(mesh_test, ((-9, -9, -0.2)), ((-9, -7, 4.6)), 1e36).iloc[1]
         self.assertAlmostEqual(result_2, 7.32943e-7, 7)
 
-        mesh_test_time = ma.read_mesh_tally_file(timepath)[0]
+        mesh_test_time = ma.read_mesh(timepath)[0]
         result_3 = ma.extract_line(mesh_test_time, ((-180, 25, 11)), ((-180, 25, 33)), 0.0).iloc[0]
         self.assertAlmostEqual(result_3, 6.17596e-7, 7)
 
@@ -328,7 +327,7 @@ class find_line_test(unittest.TestCase):
 class upper_vals_test(unittest.TestCase):
 
     def test_upper_vals_file(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_mesh(path)[0]
         mesh = ma.calculate_upper_mesh_vals(mesh)
         value = mesh.data["max_vals"].iloc[0]
         self.assertAlmostEqual(value, 6.50278e-7)
@@ -337,7 +336,7 @@ class upper_vals_test(unittest.TestCase):
 class lower_vals_test(unittest.TestCase):
 
     def test_lower_vals_file(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_mesh(path)[0]
         mesh = ma.calculate_lower_mesh_vals(mesh)
         value = mesh.data["min_vals"].iloc[0]
         self.assertAlmostEqual(value, 6.2608e-7)
@@ -346,7 +345,7 @@ class lower_vals_test(unittest.TestCase):
 class err_hist_tests(unittest.TestCase):
 
     def test_err_hist(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_mesh(path)[0]
         plot = ma.rel_err_hist(mesh.data)
         # x_plot, y_plot = plot.get_xydata().T
         self.assertEqual(plot.get_xlabel(), "Relative error")
@@ -356,23 +355,39 @@ class err_hist_tests(unittest.TestCase):
 class filter_energy_time_tests(unittest.TestCase):
 
     def test_filter_energy_time_file(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_mesh(path)[0]
         data = mesh.data
         filtered_energy_data = (ma.filter_energy_time(data, erg=1e36))
         values = filtered_energy_data["value"]
         self.assertAlmostEqual(values[0], 6.38182e-7)
 
-        mesh_time = ma.read_mesh_tally_file(timepath)[0]
+        mesh_time = ma.read_mesh(timepath)[0]
         data = mesh_time.data
         filtered_time_data = ma.filter_energy_time(data, time=0)
         values = filtered_time_data["value"]
         self.assertAlmostEqual(values[1000], 6.17596e-07)
 
 
+class meshes_tests(unittest.TestCase):
+    
+    def test_read_multiple_meshes(self):
+        
+        mesh_1 = ma.read_mesh(meshes_path)[0]
+        self.assertEqual(mesh_1.ptype, 'neutron')
+        self.assertEqual(mesh_1.idnum, 4)
+        self.assertEqual(mesh_1.ctype, '6col_e')
+        
+        mesh_2 = ma.read_mesh(meshes_path)[1]
+        self.assertEqual(mesh_2.ptype, 'neutron')
+        self.assertEqual(mesh_2.idnum, 14)
+        self.assertEqual(mesh_2.ctype, '5col')
+        self.assertEqual(mesh_2.x_mids[0], -20)
+        
+        
 class slice_tests(unittest.TestCase):
 
     def test_slice_plot(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_mesh(path)[0]
         value = 1
         plane = "XY"
         slices = ma.plot_slice(mesh, value, plane, lmin=1e-15, lmax=1e-3, erg=1e36)

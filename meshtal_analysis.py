@@ -23,7 +23,7 @@ class meshtally:
         z_bounds = None
         e_bounds = None
         t_bounds = None
-        data = None
+        self.data = []
         x_mids = None
         y_mids = None
         z_mids = None
@@ -349,111 +349,65 @@ def count_zeros(mesh):
     return count
 
 
-def find_mesh_tally_numbers(data):
-    """ find the different meshes in the file, the tally number
-        and the line it starts on"""
-    tdict = {}
-    for i, l in enumerate(data):
-        if "Mesh Tally Number" in l:
-            talid = int(l.split(" ")[-1])
-            tdict[talid] = i
-    return tdict
-
-
-def find_next_mesh(tnum, tdict):
-    """ finds the start location of the next numerical mesh tally"""
-    keylist = sorted(tdict.keys())
-    if tnum == keylist[-1]:
-        return -1
-    else:
-        for i, v in enumerate(keylist):
-            if v == tnum:
-                return tdict[keylist[i+1]]
-
-
-def read_mesh(tnum, data, tdict):
-    """ reads and individual mesh tally into mesh class """
-    mesh = meshtally()
-    mesh.idnum = tnum
-    mesh.data = []
-    mesh.ctype = "6col_e"
-    ntlogger.info("reading mesh number: %s ", str(tnum))
-    # reduce data to just the selected mesh tally
-    start_pos = tdict[tnum]
-    end_pos = find_next_mesh(tnum, tdict)
-
-    if end_pos == -1:
-        mesh_data = data[start_pos:]
-    else:
-        mesh_data = data[start_pos:end_pos - 1]
-
-    # read through and assign mesh variables
+def read_mesh(path):
     in_data = False
-
-    for i, line in enumerate(mesh_data):
-        if in_data:
-            ntlogger.info("Guru meditation error")
-        elif "X direction:" in line:
-            line = " ".join(line.split())
-            mesh.x_bounds = line.split(" ")[2:]
-        elif "Y direction:" in line:
-            line = " ".join(line.split())
-            mesh.y_bounds = line.split(" ")[2:]
-        elif "Z direction:" in line:
-            line = " ".join(line.split())
-            mesh.z_bounds = line.split(" ")[2:]
-        elif "Energy bin boundaries:" in line:
-            line = " ".join(line.split())
-            mesh.e_bounds = line.split(" ")[3:]
-        elif "Time bin boundaries:" in line:
-            line = " ".join(line.split())
-            mesh.t_bounds = line.split(" ")[3:]
-        elif ("Energy         X         Y         Z     Result" in line):
-            in_data = True
-            break
-        elif ("Time         X         Y         Z     Result" in line):
-            in_data = True
-            mesh.ctype = "6col_t"
-            break
-        elif "X         Y         Z     Result" in line:
-            in_data = True
-            mesh.ctype = "5col"
-            break
-
-        elif "mesh tally." in line:
-            line = " ".join(line.split())
-            mesh.ptype = line.split(' ')[0]
-
-    ntlogger.info("processing results: %s ", str(tnum))
-    mesh_data = [" ".join(j.split()) for j in mesh_data[i:]]
-    mesh.data = [j.split() for j in mesh_data[1:]]
-    ntlogger.info("converting to df: %s ", str(tnum))
-    mesh.data = convert_to_df(mesh)
-
-    mesh.x_mids = calc_mid_points(mesh.x_bounds)
-    mesh.y_mids = calc_mid_points(mesh.y_bounds)
-    mesh.z_mids = calc_mid_points(mesh.z_bounds)
-
-    ntlogger.info("finished reading mesh number: %s ", str(tnum))
-
-    return mesh
-
-
-def read_mesh_tally_file(fpath):
-    """ reads all meshes in a meshtal file, returns a list of mesh objects """
-    ntlogger.info('Reading MCNP meshtal file: %s', fpath)
-    all_data = ut.get_lines(fpath)
-    tally_dict = find_mesh_tally_numbers(all_data)
+    mesh = meshtally()
+    mesh.ctype = "6col_e"
     meshes = []
-    for tnum in tally_dict.keys():
-        mesh = read_mesh(tnum, all_data, tally_dict)
-        meshes.append(mesh)
+    with open(path) as f:
+        for i, line in enumerate(f):
+            if in_data and " Mesh Tally Number" in line:
+                meshes.append(mesh)
+                mesh = meshtally()
+                in_data = False
+            if "Mesh Tally Number" in line:
+                tnum = int(line.split(" ")[-1])
+                mesh.idnum = tnum
+            if in_data:
+                    data = " ".join(line.split())
+                    mesh.data.append(data.split())
+            elif "X direction:" in line:
+                line = " ".join(line.split())
+                mesh.x_bounds = line.split(" ")[2:]
+                mesh.x_mids = calc_mid_points(mesh.x_bounds)
+            elif "Y direction:" in line:
+                line = " ".join(line.split())
+                mesh.y_bounds = line.split(" ")[2:]
+                mesh.y_mids = calc_mid_points(mesh.y_bounds)
+            elif "Z direction:" in line:
+                line = " ".join(line.split())
+                mesh.z_bounds = line.split(" ")[2:]
+                mesh.z_mids = calc_mid_points(mesh.z_bounds)
+            elif "Energy bin boundaries:" in line:
+                line = " ".join(line.split())
+                mesh.e_bounds = line.split(" ")[3:]
+            elif "Time bin boundaries:" in line:
+                line = " ".join(line.split())
+                mesh.t_bounds = line.split(" ")[3:]
+            elif ("Energy         X         Y         Z     Result" in line):
+                in_data = True
+              
+            elif ("Time         X         Y         Z     Result" in line):
+                in_data = True
+                mesh.ctype = "6col_t"
+                
+            elif "X         Y         Z     Result" in line:
+                in_data = True
+                mesh.ctype = "5col"
+            
+            elif "mesh tally." in line:
+                line = " ".join(line.split())
+                mesh.ptype = line.split(' ')[0]
+    meshes.append(mesh)
+
+    for i, mesh in enumerate(meshes):
+        meshes[i].data = convert_to_df(mesh)
+
     return meshes
-
-
+  
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Meshtally ploting")
     parser.add_argument("input", help="path to the Meshtal file")
     args = parser.parse_args()
 
-    meshes = read_mesh_tally_file(args.input)
+    meshes = read_mesh(args.input)
