@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import new_meshtal_analysis as ma
+import meshtal_analysis as ma
 import neut_utilities as ut
 import unittest
 
-
-path = r"C:/Users/Elmos PC/OneDrive - Science and Technology Facilities Council/Documents/ISIS/neutron/neutron_tools/tests/test_output/cup_low_res.imsht"
-meshes_path = r"C:/Users/Elmos PC/OneDrive - Science and Technology Facilities Council/Documents/ISIS/neutron/neutron_tools/tests/test_output/meshes.imsht"
-timepath = r"C:/Users/Elmos PC/OneDrive - Science and Technology Facilities Council/Documents/ISIS/neutron/neutron_tools/tests/test_output/time_msht"
+path = "test_output/cup_low_res.imsht"
+meshes_path = "test_output/meshes.imsht"
+timepath = "test_output/time_msht"
 
 
 class calc_mid_points_test(unittest.TestCase):
