@@ -101,16 +101,15 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(length, 1000)
 
     def test_read_mesh(self):
-        data = ut.get_lines(path)
-        read_mesh = ma.read_mesh(214, data, {214: 4})
+        read_mesh = ma.read_mesh(path)[0]
 
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
         self.assertEqual(read_mesh.ctype, '6col_e')
 
     def test_read_time_bins_mesh(self):
-        data = ut.get_lines(timepath)
-        read_mesh = ma.read_mesh(314, data, {314: 4})
+       
+        read_mesh = ma.read_mesh(timepath)[0]
 
         self.assertEqual(read_mesh.ptype, 'neutron')
         self.assertEqual(read_mesh.idnum, 314)
@@ -118,14 +117,14 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(len(read_mesh.t_bounds), 5)
         self.assertEqual(read_mesh.t_bounds[0], "-1.00E+36")
 
-
+"""""
 class find_mesh_tally_num_test(unittest.TestCase):
 
     def test_find_mesh_tally_num(self):
         data = ut.get_lines(path)
 
         self.assertEqual(ma.find_mesh_tally_numbers(data), {214: 4})
-
+"""""
 
 class add_mesh_test(unittest.TestCase):
 
@@ -270,7 +269,7 @@ class find_point_test(unittest.TestCase):
         self.assertAlmostEqual(result2[0], 5.035e-6, 7)
 
     def test_get_point_file(self):
-        mesh = ma.read_meshtally(path)[0]
+        mesh = ma.read_mesh(path)[0]
         result = ma.pick_point(-9, -9, 1.4, mesh).iloc[0]
         self.assertAlmostEqual(result, 7.329430e-07, 7)
         # test energy
