@@ -57,6 +57,7 @@ def rel_err_hist(df, fname=None):
 
     return plot[0]
 
+
 def filter_energy_time(data, erg=None, time=None):
     """ Filters columns by energy or time parameter"""
     if erg:
@@ -99,7 +100,7 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
     else:
         "Catch plane not recognised"
         raise ValueError("Plane not recognised format : XZ, XY, YZ")
-    
+
     # find closest mid point
     slice_obj.value = find_nearest_mid(value, slice_obj.axis_mids)
 
@@ -123,7 +124,7 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
 
 
 def create_plot(slice_obj, values, title, ax, lmin, lmax):
-    plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values,  norm=colors.LogNorm(vmin=lmin, vmax =lmax))
+    plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
     plt.colorbar(plot, ax=ax)
     ax.set_title(title)
     ax.set_xlabel(slice_obj.i_lab)
@@ -214,7 +215,7 @@ def extract_line(mesh, p1, p2, erg=None, time=None):
         z = find_nearest_mid(z, mesh.z_mids)
         data = data[data["z"] == z]
 
-    #filter for energy/time selection
+    # filter for energy/time selection
     data = filter_energy_time(data, erg, time)
     result = data["value"]
 
@@ -289,7 +290,7 @@ def add_mesh(mesh1, mesh2):
         new_mesh.x_bounds = mesh1.x_bounds
         new_mesh.y_bounds = mesh1.y_bounds
         new_mesh.z_bounds = mesh1.z_bounds
-        
+
         new_mesh.x_mids = calc_mid_points(mesh1.x_bounds)
         new_mesh.y_mids = calc_mid_points(mesh1.y_bounds)
         new_mesh.z_mids = calc_mid_points(mesh1.z_bounds)
@@ -400,9 +401,7 @@ def read_mesh(path):
                 mesh.ptype = line.split(' ')[0]
     meshes.append(mesh)
 
-    for i, mesh in enumerate(meshes):
-        meshes[i].data = convert_to_df(mesh)
-
+    for mesh in meshes: mesh.data = convert_to_df(mesh)
     return meshes
   
 if __name__ == "__main__":
