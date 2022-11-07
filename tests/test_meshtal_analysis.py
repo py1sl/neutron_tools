@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import new_meshtal_analysis as ma
+import meshtal_analysis as ma
 import neut_utilities as ut
 import unittest
 
 
-path = r"C:/Users/sfs81547/Documents/ISIS/neutron/neutron_tools/tests/test_output/cup_low_res.imsht"
-meshes_path = r"C:/Users/sfs81547/Documents/ISIS/neutron/neutron_tools/tests/test_output/meshes.imsht"
-timepath = r"C:/Users/sfs81547/Documents/ISIS/neutron/neutron_tools/tests/test_output/time_msht"
+path = "test_output/cup_low_res.imsht"
+meshes_path = "test_output/meshes.imsht"
+timepath = "test_output/time_msht"
 
 
 class calc_mid_points_test(unittest.TestCase):
@@ -117,14 +117,14 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(len(read_mesh.t_bounds), 5)
         self.assertEqual(read_mesh.t_bounds[0], "-1.00E+36")
 
-"""""
+
 class find_mesh_tally_num_test(unittest.TestCase):
 
     def test_find_mesh_tally_num(self):
-        data = ut.get_lines(path)
+        data = ma.read_mesh(meshes_path)[0]
 
-        self.assertEqual(ma.find_mesh_tally_numbers(data), {214: 4})
-"""""
+        self.assertEqual(data.idnum, 4)
+
 
 class add_mesh_test(unittest.TestCase):
 
