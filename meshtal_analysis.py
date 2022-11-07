@@ -16,31 +16,31 @@ mpl.use('Agg')
 class meshtally:
     """Mesh tally object data"""
     def __init__(self):
-        idnum = None
-        ptype = None
-        x_bounds = None
-        y_bounds = None
-        z_bounds = None
-        e_bounds = None
-        t_bounds = None
+        self.idnum = None
+        self.ptype = None
+        self.x_bounds = None
+        self.y_bounds = None
+        self.z_bounds = None
+        self.e_bounds = None
+        self.t_bounds = None
         self.data = []
-        x_mids = None
-        y_mids = None
-        z_mids = None
-        ctype = None
+        self.x_mids = None
+        self.y_mids = None
+        self.z_mids = None
+        self.ctype = None
 
 
 class slice_object:
     """Slice object containing data info"""
     def __init__(self):
-        values = None
-        errors = None
-        axis_mids = None
-        slice_i = None
-        slice_j = None
-        i_lab = None
-        j_lab = None
-        value = None
+        self.values = None
+        self.errors = None
+        self.axis_mids = None
+        self.slice_i = None
+        self.slice_j = None
+        self.i_lab = None
+        self.j_lab = None
+        self.value = None
 
 
 def rel_err_hist(df, fname=None):
