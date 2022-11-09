@@ -8,39 +8,90 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 import numpy as np
 import argparse
+import math
 import logging as ntlogger
 import pandas as pd
-import neut_utilities as ut
 mpl.use('Agg')
+
 
 class meshtally:
     """Mesh tally object data"""
     def __init__(self):
-        idnum = None
-        ptype = None
-        x_bounds = None
-        y_bounds = None
-        z_bounds = None
-        e_bounds = None
-        t_bounds = None
-        data = None
-        x_mids = None
-        y_mids = None
-        z_mids = None
-        ctype = None
+        self.idnum = None
+        self.ptype = None
+        self.x_bounds = []
+        self.y_bounds = []
+        self.z_bounds = []
+        self.e_bounds = []
+        self.t_bounds = []
+        self.data = []
+        self.x_mids = []
+        self.y_mids = []
+        self.z_mids = []
+        self.ctype = None
+
+    def __str__(self):
+        info = ("\n Number of voxels: " + str(self.number_voxels()) +
+                " \n Number of bins in: \n x-dimension- " +
+                str(len(self.x_mids)) + " \n y-dimension- " +
+                str(len(self.y_mids)) + "\n z-dimension- " +
+                str(len(self.z_mids)) + "\n voxel volume: " +
+                str(self.voxel_volume()) + " cm squared")
+        return info
+
+    def number_voxels(self):
+        """
+        Member function of meshtally. gets the number of midpoints to
+        find number of voxels.
+        Return: int
+        """
+        num_x = len(self.x_mids)
+        num_y = len(self.y_mids)
+        num_z = len(self.z_mids)
+        return (num_x * num_y * num_z)
+
+    def voxel_volume(self):
+        """ Member Function of meshtally. check uniform and finds volume
+        from distance to adjacent vertex.
+        Raises:
+            ValueError: voxels not uniform
+        Returns:
+            float: volume of voxel
+        """
+        if (check_uniform(self.x_bounds) and check_uniform(self.y_bounds) and
+            check_uniform(self.z_bounds)):
+
+            x = abs(float(self.x_bounds[1]) - float(self.x_bounds[0]))
+            y = abs(float(self.y_bounds[1]) - float(self.y_bounds[0]))
+            z = abs(float(self.z_bounds[1]) - float(self.z_bounds[0]))
+
+            return x * y * z
+        else:
+            raise ValueError("voxels not uniform")
 
 
 class slice_object:
     """Slice object containing data info"""
     def __init__(self):
-        values = None
-        errors = None
-        axis_mids = None
-        slice_i = None
-        slice_j = None
-        i_lab = None
-        j_lab = None
-        value = None
+        self.values = None
+        self.errors = None
+        self.axis_mids = None
+        self.slice_i = None
+        self.slice_j = None
+        self.i_lab = None
+        self.j_lab = None
+        self.value = None
+
+
+def check_uniform(bounds):
+    """checks if elements in list are equally spaced
+    Args:
+        bounds (list): list of bounds
+    Returns:
+        bool: true if uniformly spaced
+    """
+    diff = np.diff(list(map(float, bounds)))
+    return all(math.isclose(i, diff[0]) for i in diff)
 
 
 def rel_err_hist(df, fname=None):
@@ -56,6 +107,7 @@ def rel_err_hist(df, fname=None):
         plt.show()
 
     return plot[0]
+
 
 def filter_energy_time(data, erg=None, time=None):
     """ Filters columns by energy or time parameter"""
@@ -99,7 +151,7 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
     else:
         "Catch plane not recognised"
         raise ValueError("Plane not recognised format : XZ, XY, YZ")
-    
+
     # find closest mid point
     slice_obj.value = find_nearest_mid(value, slice_obj.axis_mids)
 
@@ -107,8 +159,10 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
     data = data[data[v_ind] == slice_obj.value]
 
     # now find the slice values
-    slice_obj.values = np.zeros((len(slice_obj.slice_j), len(slice_obj.slice_i)))
-    slice_obj.errors = np.zeros((len(slice_obj.slice_j), len(slice_obj.slice_i)))
+    slice_obj.values = np.zeros((len(slice_obj.slice_j),
+                                 len(slice_obj.slice_i)))
+    slice_obj.errors = np.zeros((len(slice_obj.slice_j),
+                                 len(slice_obj.slice_i)))
 
     for (_, __, x, y, ____, val, rerr) in data.itertuples():
 
@@ -123,7 +177,8 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
 
 
 def create_plot(slice_obj, values, title, ax, lmin, lmax):
-    plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values,  norm=colors.LogNorm(vmin=lmin, vmax =lmax))
+    plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values,
+                         norm=colors.LogNorm(vmin=lmin, vmax=lmax))
     plt.colorbar(plot, ax=ax)
     ax.set_title(title)
     ax.set_xlabel(slice_obj.i_lab)
@@ -133,7 +188,8 @@ def create_plot(slice_obj, values, title, ax, lmin, lmax):
     return ax
 
 
-def plot_slice(mesh, value, plane, lmin, lmax, err=False, fname=None, erg=None, time=None):
+def plot_slice(mesh, value, plane, lmin, lmax, err=False, fname=None, erg=None,
+               time=None):
     """ plots a slice through the mesh"""
     plt.clf()
     slice_obj = extract_slice(mesh, value, plane, erg, time)
@@ -214,7 +270,7 @@ def extract_line(mesh, p1, p2, erg=None, time=None):
         z = find_nearest_mid(z, mesh.z_mids)
         data = data[data["z"] == z]
 
-    #filter for energy/time selection
+    # filter for energy/time selection
     data = filter_energy_time(data, erg, time)
     result = data["value"]
 
@@ -222,7 +278,8 @@ def extract_line(mesh, p1, p2, erg=None, time=None):
 
 
 def pick_point(x, y, z, mesh, erg=None, time=None):
-    """ find the mesh value for the voxel that  point x, y, z is in and also matches time/energy parameter"""
+    """ find the mesh value for the voxel that  point x, y, z is in and also
+    matches time/energy parameter"""
     x = find_nearest_mid(x, mesh.x_mids)
     y = find_nearest_mid(y, mesh.y_mids)
     z = find_nearest_mid(z, mesh.z_mids)
@@ -289,7 +346,7 @@ def add_mesh(mesh1, mesh2):
         new_mesh.x_bounds = mesh1.x_bounds
         new_mesh.y_bounds = mesh1.y_bounds
         new_mesh.z_bounds = mesh1.z_bounds
-        
+
         new_mesh.x_mids = calc_mid_points(mesh1.x_bounds)
         new_mesh.y_mids = calc_mid_points(mesh1.y_bounds)
         new_mesh.z_mids = calc_mid_points(mesh1.z_bounds)
@@ -349,105 +406,56 @@ def count_zeros(mesh):
     return count
 
 
-def find_mesh_tally_numbers(data):
-    """ find the different meshes in the file, the tally number
-        and the line it starts on"""
-    tdict = {}
-    for i, l in enumerate(data):
-        if "Mesh Tally Number" in l:
-            talid = int(l.split(" ")[-1])
-            tdict[talid] = i
-    return tdict
-
-
-def find_next_mesh(tnum, tdict):
-    """ finds the start location of the next numerical mesh tally"""
-    keylist = sorted(tdict.keys())
-    if tnum == keylist[-1]:
-        return -1
-    else:
-        for i, v in enumerate(keylist):
-            if v == tnum:
-                return tdict[keylist[i+1]]
-
-
-def read_mesh(tnum, data, tdict):
-    """ reads and individual mesh tally into mesh class """
-    mesh = meshtally()
-    mesh.idnum = tnum
-    mesh.data = []
-    mesh.ctype = "6col_e"
-    ntlogger.info("reading mesh number: %s ", str(tnum))
-    # reduce data to just the selected mesh tally
-    start_pos = tdict[tnum]
-    end_pos = find_next_mesh(tnum, tdict)
-
-    if end_pos == -1:
-        mesh_data = data[start_pos:]
-    else:
-        mesh_data = data[start_pos:end_pos - 1]
-
-    # read through and assign mesh variables
+def read_mesh(path):
     in_data = False
-
-    for i, line in enumerate(mesh_data):
-        if in_data:
-            ntlogger.info("Guru meditation error")
-        elif "X direction:" in line:
-            line = " ".join(line.split())
-            mesh.x_bounds = line.split(" ")[2:]
-        elif "Y direction:" in line:
-            line = " ".join(line.split())
-            mesh.y_bounds = line.split(" ")[2:]
-        elif "Z direction:" in line:
-            line = " ".join(line.split())
-            mesh.z_bounds = line.split(" ")[2:]
-        elif "Energy bin boundaries:" in line:
-            line = " ".join(line.split())
-            mesh.e_bounds = line.split(" ")[3:]
-        elif "Time bin boundaries:" in line:
-            line = " ".join(line.split())
-            mesh.t_bounds = line.split(" ")[3:]
-        elif ("Energy         X         Y         Z     Result" in line):
-            in_data = True
-            break
-        elif ("Time         X         Y         Z     Result" in line):
-            in_data = True
-            mesh.ctype = "6col_t"
-            break
-        elif "X         Y         Z     Result" in line:
-            in_data = True
-            mesh.ctype = "5col"
-            break
-
-        elif "mesh tally." in line:
-            line = " ".join(line.split())
-            mesh.ptype = line.split(' ')[0]
-
-    ntlogger.info("processing results: %s ", str(tnum))
-    mesh_data = [" ".join(j.split()) for j in mesh_data[i:]]
-    mesh.data = [j.split() for j in mesh_data[1:]]
-    ntlogger.info("converting to df: %s ", str(tnum))
-    mesh.data = convert_to_df(mesh)
-
-    mesh.x_mids = calc_mid_points(mesh.x_bounds)
-    mesh.y_mids = calc_mid_points(mesh.y_bounds)
-    mesh.z_mids = calc_mid_points(mesh.z_bounds)
-
-    ntlogger.info("finished reading mesh number: %s ", str(tnum))
-
-    return mesh
-
-
-def read_mesh_tally_file(fpath):
-    """ reads all meshes in a meshtal file, returns a list of mesh objects """
-    ntlogger.info('Reading MCNP meshtal file: %s', fpath)
-    all_data = ut.get_lines(fpath)
-    tally_dict = find_mesh_tally_numbers(all_data)
+    mesh = meshtally()
+    mesh.ctype = "6col_e"
     meshes = []
-    for tnum in tally_dict.keys():
-        mesh = read_mesh(tnum, all_data, tally_dict)
-        meshes.append(mesh)
+    with open(path) as f:
+        for i, line in enumerate(f):
+            if in_data and " Mesh Tally Number" in line:
+                meshes.append(mesh)
+                mesh = meshtally()
+                in_data = False
+            if "Mesh Tally Number" in line:
+                tnum = int(line.split(" ")[-1])
+                mesh.idnum = tnum
+            if in_data:
+                data = " ".join(line.split())
+                mesh.data.append(data.split())
+            elif "X direction:" in line:
+                line = " ".join(line.split())
+                mesh.x_bounds = line.split(" ")[2:]
+                mesh.x_mids = calc_mid_points(mesh.x_bounds)
+            elif "Y direction:" in line:
+                line = " ".join(line.split())
+                mesh.y_bounds = line.split(" ")[2:]
+                mesh.y_mids = calc_mid_points(mesh.y_bounds)
+            elif "Z direction:" in line:
+                line = " ".join(line.split())
+                mesh.z_bounds = line.split(" ")[2:]
+                mesh.z_mids = calc_mid_points(mesh.z_bounds)
+            elif "Energy bin boundaries:" in line:
+                line = " ".join(line.split())
+                mesh.e_bounds = line.split(" ")[3:]
+            elif "Time bin boundaries:" in line:
+                line = " ".join(line.split())
+                mesh.t_bounds = line.split(" ")[3:]
+            elif ("Energy         X         Y         Z     Result" in line):
+                in_data = True
+            elif ("Time         X         Y         Z     Result" in line):
+                in_data = True
+                mesh.ctype = "6col_t"
+            elif "X         Y         Z     Result" in line:
+                in_data = True
+                mesh.ctype = "5col"
+            elif "mesh tally." in line:
+                line = " ".join(line.split())
+                mesh.ptype = line.split(' ')[0]
+    meshes.append(mesh)
+
+    for mesh in meshes:
+        mesh.data = convert_to_df(mesh)
     return meshes
 
 
@@ -456,4 +464,4 @@ if __name__ == "__main__":
     parser.add_argument("input", help="path to the Meshtal file")
     args = parser.parse_args()
 
-    meshes = read_mesh_tally_file(args.input)
+    meshes = read_mesh(args.input)
