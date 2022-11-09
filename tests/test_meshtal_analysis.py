@@ -2,13 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import meshtal_analysis as ma
-import neut_utilities as ut
 import unittest
 
 
-path = "test_output/cup_low_res.imsht"
-meshes_path = "test_output/meshes.imsht"
-timepath = "test_output/time_msht"
+path = "tests/test_output/cup_low_res.imsht"
+meshes_path = "tests/test_output/meshes.imsht"
+timepath = "tests/test_output/time_msht"
 
 
 class calc_mid_points_test(unittest.TestCase):
@@ -26,7 +25,8 @@ class calc_mid_points_test(unittest.TestCase):
         self.assertEqual(ma.calc_mid_points(test_data_3), [1.25])
         self.assertEqual(ma.calc_mid_points(test_data_4), [0.0])
         self.assertEqual(ma.calc_mid_points(test_data_5), [-1.25])
-        self.assertEqual(True, ma.calc_mid_points(test_data_6) == ([1.5, 2.5, 3.5]))
+        self.assertEqual(True, ma.calc_mid_points(test_data_6) == ([1.5, 2.5, 
+                                                                    3.5]))
 
 
 class convert_to_df_test(unittest.TestCase):
@@ -88,7 +88,7 @@ class read_mesh_file_tests(unittest.TestCase):
     def test_read_mesh_file(self):
         mesh = ma.read_mesh(path)
         length = len(mesh[0].data)
-
+        print(mesh[0])
         self.assertEqual(mesh[0].x_bounds[1], '-8.00')
         self.assertEqual(mesh[0].x_mids[2], -5.0)
         self.assertEqual(mesh[0].e_bounds[1], '1.00E+36')
@@ -100,15 +100,15 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(mesh[0].idnum, 214)
         self.assertEqual(length, 1000)
 
+
     def test_read_mesh(self):
         read_mesh = ma.read_mesh(path)[0]
-
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
         self.assertEqual(read_mesh.ctype, '6col_e')
 
     def test_read_time_bins_mesh(self):
-       
+
         read_mesh = ma.read_mesh(timepath)[0]
 
         self.assertEqual(read_mesh.ptype, 'neutron')
@@ -303,7 +303,7 @@ class find_line_test(unittest.TestCase):
 
         mesh1_test.data = ma.convert_to_df(mesh1_test)
         mesh2_test.data = ma.convert_to_df(mesh2_test)
-
+        #print(mesh1_test)
         result1 = ma.extract_line(mesh1_test, ((5.0, 5.0, 7.1)), ((5.0, 5.1, 7.0)), erg=1e36)
         result2 = ma.extract_line(mesh2_test, ((3.0, 7.2, 7.2)), ((3.0, 7.2, 7.2)), time=0)
 
@@ -372,26 +372,27 @@ class filter_energy_time_tests(unittest.TestCase):
 class meshes_tests(unittest.TestCase):
     
     def test_read_multiple_meshes(self):
-        
+
         mesh_1 = ma.read_mesh(meshes_path)[0]
         self.assertEqual(mesh_1.ptype, 'neutron')
         self.assertEqual(mesh_1.idnum, 4)
         self.assertEqual(mesh_1.ctype, '6col_e')
-        
+
         mesh_2 = ma.read_mesh(meshes_path)[1]
         self.assertEqual(mesh_2.ptype, 'neutron')
         self.assertEqual(mesh_2.idnum, 14)
         self.assertEqual(mesh_2.ctype, '5col')
         self.assertEqual(mesh_2.x_mids[0], -20)
-        
-        
+
+
 class slice_tests(unittest.TestCase):
 
     def test_slice_plot(self):
         mesh = ma.read_mesh(path)[0]
         value = 1
         plane = "XY"
-        slices = ma.plot_slice(mesh, value, plane, lmin=1e-15, lmax=1e-3, erg=1e36)
+        slices = ma.plot_slice(mesh, value, plane, lmin=1e-15, lmax=1e-3, 
+                               erg=1e36)
         self.assertEqual(slices.i_lab, "X co-ord (cm)")
         self.assertEqual(slices.j_lab, "Y co-ord (cm)")
         self.assertEqual(slices.slice_i[0], -9.0)
