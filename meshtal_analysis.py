@@ -8,26 +8,66 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 import numpy as np
 import argparse
+import math
 import logging as ntlogger
 import pandas as pd
-import neut_utilities as ut
 mpl.use('Agg')
+
 
 class meshtally:
     """Mesh tally object data"""
     def __init__(self):
         self.idnum = None
         self.ptype = None
-        self.x_bounds = None
-        self.y_bounds = None
-        self.z_bounds = None
-        self.e_bounds = None
-        self.t_bounds = None
+        self.x_bounds = []
+        self.y_bounds = []
+        self.z_bounds = []
+        self.e_bounds = []
+        self.t_bounds = []
         self.data = []
-        self.x_mids = None
-        self.y_mids = None
-        self.z_mids = None
+        self.x_mids = []
+        self.y_mids = []
+        self.z_mids = []
         self.ctype = None
+
+    def __str__(self):
+        info = ("\n Number of voxels: " + str(self.number_voxels()) +
+                " \n Number of bins in: \n x-dimension- " +
+                str(len(self.x_mids)) + " \n y-dimension- " +
+                str(len(self.y_mids)) + "\n z-dimension- " +
+                str(len(self.z_mids)) + "\n voxel volume: " +
+                str(self.voxel_volume()) + " cm squared")
+        return info
+
+    def number_voxels(self):
+        """
+        Member function of meshtally. gets the number of midpoints to
+        find number of voxels.
+        Return: int
+        """
+        num_x = len(self.x_mids)
+        num_y = len(self.y_mids)
+        num_z = len(self.z_mids)
+        return (num_x * num_y * num_z)
+
+    def voxel_volume(self):
+        """ Member Function of meshtally. check uniform and finds volume
+        from distance to adjacent vertex.
+        Raises:
+            ValueError: voxels not uniform
+        Returns:
+            float: volume of voxel
+        """
+        if (check_uniform(self.x_bounds) and check_uniform(self.y_bounds) and
+            check_uniform(self.z_bounds)):
+
+            x = abs(float(self.x_bounds[1]) - float(self.x_bounds[0]))
+            y = abs(float(self.y_bounds[1]) - float(self.y_bounds[0]))
+            z = abs(float(self.z_bounds[1]) - float(self.z_bounds[0]))
+
+            return x * y * z
+        else:
+            raise ValueError("voxels not uniform")
 
 
 class slice_object:
@@ -41,6 +81,17 @@ class slice_object:
         self.i_lab = None
         self.j_lab = None
         self.value = None
+
+
+def check_uniform(bounds):
+    """checks if elements in list are equally spaced
+    Args:
+        bounds (list): list of bounds
+    Returns:
+        bool: true if uniformly spaced
+    """
+    diff = np.diff(list(map(float, bounds)))
+    return all(math.isclose(i, diff[0]) for i in diff)
 
 
 def rel_err_hist(df, fname=None):
@@ -108,8 +159,10 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
     data = data[data[v_ind] == slice_obj.value]
 
     # now find the slice values
-    slice_obj.values = np.zeros((len(slice_obj.slice_j), len(slice_obj.slice_i)))
-    slice_obj.errors = np.zeros((len(slice_obj.slice_j), len(slice_obj.slice_i)))
+    slice_obj.values = np.zeros((len(slice_obj.slice_j),
+                                 len(slice_obj.slice_i)))
+    slice_obj.errors = np.zeros((len(slice_obj.slice_j),
+                                 len(slice_obj.slice_i)))
 
     for (_, __, x, y, ____, val, rerr) in data.itertuples():
 
@@ -124,7 +177,8 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
 
 
 def create_plot(slice_obj, values, title, ax, lmin, lmax):
-    plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values, norm=colors.LogNorm(vmin=lmin, vmax=lmax))
+    plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values,
+                         norm=colors.LogNorm(vmin=lmin, vmax=lmax))
     plt.colorbar(plot, ax=ax)
     ax.set_title(title)
     ax.set_xlabel(slice_obj.i_lab)
@@ -134,7 +188,8 @@ def create_plot(slice_obj, values, title, ax, lmin, lmax):
     return ax
 
 
-def plot_slice(mesh, value, plane, lmin, lmax, err=False, fname=None, erg=None, time=None):
+def plot_slice(mesh, value, plane, lmin, lmax, err=False, fname=None, erg=None,
+               time=None):
     """ plots a slice through the mesh"""
     plt.clf()
     slice_obj = extract_slice(mesh, value, plane, erg, time)
@@ -223,7 +278,8 @@ def extract_line(mesh, p1, p2, erg=None, time=None):
 
 
 def pick_point(x, y, z, mesh, erg=None, time=None):
-    """ find the mesh value for the voxel that  point x, y, z is in and also matches time/energy parameter"""
+    """ find the mesh value for the voxel that  point x, y, z is in and also
+    matches time/energy parameter"""
     x = find_nearest_mid(x, mesh.x_mids)
     y = find_nearest_mid(y, mesh.y_mids)
     z = find_nearest_mid(z, mesh.z_mids)
@@ -365,8 +421,8 @@ def read_mesh(path):
                 tnum = int(line.split(" ")[-1])
                 mesh.idnum = tnum
             if in_data:
-                    data = " ".join(line.split())
-                    mesh.data.append(data.split())
+                data = " ".join(line.split())
+                mesh.data.append(data.split())
             elif "X direction:" in line:
                 line = " ".join(line.split())
                 mesh.x_bounds = line.split(" ")[2:]
@@ -387,23 +443,22 @@ def read_mesh(path):
                 mesh.t_bounds = line.split(" ")[3:]
             elif ("Energy         X         Y         Z     Result" in line):
                 in_data = True
-              
             elif ("Time         X         Y         Z     Result" in line):
                 in_data = True
                 mesh.ctype = "6col_t"
-                
             elif "X         Y         Z     Result" in line:
                 in_data = True
                 mesh.ctype = "5col"
-            
             elif "mesh tally." in line:
                 line = " ".join(line.split())
                 mesh.ptype = line.split(' ')[0]
     meshes.append(mesh)
 
-    for mesh in meshes: mesh.data = convert_to_df(mesh)
+    for mesh in meshes:
+        mesh.data = convert_to_df(mesh)
     return meshes
-  
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Meshtally ploting")
     parser.add_argument("input", help="path to the Meshtal file")
