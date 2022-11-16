@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 import numpy as np
 import argparse
-import math
 import logging as ntlogger
 import pandas as pd
 mpl.use('Agg')
@@ -36,7 +35,7 @@ class meshtally:
                 str(len(self.x_mids)) + " \n y-dimension- " +
                 str(len(self.y_mids)) + "\n z-dimension- " +
                 str(len(self.z_mids)) + "\n voxel volume: " +
-                str(self.voxel_volume()) + " cm squared")
+                str(self.voxel_uniform_volume()) + " cm squared")
         return info
 
     def number_voxels(self):
@@ -50,7 +49,7 @@ class meshtally:
         num_z = len(self.z_mids)
         return (num_x * num_y * num_z)
 
-    def voxel_volume(self):
+    def voxel_uniform_volume(self):
         """ Member Function of meshtally. check uniform and finds volume
         from distance to adjacent vertex.
         Raises:
@@ -58,23 +57,37 @@ class meshtally:
         Returns:
             float: volume of voxel
         """
-        if (check_uniform(self.x_bounds) and check_uniform(self.y_bounds) and
-            check_uniform(self.z_bounds)):
+        if (check_uniform(self.x_bounds) and check_uniform(self.y_bounds) and check_uniform(self.z_bounds)):
 
-            x = abs(float(self.x_bounds[1]) - float(self.x_bounds[0]))
-            y = abs(float(self.y_bounds[1]) - float(self.y_bounds[0]))
-            z = abs(float(self.z_bounds[1]) - float(self.z_bounds[0]))
+            x = np.abs(float(self.x_bounds[1]) - float(self.x_bounds[0]))
+            y = np.abs(float(self.y_bounds[1]) - float(self.y_bounds[0]))
+            z = np.abs(float(self.z_bounds[1]) - float(self.z_bounds[0]))
 
             return x * y * z
         else:
-            raise ValueError("voxels not uniform")
+            # non uniform volume so print such and calculate average volume
+            ntlogger.info("Mesh non-uniform!")
+            return self.voxel_average_volume()
+
+    def voxel_average_volume(self):
+        """
+        finds the mesh average volume by finding overall volume of all meshes
+        and dividing by the number of meshes
+        Returns:
+            float - mesh volume
+        """
+        # find min x y z and max x y z respectively
+        x = np.abs(np.diff(np.max(self.x_bounds), np.min(self.x_bounds)))
+        y = np.abs(np.diff(np.max(self.y_bounds), np.min(self.y_bounds)))
+        z = np.abs(np.diff(np.max(self.z_bounds), np.min(self.z_bounds)))
+        return (x * y * z) / (self.number_voxels())
 
 
 class slice_object:
     """Slice object containing data info"""
     def __init__(self):
-        self.values = None
-        self.errors = None
+        self.values = []
+        self.errors = []
         self.axis_mids = None
         self.slice_i = None
         self.slice_j = None
@@ -91,7 +104,7 @@ def check_uniform(bounds):
         bool: true if uniformly spaced
     """
     diff = np.diff(list(map(float, bounds)))
-    return all(math.isclose(i, diff[0]) for i in diff)
+    return all(np.isclose(i, diff[0]) for i in diff)
 
 
 def rel_err_hist(df, fname=None):
@@ -121,7 +134,7 @@ def filter_energy_time(data, erg=None, time=None):
 # TODO: need to generalize to any axis
 # plot slice calls extract slice
 def extract_slice(mesh, value, plane, erg=None, time=None):
-    """ plots a slice through the mesh"""
+    """ from a given plane will find the slice of a mesh"""
     data = mesh.data
     slice_obj = slice_object()
     # filter by energy/time if needed
@@ -131,6 +144,8 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
         slice_obj.slice_i = mesh.x_mids
         slice_obj.slice_j = mesh.z_mids
         slice_obj.axis_mids = mesh.y_mids
+        i_ind = "x"
+        j_ind = "z"
         v_ind = "y"
         slice_obj.i_lab = "X co-ord (cm)"
         slice_obj.j_lab = "Z co-ord (cm)"
@@ -138,6 +153,8 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
         slice_obj.slice_i = mesh.x_mids
         slice_obj.slice_j = mesh.y_mids
         slice_obj.axis_mids = mesh.z_mids
+        i_ind = "x"
+        j_ind = "y"
         v_ind = "z"
         slice_obj.i_lab = "X co-ord (cm)"
         slice_obj.j_lab = "Y co-ord (cm)"
@@ -145,11 +162,13 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
         slice_obj.slice_i = mesh.y_mids
         slice_obj.slice_j = mesh.z_mids
         slice_obj.axis_mids = mesh.x_mids
+        i_ind = "y"
+        j_ind = "z"
         v_ind = "x"
         slice_obj.i_lab = "Y co-ord (cm)"
         slice_obj.j_lab = "Z co-ord (cm)"
     else:
-        "Catch plane not recognised"
+        # Catch plane not recognised
         raise ValueError("Plane not recognised format : XZ, XY, YZ")
 
     # find closest mid point
@@ -157,26 +176,20 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
 
     # filter to just the values in the plane
     data = data[data[v_ind] == slice_obj.value]
+    # create a 2d array of just values matching corresponding axis
+    for i in slice_obj.slice_i:
+        slice_obj.values.append((data.loc[data[i_ind] == i]['value']))
+        slice_obj.errors.append((data.loc[data[j_ind] == i]['rel_err']))
 
-    # now find the slice values
-    slice_obj.values = np.zeros((len(slice_obj.slice_j),
-                                 len(slice_obj.slice_i)))
-    slice_obj.errors = np.zeros((len(slice_obj.slice_j),
-                                 len(slice_obj.slice_i)))
-
-    for (_, __, x, y, ____, val, rerr) in data.itertuples():
-
-        x = np.float64(x)
-        y = np.float64(y)
-        i, = np.where(slice_obj.slice_i == x)
-        j, = np.where(slice_obj.slice_j == y)
-        slice_obj.values[j, i] = val
-        slice_obj.errors[j, i] = rerr
+    slice_obj.values = np.array(slice_obj.values).T
+    slice_obj.errors = np.array(slice_obj.errors).T
 
     return slice_obj
 
 
 def create_plot(slice_obj, values, title, ax, lmin, lmax):
+    """using slice obj and values create a 2d colormesh
+    """
     plot = ax.pcolormesh(slice_obj.slice_i, slice_obj.slice_j, values,
                          norm=colors.LogNorm(vmin=lmin, vmax=lmax))
     plt.colorbar(plot, ax=ax)
@@ -190,7 +203,7 @@ def create_plot(slice_obj, values, title, ax, lmin, lmax):
 
 def plot_slice(mesh, value, plane, lmin, lmax, err=False, fname=None, erg=None,
                time=None):
-    """ plots a slice through the mesh"""
+    """ plots a slice through the mesh check if err applied"""
     plt.clf()
     slice_obj = extract_slice(mesh, value, plane, erg, time)
     fig = plt.figure()
@@ -406,7 +419,15 @@ def count_zeros(mesh):
     return count
 
 
-def read_mesh(path):
+def read_meshtally_file(path):
+    """_summary_
+
+    Args:
+        path (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     in_data = False
     mesh = meshtally()
     mesh.ctype = "6col_e"
@@ -464,4 +485,4 @@ if __name__ == "__main__":
     parser.add_argument("input", help="path to the Meshtal file")
     args = parser.parse_args()
 
-    meshes = read_mesh(args.input)
+    meshes = read_meshtally_file(args.input)
