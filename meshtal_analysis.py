@@ -419,28 +419,35 @@ def count_zeros(mesh):
     return count
 
 
-def read_meshtally_file(path):
-    """_summary_
+def read_meshtally_file(path, mesh_num=None):
+    """reads in a mesh file line by line into a meshtally object
 
     Args:
-        path (_type_): _description_
+        path (str): path to file
 
     Returns:
-        _type_: _description_
+        meshes (list of objects)
     """
     in_data = False
+    select_mesh = False
     mesh = meshtally()
     mesh.ctype = "6col_e"
     meshes = []
     with open(path) as f:
         for i, line in enumerate(f):
             if in_data and " Mesh Tally Number" in line:
-                meshes.append(mesh)
-                mesh = meshtally()
-                in_data = False
+                if select_mesh:
+                    return mesh
+                else:
+                    meshes.append(mesh)
+                    mesh = meshtally()
+                    in_data = False
+
             if "Mesh Tally Number" in line:
                 tnum = int(line.split(" ")[-1])
                 mesh.idnum = tnum
+                if mesh.idnum == mesh_num:
+                    select_mesh = True
             if in_data:
                 data = " ".join(line.split())
                 mesh.data.append(data.split())
