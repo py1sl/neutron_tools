@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import meshtal_analysis as ma
-import neut_utilities as ut
 import unittest
 
+
 path = "test_output/cup_low_res.imsht"
+meshes_path = "test_output/meshes.imsht"
+timepath = "test_output/time_msht"
 
 
 class calc_mid_points_test(unittest.TestCase):
@@ -23,7 +25,8 @@ class calc_mid_points_test(unittest.TestCase):
         self.assertEqual(ma.calc_mid_points(test_data_3), [1.25])
         self.assertEqual(ma.calc_mid_points(test_data_4), [0.0])
         self.assertEqual(ma.calc_mid_points(test_data_5), [-1.25])
-        self.assertEqual(ma.calc_mid_points(test_data_6), [1.5, 2.5, 3.5])
+        self.assertEqual(True, ma.calc_mid_points(test_data_6) == ([
+            1.5, 2.5, 3.5]))
 
 
 class convert_to_df_test(unittest.TestCase):
@@ -83,9 +86,9 @@ class count_zeros_test(unittest.TestCase):
 class read_mesh_file_tests(unittest.TestCase):
 
     def test_read_mesh_file(self):
-        mesh = ma.read_mesh_tally_file(path)
+        mesh = ma.read_meshtally_file(path)
         length = len(mesh[0].data)
-
+        print(mesh[0])
         self.assertEqual(mesh[0].x_bounds[1], '-8.00')
         self.assertEqual(mesh[0].x_mids[2], -5.0)
         self.assertEqual(mesh[0].e_bounds[1], '1.00E+36')
@@ -98,17 +101,14 @@ class read_mesh_file_tests(unittest.TestCase):
         self.assertEqual(length, 1000)
 
     def test_read_mesh(self):
-        data = ut.get_lines(path)
-        read_mesh = ma.read_mesh(214, data, {214: 4})
-
+        read_mesh = ma.read_meshtally_file(path)[0]
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
         self.assertEqual(read_mesh.ctype, '6col_e')
-        
+
     def test_read_time_bins_mesh(self):
-        timepath = "test_output/time_msht"
-        data = ut.get_lines(timepath)
-        read_mesh = ma.read_mesh(314, data, {314: 4})
+
+        read_mesh = ma.read_meshtally_file(timepath)[0]
 
         self.assertEqual(read_mesh.ptype, 'neutron')
         self.assertEqual(read_mesh.idnum, 314)
@@ -120,9 +120,9 @@ class read_mesh_file_tests(unittest.TestCase):
 class find_mesh_tally_num_test(unittest.TestCase):
 
     def test_find_mesh_tally_num(self):
-        data = ut.get_lines(path)
+        data = ma.read_meshtally_file(meshes_path)[0]
 
-        self.assertEqual(ma.find_mesh_tally_numbers(data), {214: 4})
+        self.assertEqual(data.idnum, 4)
 
 
 class add_mesh_test(unittest.TestCase):
@@ -144,6 +144,7 @@ class add_mesh_test(unittest.TestCase):
             ma.add_mesh(mesh1_test, mesh2_test)
 
     def test_add_mesh(self):
+
         mesh3_test = ma.meshtally()
         mesh3_test.ctype = "6col_e"
         mesh4_test = ma.meshtally()
@@ -162,6 +163,8 @@ class add_mesh_test(unittest.TestCase):
         mesh4_test.x_bounds = (-8.9, -9.1)
         mesh4_test.y_bounds = (-8.9, -9.1)
         mesh4_test.z_bounds = (1.3, 1.5)
+        mesh3_test.e_bounds = (1.0e-3, 1e36)
+        mesh4_test.e_bounds = (1.0e-3, 1e36)
 
         new_mesh_test = ma.add_mesh(mesh3_test, mesh4_test)
 
@@ -172,9 +175,35 @@ class add_mesh_test(unittest.TestCase):
                          1.3895760275772773e-06)
         self.assertEqual(new_mesh_test.data['rel_err'].iloc[0],
                          0.025778627023100853)
+        self.assertEqual(new_mesh_test.e_bounds, mesh3_test.e_bounds)
+
+    def test_add_mesh_time(self):
+
+        mesh3_test = ma.meshtally()
+        mesh3_test.ctype = "6col_t"
+        mesh3_test.data = [['1.3e5', '-9.0', '-9.0', '1.4',
+                            '7.329430e-07', '0.017765']]
+        mesh3_test.data = ma.convert_to_df(mesh3_test)
+        mesh3_test.x_bounds = (-8.9, -9.1)
+        mesh3_test.y_bounds = (-8.9, -9.1)
+        mesh3_test.z_bounds = (1.3, 1.5)
+        mesh3_test.t_bounds = (1.0e5, 1.5e5)
+
+        mesh4_test = ma.meshtally()
+        mesh4_test.ctype = "6col_t"
+        mesh4_test.data = [['1.3e5', '-9.0', '-9.0', '1.4', '6.566330e-07', '0.018680']]
+        mesh4_test.data = ma.convert_to_df(mesh4_test)
+        mesh4_test.x_bounds = (-8.9, -9.1)
+        mesh4_test.y_bounds = (-8.9, -9.1)
+        mesh4_test.z_bounds = (1.3, 1.5)
+        mesh4_test.t_bounds = (1.0e5, 1.5e5)
+        new_mesh_test = ma.add_mesh(mesh3_test, mesh4_test)
+
+        self.assertEqual(new_mesh_test.t_bounds, mesh3_test.t_bounds)
 
     def test_add_mesh_file(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+
+        mesh = ma.read_meshtally_file(path)[0]
         new_mesh_test = ma.add_mesh(mesh, mesh)
         self.assertEqual(new_mesh_test.x_bounds, mesh.x_bounds)
         self.assertEqual(new_mesh_test.y_bounds, mesh.y_bounds)
@@ -203,36 +232,101 @@ class find_nearest_mid_test(unittest.TestCase):
         self.assertEqual(ma.find_nearest_mid(test_val_4, test_mids_4), 1)
         self.assertEqual(ma.find_nearest_mid(test_val_5, test_mids_5), -3.5)
 
+    def test_find_nearest_mid_energy(self):
+        test_val_1 = 7.2
+        test_mids_1 = [7, 11]
+        self.assertEqual(ma.find_nearest_mid(test_val_1, test_mids_1), 7)
+
 
 class find_point_test(unittest.TestCase):
 
     def test_get_point(self):
         mesh3_test = ma.meshtally()
+        mesh4_test = ma.meshtally()
+
         mesh3_test.ctype = "6col_e"
+        mesh4_test.ctype = "6col_t"
+
         mesh3_test.x_mids = [-9.0]
+        mesh4_test.x_mids = [5.0]
+
         mesh3_test.y_mids = [-9.0]
+        mesh4_test.y_mids = [5.0]
+
         mesh3_test.z_mids = [1.4]
+        mesh4_test.z_mids = [3.1]
 
         mesh3_test.data = [['1.000E+36', '-9.0', '-9.0', '1.4',
                             '7.329430e-07', '0.017765']]
+        mesh4_test.data = [['0', '5.0', '5.0', '3.1', '5.035e-6', '0.0014']]
         mesh3_test.data = ma.convert_to_df(mesh3_test)
-        result = ma.pick_point(-9, -9, 1.4, mesh3_test)
-        self.assertAlmostEqual(float(result[0]), 7.329430e-07, 7)
+        mesh4_test.data = ma.convert_to_df(mesh4_test)
+
+        result1 = ma.pick_point(-9, -9, 1.4, mesh3_test, erg=1e36)
+        result2 = ma.pick_point(5.0, 5.0, 3.1, mesh4_test, time=0)
+        self.assertAlmostEqual(result1[0], 7.329430e-07, 7)
+        self.assertAlmostEqual(result2[0], 5.035e-6, 7)
 
     def test_get_point_file(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_meshtally_file(path)[0]
         result = ma.pick_point(-9, -9, 1.4, mesh).iloc[0]
         self.assertAlmostEqual(result, 7.329430e-07, 7)
-        result = ma.pick_point(-8.9, -8.9, 1.4, mesh).iloc[0]
+        # test energy
+        result = ma.pick_point(-8.9, -8.9, 1.4, mesh, 1e36).iloc[0]
         self.assertAlmostEqual(result, 7.329430e-07, 7)
-        result = ma.pick_point(-9, -9, 9.4, mesh).iloc[0]
-        self.assertAlmostEqual(result, 5.54340E-07, 7)
+        # test time
+        mesh_time = ma.read_meshtally_file(timepath)[0]
+        result = ma.pick_point(-9, -9, 9.4, mesh_time, time=1e5).iloc[0]
+        self.assertAlmostEqual(result, 1.0428E-06, 7)
+
+
+class find_line_test(unittest.TestCase):
+
+    def test_extract_line(self):
+
+        mesh1_test = ma.meshtally()
+        mesh2_test = ma.meshtally()
+
+        mesh1_test.ctype = "6col_e"
+        mesh2_test.ctype = "6col_t"
+
+        mesh1_test.x_mids = [5.0]
+        mesh2_test.x_mids = [3.0]
+        mesh1_test.y_mids = [5.0]
+        mesh2_test.y_mids = [7.2]
+        mesh1_test.z_mids = [7.1]
+        mesh2_test.z_mids = [7.2]
+
+        mesh1_test.data = [['1e36', '5.0', '5.0', '7.1', '5.2e-7', '0.01']]
+        mesh2_test.data = [['0', '3.0', '7.2', '7.2', '4.4e-7', '0.01']]
+
+        mesh1_test.data = ma.convert_to_df(mesh1_test)
+        mesh2_test.data = ma.convert_to_df(mesh2_test)
+        result1 = ma.extract_line(mesh1_test, ((5.0, 5.0, 7.1)), ((5.0, 5.1, 7.0)), erg=1e36)
+        result2 = ma.extract_line(mesh2_test, ((3.0, 7.2, 7.2)), ((3.0, 7.2, 7.2)), time=0)
+
+        self.assertAlmostEqual(result1[0], 5.2e-7, 7)
+        self.assertAlmostEqual(result2[0], 4.4e-7, 7)
+
+    def test_extract_line_file(self):
+
+        mesh_test = ma.read_meshtally_file(path)[0]
+        result_1 = ma.extract_line(mesh_test, ((-9, -7, 6.2)), ((-9, -5, 1.4))).iloc[0]
+        self.assertAlmostEqual(result_1, 6.38182e-7, 7)
+
+        # test for energy and time
+        result_2 = ma.extract_line(mesh_test, ((-9, -9, -0.2)), ((-9, -7, 4.6)), 1e36).iloc[1]
+        self.assertAlmostEqual(result_2, 7.32943e-7, 7)
+
+        mesh_test_time = ma.read_meshtally_file(timepath)[0]
+        result_3 = ma.extract_line(mesh_test_time, ((-180, 25, 11)), ((-180, 25, 33)), 0.0).iloc[0]
+        self.assertAlmostEqual(result_3, 6.17596e-7, 7)
 
 
 class upper_vals_test(unittest.TestCase):
 
     def test_upper_vals_file(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_meshtally_file(path)[0]
         mesh = ma.calculate_upper_mesh_vals(mesh)
         value = mesh.data["max_vals"].iloc[0]
         self.assertAlmostEqual(value, 6.50278e-7)
@@ -241,7 +335,7 @@ class upper_vals_test(unittest.TestCase):
 class lower_vals_test(unittest.TestCase):
 
     def test_lower_vals_file(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_meshtally_file(path)[0]
         mesh = ma.calculate_lower_mesh_vals(mesh)
         value = mesh.data["min_vals"].iloc[0]
         self.assertAlmostEqual(value, 6.2608e-7)
@@ -250,23 +344,62 @@ class lower_vals_test(unittest.TestCase):
 class err_hist_tests(unittest.TestCase):
 
     def test_err_hist(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
+        mesh = ma.read_meshtally_file(path)[0]
         plot = ma.rel_err_hist(mesh.data)
         # x_plot, y_plot = plot.get_xydata().T
         self.assertEqual(plot.get_xlabel(), "Relative error")
         self.assertEqual(plot.get_ylabel(), "Number of voxels")
 
 
-'''
+class filter_energy_time_tests(unittest.TestCase):
+
+    def test_filter_energy_time_file(self):
+        mesh = ma.read_meshtally_file(path)[0]
+        data = mesh.data
+        filtered_energy_data = (ma.filter_energy_time(data, erg=1e36))
+        values = filtered_energy_data["value"]
+        self.assertAlmostEqual(values[0], 6.38182e-7)
+
+        mesh_time = ma.read_meshtally_file(timepath)[0]
+        data = mesh_time.data
+        filtered_time_data = ma.filter_energy_time(data, time=0)
+        values = filtered_time_data["value"]
+        self.assertAlmostEqual(values[1000], 6.17596e-07)
+
+
+class meshes_tests(unittest.TestCase):
+
+    def test_read_multiple_meshes(self):
+
+        mesh_1 = ma.read_meshtally_file(meshes_path)[0]
+        self.assertEqual(mesh_1.ptype, 'neutron')
+        self.assertEqual(mesh_1.idnum, 4)
+        self.assertEqual(mesh_1.ctype, '6col_e')
+
+        mesh_2 = ma.read_meshtally_file(meshes_path)[1]
+        self.assertEqual(mesh_2.ptype, 'neutron')
+        self.assertEqual(mesh_2.idnum, 14)
+        self.assertEqual(mesh_2.ctype, '5col')
+        self.assertEqual(mesh_2.x_mids[0], -20)
+
+    def test_select_mesh(self):
+        mesh = ma.read_meshtally_file(meshes_path, 14)
+        self.assertEqual(mesh.idnum, 14)
+
+
 class slice_tests(unittest.TestCase):
 
     def test_slice_plot(self):
-        mesh = ma.read_mesh_tally_file(path)[0]
-        plot = ma.plot_slice(mesh, 1)
-        # x_plot, y_plot = plot.get_xydata().T
-        self.assertEqual(plot.get_xlabel(), "X co-ord (cm)")
-        self.assertEqual(plot.get_ylabel(), "Y co-ord (cm)")
-'''
+        mesh = ma.read_meshtally_file(path)[0]
+        value = 1
+        plane = "XY"
+        slices = ma.plot_slice(mesh, value, plane, lmin=1e-15, lmax=1e-3,
+                               erg=1e36)
+        self.assertEqual(slices.i_lab, "X co-ord (cm)")
+        self.assertEqual(slices.j_lab, "Y co-ord (cm)")
+        self.assertEqual(slices.slice_i[0], -9.0)
+        self.assertEqual(slices.slice_j[0], -9.0)
+
 
 if __name__ == '__main__':
     unittest.main()
