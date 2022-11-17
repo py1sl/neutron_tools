@@ -382,6 +382,10 @@ class meshes_tests(unittest.TestCase):
         self.assertEqual(mesh_2.ctype, '5col')
         self.assertEqual(mesh_2.x_mids[0], -20)
 
+    def test_select_mesh(self):
+        mesh = ma.read_meshtally_file(meshes_path, 14)
+        self.assertEqual(mesh.idnum, 14)
+
 
 class slice_tests(unittest.TestCase):
 
