@@ -2,7 +2,7 @@
 
 All to be considered work in progress
 
-1. MCNP related
+1. MCNP related - The MCNP team has now released their MCNP tools  https://github.com/lanl/mcnptools which is far more comprehensive than this project, but it still has a few useful parts to it..
  - lost_points :-	simple script to read MCNP output file and create a list of x,y,z co-ordinates where particles were lost 
 		which can be plotted in visit
 
