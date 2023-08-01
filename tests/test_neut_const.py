@@ -13,6 +13,7 @@ class constants_test_case(unittest.TestCase):
         self.assertEqual(nc.get_e_mass(), 9.10938e-28)
 
 
+
 class conversion_test_case(unittest.TestCase):
     """ test for conversions"""
 
@@ -20,6 +21,11 @@ class conversion_test_case(unittest.TestCase):
         self.assertEqual(nc.years_to_seconds(1), 365*24*60*60)
         self.assertEqual(nc.years_to_hrs(1), 365*24)
         self.assertEqual(nc.years_to_days(1), 365)
+        self.assertEqual(nc.second_to_hour(1), (1/3600))
+        self.assertEqual(nc.second_to_day(1), (1/86400))
+        self.assertEqual(nc.second_to_year(1), (1/3.1536e07))
+        self.assertEqual(nc.hour_to_second(1), 3600)
+        self.assertEqual(nc.day_to_second(1), 86400)
 
     def test_act_conv(self):
         self.assertEqual(nc.bq_to_curie(1), 2.703e11)
@@ -33,7 +39,14 @@ class conversion_test_case(unittest.TestCase):
         self.assertEqual(nc.eV_to_joule(1), 1.602e-19)
         self.assertEqual(nc.eV_to_wavelength_photon(1), 1.24e-6)
         self.assertEqual(nc.wavelength_to_meV_neutron(1), 81.81)
+        self.assertEqual(nc.joule_to_ev(1), (1/1.602e-19))
 
+
+class Z_dict_test_case(unittest.TestCase):
+    """ test for periodic table """
+
+    def test_table_len(self):
+        self.assertEqual((len(nc.Z_dict()), 118) 
 
 if __name__ == '__main__':
     unittest.main()
