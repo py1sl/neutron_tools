@@ -13,7 +13,6 @@ class constants_test_case(unittest.TestCase):
         self.assertEqual(nc.get_e_mass(), 9.10938e-28)
 
 
-
 class conversion_test_case(unittest.TestCase):
     """ test for conversions"""
 
@@ -46,12 +45,11 @@ class Z_dict_test_case(unittest.TestCase):
     """ test for periodic table """
 
     def test_table_len(self):
-        self.assertEqual((len(nc.Z_dict()), 118)
+        self.assertEqual((len(nc.Z_dict()), 118))
                          
     def test_last_value(self):
         z = nc.Z_dict()
         self.assertEqual(z.get("Og"), 118)
-
 
 
 
