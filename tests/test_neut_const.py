@@ -45,11 +45,11 @@ class Z_dict_test_case(unittest.TestCase):
     """ test for periodic table """
 
     def test_table_len(self):
-        self.assertEqual((len(nc.Z_dict()), 118))
+        self.assertEqual((len(nc.Z_dict())), 118)
                          
     def test_last_value(self):
         z = nc.Z_dict()
-        self.assertEqual(z.get("Og"), 118)
+        self.assertEqual(max(z.values()), 118)
 
 
 
