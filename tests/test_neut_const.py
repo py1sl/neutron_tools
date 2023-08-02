@@ -47,8 +47,12 @@ class Z_dict_test_case(unittest.TestCase):
 
     def test_table_len(self):
         self.assertEqual((len(nc.Z_dict()), 118)
+                         
+    def test_last_value(self):
         z = nc.Z_dict()
         self.assertEqual(z.get("Og"), 118)
+
+
 
 
 if __name__ == '__main__':
