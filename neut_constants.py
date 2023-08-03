@@ -71,6 +71,36 @@ def wavelength_to_meV_neutron(val):
     return 81.81 / (val * val)
 
 
+def joule_to_ev(val):
+    """ converts energy in joules to electron volts """
+    return val / (1.602e-19)
+
+
+def second_to_hour(val):
+    """ converts time in seconds to hours """
+    return val / 3600
+
+
+def second_to_day(val):
+    """ converts time in seconds to days """
+    return val / 86400
+
+
+def second_to_year(val):
+    """ converts time in seconds to years """
+    return val / 3.1536e07
+
+
+def hour_to_second(val):
+    """ converts time in hours to seconds """
+    return val * 3600
+
+
+def day_to_second(val):
+    """ converts time in days to seconds """
+    return val * 86400
+
+
 def Z_dict():
     zdict = {
        "H": 1,
