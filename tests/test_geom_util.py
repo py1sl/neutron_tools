@@ -163,7 +163,7 @@ class geom_conversions_test_case(unittest.TestCase):
         rho, phi, z = geom_utils.spherical_to_cylindrical(np.sqrt(3), np.arccos(1/np.sqrt(3)), np.pi/4)
         self.assertAlmostEqual(rho, np.sqrt(2))
         self.assertAlmostEqual(phi, np.pi/4)
-        self.assertEqual(z, 1)
+        self.assertAlmostEqual(z, 1)
         self.assertRaises(ValueError, geom_utils.spherical_to_cylindrical, -1, np.pi/4, np.pi/4)
 
 
