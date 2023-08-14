@@ -11,7 +11,7 @@ import pandas as pd
 
 
 class mcnp_cell():
-    """ """
+    """ cell class """
     def __init__(self):
         self.number = ""
         self.mat = ""
@@ -23,6 +23,7 @@ class mcnp_cell():
         self.param_list = []
 
     def __str__(self):
+        """ used for str() printing of cell class """
         cell_ls = """
         Cell number: {cell.number},
         Cell material: {cell.mat},
@@ -36,7 +37,7 @@ class mcnp_cell():
 
 
 class mcnp_input():
-    """ """
+    """ input file class """
     def __init__(self):
         self.filename = ''
         self.cell_list = []
@@ -111,7 +112,7 @@ def get_tally_numbers(lines):
 
 
 def check_surfaces(fpath):
-    """ check entries on surface card are valid"""
+    """ checks entries on surface card are valid"""
 
     df = surface_reader(fpath)
     types = df.loc[:, 'Type']
@@ -568,7 +569,6 @@ def unused_surfaces(fpath):
         new_row = row.split(' ')
         if new_row[0] != 'c':
             cell_data.append(new_row)
-
     def float_check(n):
         try:
             float(n)
