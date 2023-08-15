@@ -1,6 +1,11 @@
 import unittest
 import mcnp_input_reader
 
+# declaring file paths. If tests return error check files/paths are unchanged.
+fname = (r"test_output\singles_erg.i")
+ferror = (r"test_output\error_singles_erg.i")
+surface_file = (r"test_output\singles_t.i")
+
 
 class cell_card_tests(unittest.TestCase):
     # test for reading the cells part of input file
@@ -43,44 +48,50 @@ class cell_card_tests(unittest.TestCase):
 
 class surface_card_tests(unittest.TestCase):
     """ test for reading the surfaces part of input file"""
+    # tests the surface number of inputs
+    # ferror is file with bad inputs for surface types
+    def test_check_surfaces(self):
+        df_error = mcnp_input_reader.surface_reader(ferror)
+        df = mcnp_input_reader.surface_reader(fname)
+        bad_result = mcnp_input_reader.check_surfaces(df_error)
+        self.assertFalse(bad_result)
+        good_result = mcnp_input_reader.check_surfaces(df)
+        self.assertTrue(good_result)
 
-    # test simple surface card
-    def test_single_line_surface(self):
-        self.assertTrue(True)
+    def test_surface_reader(self):
+        """ tests that outputs from dataframe are correct type"""
+        df = mcnp_input_reader.surface_reader(fname)
+        Type = df.loc[:, 'Type']
+        Num = df.loc[:, 'Num']
+        Params = df.loc[:, 'Parameters']
+        Transform = df.loc[:, 'Transform']
+        Comments = df.loc[:, 'Comments']
 
-    # test multi line surface card
-    def test_multi_line_surface(self):
-        self.assertTrue(True)
+        for i in Num:
+            x = float(i)
+            self.assertEqual(type(x), float)
+        for i in Type:
+            self.assertEqual(type(i), str)
+        for i in (Params):
+            self.assertEqual(type(i), list)
+        for i in Transform:
+            # just returns true if i is '--'
+            if i == '--':
+                self.assertEqual(i, '--')
+            else:
+                x = float(i)
+                self.assertEqual(type(x), float)
+        for i in Comments:
+            if i == '--':
+                self.assertEqual(i, '--')
+            else:
+                self.assertEqual(type(i), str)
 
-    def test_is_surface(self):
-        # test check surface type validity
-        self.assertTrue(True)
-        self.assertFalse(False)
-
-    def test_plane_valid(self):
-        # test plane validity
-        self.assertTrue(True)
-        self.assertFalse(False)
-
-    def test_sphere_valid(self):
-        # test sphere validity
-        self.assertTrue(True)
-        self.assertFalse(False)
-
-    def test_cyl_valid(self):
-        # test cylinder validity
-        self.assertTrue(True)
-        self.assertFalse(False)
-
-    def test_cone_valid(self):
-        # test cone validity
-        self.assertTrue(True)
-        self.assertFalse(False)
-
-    def test_gq_valid(self):
-        # test general quadratic validity
-        self.assertTrue(True)
-        self.assertFalse(False)
+    def test_unused_surfaces(self):
+        unused = mcnp_input_reader.unused_surfaces(fname)
+        self.assertFalse(unused)
+        all_used = mcnp_input_reader.unused_surfaces(surface_file)
+        self.assertTrue(all_used)
 
 
 class data_card_tests(unittest.TestCase):
@@ -151,8 +162,8 @@ class misc_tests(unittest.TestCase):
                      "comment",
                      "c"]
         comments = mcnp_input_reader.get_full_line_comments(test_list)
-        self.assertEqual(comments[0], test_list[0])  # test for lower case c
-        self.assertEqual(comments[1], test_list[1])  # test for upper case c
+        self.assertEqual(comments.get(1), test_list[0])  # test lower case c
+        self.assertEqual(comments.get(2), test_list[1])  # test upper case c
         self.assertEqual(len(comments), 2)  # check nothing else added
 
     def test_long_line(self):
@@ -171,6 +182,34 @@ class misc_tests(unittest.TestCase):
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
         self.assertEqual(ll_index, None)     # if no long lines, return none
+
+    def test_tab_finder(self):
+        """ """
+        test_list = ["cell\t",
+                     "\tSurface",
+                     "c\t234",
+                     "com\tme\nnt" + 9 * "f",
+                     "c",
+                     "\t"]
+        tab_index = mcnp_input_reader.tab_finder(test_list)
+        self.assertEqual(tab_index, [1, 2, 3, 4, 6])
+
+    def test_tab_replacer(self):
+        """ """
+        test_list = ["cell\t",
+                     "\tSurface",
+                     "c\t234",
+                     "com\tme\tnt" + 9 * "f",
+                     "c",
+                     "\t."]
+        correct_list = ["cell     ",
+                        "     Surface",
+                        "c     234",
+                        "com     me     nt" + 9 * "f",
+                        "c",
+                        "     ."]
+        tab_replaced = mcnp_input_reader.tab_to_whitespace(test_list)
+        self.assertEqual(tab_replaced, correct_list)
 
 
 if __name__ == '__main__':
