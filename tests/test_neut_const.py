@@ -45,6 +45,7 @@ class conversion_test_case(unittest.TestCase):
 class Z_dict_test_case(unittest.TestCase):
     """ test for periodic table """
 
+
     def test_table_len(self):
         self.assertEqual((len(nc.Z_dict())), 118)
                          
