@@ -3,7 +3,7 @@ import mcnp_input_checker
 import neut_utilities as ut
 
 # declaring file path for testing
-fname = (r'test_output\error_singles_erg.i')
+fname = (r'test_output/error_singles_erg.i')
 
 
 class linecheck_test(unittest.TestCase):
