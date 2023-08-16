@@ -2,9 +2,9 @@ import unittest
 import mcnp_input_reader
 
 # declaring file paths. If tests return error check files/paths are unchanged.
-fname = (r"test_output\singles_erg.i")
-ferror = (r"test_output\error_singles_erg.i")
-surface_file = (r"test_output\singles_t.i")
+fname = (r"test_output/singles_erg.i")
+ferror = (r"test_output/error_singles_erg.i")
+surface_file = (r"test_output/singles_t.i")
 
 
 class cell_card_tests(unittest.TestCase):
