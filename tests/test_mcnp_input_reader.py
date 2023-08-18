@@ -1,10 +1,19 @@
 import unittest
-import mcnp_input_reader
+import mcnp_input_reader as mcnp_input_reader
+import neut_utilities as ut
 
 # declaring file paths. If tests return error check files/paths are unchanged.
-fname = (r"test_output/singles_erg.i")
-ferror = (r"test_output/error_singles_erg.i")
-surface_file = (r"test_output/singles_t.i")
+fname = r'tests\singles_erg.i'
+ferror = r"tests/error_singles_erg.i"
+surface_file = r"tests/singles_t.i"
+lines = ut.get_lines(fname)
+cell_bloc, surf_bloc, data_bloc = mcnp_input_reader.split_blocs(lines)
+
+errlines = ut.get_lines(ferror)
+err_cell_bloc, err_surf_bloc, err_data_bloc = mcnp_input_reader.split_blocs(errlines)
+
+surflines = ut.get_lines(surface_file)
+s_cell_bloc, s_surf_bloc, s_data_bloc = mcnp_input_reader.split_blocs(surflines)
 
 
 class cell_card_tests(unittest.TestCase):
@@ -48,19 +57,21 @@ class cell_card_tests(unittest.TestCase):
 
 class surface_card_tests(unittest.TestCase):
     """ test for reading the surfaces part of input file"""
+    
     # tests the surface number of inputs
     # ferror is file with bad inputs for surface types
     def test_check_surfaces(self):
-        df_error = mcnp_input_reader.surface_reader(ferror)
-        df = mcnp_input_reader.surface_reader(fname)
+        df_error = mcnp_input_reader.surface_reader(err_surf_bloc)
+        df = mcnp_input_reader.surface_reader(surf_bloc)
         bad_result = mcnp_input_reader.check_surfaces(df_error)
-        self.assertFalse(bad_result)
+        bad_list = ['so', 'so', 'so']
+        self.assertEqual(bad_result, bad_list)
         good_result = mcnp_input_reader.check_surfaces(df)
-        self.assertTrue(good_result)
+        self.assertIsNone(good_result)
 
     def test_surface_reader(self):
         """ tests that outputs from dataframe are correct type"""
-        df = mcnp_input_reader.surface_reader(fname)
+        df = mcnp_input_reader.surface_reader(surf_bloc)
         Type = df.loc[:, 'Type']
         Num = df.loc[:, 'Num']
         Params = df.loc[:, 'Parameters']
@@ -88,10 +99,14 @@ class surface_card_tests(unittest.TestCase):
                 self.assertEqual(type(i), str)
 
     def test_unused_surfaces(self):
-        unused = mcnp_input_reader.unused_surfaces(fname)
+        unused = mcnp_input_reader.unused_surfaces(lines)
         self.assertFalse(unused)
-        all_used = mcnp_input_reader.unused_surfaces(surface_file)
+        all_used = mcnp_input_reader.unused_surfaces(surflines)
         self.assertTrue(all_used)
+
+    def test_dup_surfaces(self):
+        lines = ut.get_lines(fname)
+        cell_bloc, surf_bloc, data_bloc = mcnp_input_reader.split_blocs(lines)
 
 
 class data_card_tests(unittest.TestCase):
@@ -162,8 +177,8 @@ class misc_tests(unittest.TestCase):
                      "comment",
                      "c"]
         comments = mcnp_input_reader.get_full_line_comments(test_list)
-        self.assertEqual(comments.get(1), test_list[0])  # test lower case c
-        self.assertEqual(comments.get(2), test_list[1])  # test upper case c
+        self.assertEqual(comments.get(0), test_list[0])  # test lower case c
+        self.assertEqual(comments.get(1), test_list[1])  # test upper case c
         self.assertEqual(len(comments), 2)  # check nothing else added
 
     def test_long_line(self):

@@ -4,7 +4,7 @@ MCNP input checker
 
 import argparse
 import neut_utilities as ut
-import mcnp_input_reader
+import mcnp_input_reader as mcnp_input_reader
 
 
 def line_checker(fpath):
@@ -32,10 +32,6 @@ def input_summary(ifile):
     n_mats = len(mat_nums)
     n_surf = len(surf_df)
     n_tallies = len(tally_nums)
-    print('No. of cells =', n_cells)
-    print('No. of materials =', n_mats)
-    print('No. of surfaces =', n_surf)
-    print('No. of tallies =', n_tallies)
 
     return n_cells, n_mats, n_surf, n_tallies
 
@@ -68,18 +64,15 @@ def dup_data_checker(ifile):
             nps.append((i+1, e[1]))
         if e[0] == 'sdef':
             sdef.append((i+1, e[1:]))
-    for i, s in enumerate(mode):
-        if i >= 1:
-            print('More than one mode card entry')
-            print('mode (line, entry) --', mode)
-    for i, s in enumerate(nps):
-        if i >= 1:
-            print('More than one nps card entry')
-            print('nps (line, entry) --', nps)
-    for i, s in enumerate(sdef):
-        if i >= 1:
-            print('More than one sdef card entry')
-            print('sdef (line, entry) --', sdef)
+    if len(mode) >= 2:
+        print('More than one mode card entry')
+        print('mode (line, entry) --', mode)
+    if len(nps) >= 2:
+        print('More than one nps card entry')
+        print('nps (line, entry) --', nps)
+    if len(sdef) >= 2:
+        print('More than one sdef card entry')
+        print('sdef (line, entry) --', sdef)
 
     return mode, nps, sdef
 
@@ -90,6 +83,9 @@ if __name__ == '__main__':
                                      than 80 characters long,
                                      and lines with tabs""")
     parser.add_argument("input", help="path to input file", type=str)
+    parser.add_argument("lines", help="string lines ending in new line")
     args = parser.parse_args()
 
     line_checker(args.input)
+    input_summary(args.lines)
+    dup_data_checker(args.lines)

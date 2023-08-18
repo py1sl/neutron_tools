@@ -23,7 +23,7 @@ class mcnp_cell():
         self.param_list = []
 
     def __str__(self):
-        cell_ls = """
+        cell_ls = f"""
         Cell number: {self.number},
         Cell material: {self.mat},
         Cell density: {self.density},
@@ -36,7 +36,7 @@ class mcnp_cell():
 
 
 class mcnp_input():
-    """ """
+    """ filename, cell, surface, tally, materials """
     def __init__(self):
         self.filename = ''
         self.cell_list = []
@@ -45,10 +45,10 @@ class mcnp_input():
         self.mat_list = []
 
     def __str__(self):
-        input_ls = """
-        Input filename: {self.number},
+        input_ls = f"""
+        Input filename: {self.filename},
         Input cell list: {self.cell_list},
-        Input surface list: {self.surface_list},
+        Input surface list: \n{self.surface_list}\n
         Input tally list: {self.tally_list},
         Input materials list: {self.mat_list}.
         """
@@ -91,7 +91,7 @@ def get_full_line_comments(lines):
     comments = {}
     for i, line in enumerate(lines):
         if len(line) > 1 and line[0].lower() == "c" and line[1] == " ":
-            comments.update({i+1: line})
+            comments.update({i: line})
     return comments
 
 
@@ -121,215 +121,76 @@ def get_tally_numbers(lines):
 
 
 def check_surfaces(df):
-    """ check entries on surface card are valid"""
+    """ check entries on surface card are valid. Returns list of incorrect entries 
+    if there are, if not, returns None"""
 
     types = df.loc[:, 'Type']
     parameters = df.loc[:, 'Parameters']
     count = 0
-    incorrect_dict = {}
+    incorrect_dict = []
 
     for i, c in enumerate(types):
-        # Planes
         if c == 'p':
             if 1 <= len(parameters[i]) <= 4:
                 continue
             else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
+                incorrect_dict.append(c)
                 count = +1
-        if c == 'px':
+        if c in ['px', 'py', 'pz', 'so', 'cx', 'cy', 'cz']:
             if len(parameters[i]) == 1:
                 continue
             else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
+                incorrect_dict.append(c)
                 count = +1
-        if c == 'py':
-            if len(parameters[i]) == 1:
-                continue
-            else:
-                entry = {i: c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'pz':
-            if len(parameters[i]) == 1:
-                continue
-            else:
-                entry = {i: c}
-                incorrect_dict.update(entry)
-                count = +1
-        # Spheres
-        if c == 'so':
-            if len(parameters[i]) == 1:
-                continue
-            else:
-                entry = {i: c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 's':
+        if c in ['s', 'k/x', 'k/y', 'k/z']:
             if len(parameters[i]) == 4:
                 continue
             else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
+                incorrect_dict.append(c)
                 count = +1
-        if c == 'sx':
+        if c in ['sx', 'sy', 'sz', 'kx', 'ky', 'kz']:
             if len(parameters[i]) == 2:
                 continue
             else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
+                incorrect_dict.append(c)
                 count = +1
-        if c == 'sy':
-            if len(parameters[i]) == 2:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'sz':
-            if len(parameters[i]) == 2:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        # Cylinders
-        if c == 'c/x':
+        if c in ['c/x', 'c/y', 'c/z']:
             if len(parameters[i]) == 3:
                 continue
             else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'c/y':
-            if len(parameters[i]) == 3:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'c/z':
-            if len(parameters[i]) == 3:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'cx':
-            if len(parameters[i]) == 1:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'cy':
-            if len(parameters[i]) == 1:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'cz':
-            if len(parameters[i]) == 1:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        # Cones
-        if c == 'k/x':
-            if len(parameters[i]) == 4:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'k/y':
-            if len(parameters[i]) == 4:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'k/z':
-            if len(parameters[i]) == 4:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'kx':
-            if len(parameters[i]) == 2:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'ky':
-            if len(parameters[i]) == 2:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'kz':
-            if len(parameters[i]) == 2:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
+                incorrect_dict.append(c)
                 count = +1
         # Quadratics
         if c == 'sq':
             if 3 <= len(parameters[i]) <= 10:
                 continue
             else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
+                incorrect_dict.append(c)
                 count = +1
         if c == 'gq':
             if 1 <= len(parameters[i]) <= 10:
                 continue
             else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = count + 1
+                incorrect_dict.append(c)
+                count = +1
         # Tori
-        if c == 'tx':
+        if c in ['tx', 'ty', 'tz']:
             if 3 <= len(parameters[i]) <= 6:
                 continue
             else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'ty':
-            if 3 <= len(parameters[i]) <= 6:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
-                count = +1
-        if c == 'tz':
-            if 3 <= len(parameters[i]) <= 6:
-                continue
-            else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
+                incorrect_dict.append(c)
                 count = +1
         # Points
         if c == 'xyzp':
             if len(parameters[i]) <= 3:
                 continue
             else:
-                entry = {i, c}
-                incorrect_dict.update(entry)
+                incorrect_dict.append(c)
                 count = +1
     if count != 0:
-        print(incorrect_dict)
-        return False
+        return incorrect_dict
     else:
-        return True
+        return None
 
 
 def find_blank_lines(lines):
@@ -443,29 +304,37 @@ def float_check(n):
     try:
         float(n)
         return True
-    except Exception:
+    except ValueError:
         return False
 
 
-def surface_reader(fpath):
+def surface_reader(surf_bloc):
     """ reads from the mcnp file and outputs
     dataframe with the details of the surfaces """
-    ifile = ut.get_lines(fpath)
-    cell_bloc, surf_bloc, data_bloc = split_blocs(ifile)
     # takes the blank and c line out
-    del surf_bloc[0:2]
+
+    surf_clean = []
+    for i, line in enumerate(surf_bloc):
+        if re.match("^c", line) is None:
+            surf_clean.append(line)
+            if line == '':
+                surf_clean.pop(i)
 
     # Assumes that a surface description that goes over one line
     # will have a whitespace at the end of every continuing line.
     bloc = []
     comments_list = []
-    for i, row in enumerate(surf_bloc):
-        if row[-1] == ' ':
-            surf_bloc[i] = surf_bloc[i] + surf_bloc[i+1]
-            surf_bloc.pop(i+1)
+    surf_new = []
+    for i, row in enumerate(surf_clean):
+        if row[0] == ' ':
+            new_row = surf_clean[i-1] + surf_clean[i]
+            surf_new.append(new_row)
+            surf_new.pop(i-1)
+        else:
+            surf_new.append(row)
 
     # finds the comments and pops them out and into another list
-    for i, row in enumerate(surf_bloc):
+    for i, row in enumerate(surf_new):
         data, sep, comment = row.partition(' $')
         bloc.append(data)
         if comment == '':
@@ -524,23 +393,25 @@ def surface_reader(fpath):
     return df
 
 
-def read_mcnp_input(fpath):
-    """ reads and returns: ifile, cells, mats, surf_df, tallies"""
-
+def read_mcnp_input(fpath, input):
+    """ reads and returns input object"""
     ifile = ut.get_lines(fpath)
     cell_bloc, surf_bloc, data_bloc = split_blocs(ifile)
     cell_list = process_cell_block(cell_bloc)
-    # comments = get_full_line_comments(ifile)
     surf_df = surface_reader(surf_bloc)
     mat_nums = get_material_numbers(data_bloc)
     tally_nums = get_tally_numbers(data_bloc)
+    input.filename = fpath
+    input.cell_list = cell_list
+    input.mat_list = mat_nums
+    input.tally_list = tally_nums
+    input.surface_list = surf_df
 
-    return ifile, cell_list, mat_nums, surf_df, tally_nums
+    return input
 
 
-def unused_surfaces(fpath):
+def unused_surfaces(ifile):
     """ checks input for surfaces not used in cells"""
-    ifile = ut.get_lines(fpath)
     cell_bloc, surf_bloc, data_bloc = split_blocs(ifile)
     cell_data = []
     cell_used = []
@@ -563,26 +434,25 @@ def unused_surfaces(fpath):
             else:
                 continue
 
-    df = surface_reader(fpath)
+    df = surface_reader(surf_bloc)
     used = df.loc[:, 'Num']
     used_list = used.values.tolist()
 
     check = all(i in cell_used for i in used_list)
 
     if check is False:
-        print('Not all surfaces are used')
+        UserWarning
         return False
     if check is True:
         return True
 
 
-def dup_surfaces(fpath):
+def dup_surfaces(surf_bloc):
     """ reads in dataframe of surface card and returns duplicate
     entries. True = duplicate. """
-    df = surface_reader(fpath)
+    df = surface_reader(surf_bloc)
     # for False - not a duplicate. For True - is duplicate.
     duplicate_df = df.astype(str).duplicated(keep=False)
-    print('Duplicated rows: \n', duplicate_df)
 
     return duplicate_df
 
@@ -592,7 +462,7 @@ def tab_finder(lines):
     of which element of the list has a tab in """
     count = []
     scan = []
-    for i, line in enumerate(lines):
+    for line in lines:
         scan.append(re.search('\t', line))
     for i, line in enumerate(lines):
         if scan[i] is not None:
