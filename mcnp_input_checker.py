@@ -4,7 +4,7 @@ MCNP input checker
 
 import argparse
 import neut_utilities as ut
-import mcnp_input_reader as mcnp_input_reader
+import mcnp_input_reader
 
 
 def line_checker(fpath):
