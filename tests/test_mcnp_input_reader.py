@@ -3,7 +3,7 @@ import mcnp_input_reader as mcnp_input_reader
 import neut_utilities as ut
 
 # declaring file paths. If tests return error check files/paths are unchanged.
-fname = r'tests\singles_erg.i'
+fname = r'tests/singles_erg.i'
 ferror = r"tests/error_singles_erg.i"
 surface_file = r"tests/singles_t.i"
 lines = ut.get_lines(fname)
