@@ -23,7 +23,7 @@ class mcnp_cell():
         self.param_list = []
 
     def __str__(self):
-        cell_ls = f"""
+        return f"""
         Cell number: {self.number},
         Cell material: {self.mat},
         Cell density: {self.density},
@@ -32,27 +32,34 @@ class mcnp_cell():
         Cell imp p: {self.imp_p},
         Cell imp n: {self.imp_n}.
         """
-        return cell_ls
 
 
 class mcnp_input():
     """ filename, cell, surface, tally, materials """
     def __init__(self):
         self.filename = ''
-        self.cell_list = []
+        self.cell_list = mcnp_cell()
         self.surface_list = []
         self.tally_list = []
         self.mat_list = []
 
     def __str__(self):
-        input_ls = f"""
+    
+        return f"""
         Input filename: {self.filename},
-        Input cell list: {self.cell_list},
+        Input number of cells: {self.cell_list},
         Input surface list: \n{self.surface_list}\n
         Input tally list: {self.tally_list},
         Input materials list: {self.mat_list}.
         """
-        return input_ls
+
+        return printout
+        # f"""
+        # Input filename: {self.filename},
+        # Input surface list: \n{self.surface_list}\n
+        # Input tally list: {self.tally_list},
+        # Input materials list: {self.mat_list}.
+        # """
 
 
 def long_line_index(lines):
@@ -301,6 +308,10 @@ def cells_with_mat(mat_num, cell_list):
 
 def float_check(n):
     """ tries to take input as float, returns false if error """
+    # if n.isnumeric():
+    #     return True
+    # else:
+    #     return False
     try:
         float(n)
         return True
@@ -397,12 +408,12 @@ def read_mcnp_input(fpath, input):
     """ reads and returns input object"""
     ifile = ut.get_lines(fpath)
     cell_bloc, surf_bloc, data_bloc = split_blocs(ifile)
-    cell_list = process_cell_block(cell_bloc)
+    cell_ls = process_cell_block(cell_bloc)
     surf_df = surface_reader(surf_bloc)
     mat_nums = get_material_numbers(data_bloc)
     tally_nums = get_tally_numbers(data_bloc)
     input.filename = fpath
-    input.cell_list = cell_list
+    input.cell_list = len(cell_ls)
     input.mat_list = mat_nums
     input.tally_list = tally_nums
     input.surface_list = surf_df
