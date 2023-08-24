@@ -7,8 +7,8 @@ c test input to generate output for MCNP output reader
 c 
 1 -4 so 5
 2 2 so 10 4 $ spheres
-3 so 20 4
-3 so 20 20
+3 so 20
+3 so 20
 55 -55.5 gq 3 4 5 6 7  
       8 9 10 11 12 $ general quadratic
 

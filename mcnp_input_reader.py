@@ -38,28 +38,19 @@ class mcnp_input():
     """ filename, cell, surface, tally, materials """
     def __init__(self):
         self.filename = ''
-        self.cell_list = mcnp_cell()
+        self.cell_list = []
         self.surface_list = []
         self.tally_list = []
         self.mat_list = []
 
     def __str__(self):
-    
         return f"""
         Input filename: {self.filename},
-        Input number of cells: {self.cell_list},
-        Input surface list: \n{self.surface_list}\n
-        Input tally list: {self.tally_list},
-        Input materials list: {self.mat_list}.
+        Input total cells: {self.cell_list},
+        Input total surface: {self.surface_list},
+        Input total tally: {self.tally_list},
+        Input total materials: {self.mat_list}.
         """
-
-        return printout
-        # f"""
-        # Input filename: {self.filename},
-        # Input surface list: \n{self.surface_list}\n
-        # Input tally list: {self.tally_list},
-        # Input materials list: {self.mat_list}.
-        # """
 
 
 def long_line_index(lines):
@@ -137,58 +128,58 @@ def check_surfaces(df):
     incorrect_dict = []
 
     for i, c in enumerate(types):
-        if c == 'p':
+        if c.lower() == 'p':
             if 1 <= len(parameters[i]) <= 4:
                 continue
             else:
                 incorrect_dict.append(c)
                 count = +1
-        if c in ['px', 'py', 'pz', 'so', 'cx', 'cy', 'cz']:
+        if c.lower() in ['px', 'py', 'pz', 'so', 'cx', 'cy', 'cz']:
             if len(parameters[i]) == 1:
                 continue
             else:
                 incorrect_dict.append(c)
                 count = +1
-        if c in ['s', 'k/x', 'k/y', 'k/z']:
+        if c.lower() in ['s', 'k/x', 'k/y', 'k/z']:
             if len(parameters[i]) == 4:
                 continue
             else:
                 incorrect_dict.append(c)
                 count = +1
-        if c in ['sx', 'sy', 'sz', 'kx', 'ky', 'kz']:
+        if c.lower() in ['sx', 'sy', 'sz', 'kx', 'ky', 'kz']:
             if len(parameters[i]) == 2:
                 continue
             else:
                 incorrect_dict.append(c)
                 count = +1
-        if c in ['c/x', 'c/y', 'c/z']:
+        if c.lower() in ['c/x', 'c/y', 'c/z']:
             if len(parameters[i]) == 3:
                 continue
             else:
                 incorrect_dict.append(c)
                 count = +1
         # Quadratics
-        if c == 'sq':
+        if c.lower() == 'sq':
             if 3 <= len(parameters[i]) <= 10:
                 continue
             else:
                 incorrect_dict.append(c)
                 count = +1
-        if c == 'gq':
+        if c.lower() == 'gq':
             if 1 <= len(parameters[i]) <= 10:
                 continue
             else:
                 incorrect_dict.append(c)
                 count = +1
         # Tori
-        if c in ['tx', 'ty', 'tz']:
+        if c.lower() in ['tx', 'ty', 'tz']:
             if 3 <= len(parameters[i]) <= 6:
                 continue
             else:
                 incorrect_dict.append(c)
                 count = +1
         # Points
-        if c == 'xyzp':
+        if c.lower() == 'xyzp':
             if len(parameters[i]) <= 3:
                 continue
             else:
@@ -239,7 +230,6 @@ def process_geom(geom, cell):
     """ processes geometry part of a cell """
     surfaces = []
     cell.geom = geom
-
     for part in geom:
         part = part.strip("()-")
         if "imp" in part.lower():
@@ -247,10 +237,22 @@ def process_geom(geom, cell):
         elif part[0].isdigit():
             part = part.split(":")
             for s in part:
+                s = s.strip("()")
                 surfaces.append(float(s))
-        else:
-            print(" part not recogninsed")
-
+        # else:
+        #     print(" part not recogninsed")
+    # for part in geom:
+    #     part = part.strip("()-")
+    #     part_ls = part.split(" ")
+    #     if "imp" in part.lower():
+    #         cell = process_imp(part, cell)
+    #     elif part_ls[0].isdigit():
+    #         part = part.split(":")
+    #         for s in part:
+    #             s = s.strip("()")
+    #             surfaces.append(float(s))
+    #     # else:
+    #     #     print(" part not recogninsed")
     cell.surfaces = surfaces
 
     return cell
@@ -308,10 +310,6 @@ def cells_with_mat(mat_num, cell_list):
 
 def float_check(n):
     """ tries to take input as float, returns false if error """
-    # if n.isnumeric():
-    #     return True
-    # else:
-    #     return False
     try:
         float(n)
         return True
@@ -323,10 +321,9 @@ def surface_reader(surf_bloc):
     """ reads from the mcnp file and outputs
     dataframe with the details of the surfaces """
     # takes the blank and c line out
-
     surf_clean = []
     for i, line in enumerate(surf_bloc):
-        if re.match("^c", line) is None:
+        if re.match("^c", line.lower()) is None:
             surf_clean.append(line)
             if line == '':
                 surf_clean.pop(i)
@@ -340,7 +337,10 @@ def surface_reader(surf_bloc):
         if row[0] == ' ':
             new_row = surf_clean[i-1] + surf_clean[i]
             surf_new.append(new_row)
-            surf_new.pop(i-1)
+            try:
+                surf_new.pop(i-1)
+            except IndexError:
+                continue
         else:
             surf_new.append(row)
 
@@ -414,9 +414,9 @@ def read_mcnp_input(fpath, input):
     tally_nums = get_tally_numbers(data_bloc)
     input.filename = fpath
     input.cell_list = len(cell_ls)
-    input.mat_list = mat_nums
-    input.tally_list = tally_nums
-    input.surface_list = surf_df
+    input.mat_list = len(mat_nums)
+    input.tally_list = len(tally_nums)
+    input.surface_list = len(surf_df)
 
     return input
 

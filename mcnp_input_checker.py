@@ -16,31 +16,32 @@ def line_checker(fpath):
     for i in tab_list:
         print('\nLine', i, 'has a tab.')
     for i in long_list:
-        print('\nLine', i, 'is over 79 characters')
+        print('\nLine', i, 'is over 79 characters.')
 
     return new_lines
 
 
-def input_summary(ifile):
+def input_summary(fpath, input):
     """ prints a summary of the mcnp input file """
+    ifile = ut.get_lines(fpath)
     cell_bloc, surf_bloc, data_bloc = mcnp_input_reader.split_blocs(ifile)
     cell_list = mcnp_input_reader.process_cell_block(cell_bloc)
     surf_df = mcnp_input_reader.surface_reader(surf_bloc)
     mat_nums = mcnp_input_reader.get_material_numbers(data_bloc)
     tally_nums = mcnp_input_reader.get_tally_numbers(data_bloc)
-    n_cells = len(cell_list)
-    n_mats = len(mat_nums)
-    n_surf = len(surf_df)
-    n_tallies = len(tally_nums)
+    input.filename = fpath
+    input.cell_list = len(cell_list)
+    input.mat_list = len(mat_nums)
+    input.tally_list = len(tally_nums)
+    input.surface_list = len(surf_df)
 
-    return n_cells, n_mats, n_surf, n_tallies
+    return input
 
 
 def dup_data_checker(ifile):
     """ checks for duplicate card entries in data block. returns mode, nps,
-    sdef index and duplicate entry """
-    cell_data, surf_data, data_bloc = mcnp_input_reader.split_blocs(ifile)
-    data = cell_data + surf_data + data_bloc
+    sdef, mphys, prdmp index and duplicate entry """
+    data = ifile
     bloc = []
     spaced = []
     text = []
@@ -57,13 +58,19 @@ def dup_data_checker(ifile):
     mode = []
     nps = []
     sdef = []
+    mphys = []
+    prdmp = []
     for i, e in enumerate(card_data):
         if e[0] == 'mode':
-            mode.append((i+1, e[1]))
+            mode.append((i+1, e[1:]))
         if e[0] == 'nps':
             nps.append((i+1, e[1]))
         if e[0] == 'sdef':
             sdef.append((i+1, e[1:]))
+        if e[0] == 'mphys':
+            mphys.append((i+1, e[1]))
+        if e[0] == 'prdmp':
+            prdmp.append((i+1, e[1:]))
     if len(mode) >= 2:
         print('More than one mode card entry')
         print('mode (line, entry) --', mode)
@@ -73,8 +80,14 @@ def dup_data_checker(ifile):
     if len(sdef) >= 2:
         print('More than one sdef card entry')
         print('sdef (line, entry) --', sdef)
+    if len(mphys) >= 2:
+        print('More than one sdef card entry')
+        print('mphys (line, entry) --', mphys)
+    if len(prdmp) >= 2:
+        print('More than one sdef card entry')
+        print('prdmp (line, entry) --', prdmp)
 
-    return mode, nps, sdef
+    return mode, nps, sdef, mphys, prdmp
 
 
 if __name__ == '__main__':

@@ -3,17 +3,17 @@ import mcnp_input_reader
 import neut_utilities as ut
 
 # declaring file paths. If tests return error check files/paths are unchanged.
-fname = r'test_output/singles_erg.i'
+fname = r"test_output/singles_erg.i"
 ferror = r"test_output/error_singles_erg.i"
 surface_file = r"test_output/singles_t.i"
 lines = ut.get_lines(fname)
 cell_bloc, surf_bloc, data_bloc = mcnp_input_reader.split_blocs(lines)
 
-errlines = ut.get_lines(ferror)
-err_cell_bloc, err_surf_bloc, err_data_bloc = mcnp_input_reader.split_blocs(errlines)
+err = ut.get_lines(ferror)
+err_cell, err_surf, err_data = mcnp_input_reader.split_blocs(err)
 
 surflines = ut.get_lines(surface_file)
-s_cell_bloc, s_surf_bloc, s_data_bloc = mcnp_input_reader.split_blocs(surflines)
+s_cell, s_surf, s_data = mcnp_input_reader.split_blocs(surflines)
 
 
 class cell_card_tests(unittest.TestCase):
@@ -57,14 +57,13 @@ class cell_card_tests(unittest.TestCase):
 
 class surface_card_tests(unittest.TestCase):
     """ test for reading the surfaces part of input file"""
-    
     # tests the surface number of inputs
     # ferror is file with bad inputs for surface types
     def test_check_surfaces(self):
-        df_error = mcnp_input_reader.surface_reader(err_surf_bloc)
+        df_error = mcnp_input_reader.surface_reader(err_surf)
         df = mcnp_input_reader.surface_reader(surf_bloc)
         bad_result = mcnp_input_reader.check_surfaces(df_error)
-        bad_list = ['so', 'so', 'so']
+        bad_list = ['so']
         self.assertEqual(bad_result, bad_list)
         good_result = mcnp_input_reader.check_surfaces(df)
         self.assertIsNone(good_result)
@@ -107,6 +106,11 @@ class surface_card_tests(unittest.TestCase):
     def test_dup_surfaces(self):
         lines = ut.get_lines(fname)
         cell_bloc, surf_bloc, data_bloc = mcnp_input_reader.split_blocs(lines)
+        dup_df = mcnp_input_reader.dup_surfaces(surf_bloc)
+        bool_true = dup_df.loc[3]
+        bool_false = dup_df.loc[4]
+        self.assertTrue(bool_true)
+        self.assertFalse(bool_false)
 
 
 class data_card_tests(unittest.TestCase):
@@ -197,6 +201,15 @@ class misc_tests(unittest.TestCase):
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
         self.assertEqual(ll_index, None)     # if no long lines, return none
+
+    def test_float_check(self):
+        test_list = ['-1', 'so', '55.5', 's1o1']
+        check_list = []
+        list = [True, False, True, False]
+        for i in test_list:
+            x = mcnp_input_reader.float_check(i)
+            check_list.append(x)
+        self.assertEqual(check_list, list)
 
     def test_tab_finder(self):
         """ """
