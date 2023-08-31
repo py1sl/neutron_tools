@@ -3,17 +3,16 @@ import mcnp_input_reader
 import neut_utilities as ut
 
 # declaring file paths. If tests return error check files/paths are unchanged.
-fname = r"test_output/singles_erg.i"
-ferror = r"test_output/error_singles_erg.i"
-surface_file = r"test_output/singles_t.i"
+fname = r"test_output/singles_erg.i"  # tests different surfaces
 lines = ut.get_lines(fname)
 cell_bloc, surf_bloc, data_bloc = mcnp_input_reader.split_blocs(lines)
 
+ferror = r"test_output/error_singles_erg.i"  # tests if error spotted
 err = ut.get_lines(ferror)
 err_cell, err_surf, err_data = mcnp_input_reader.split_blocs(err)
 
+surface_file = r"test_output/singles_t.i"  # tests surfaces used
 surflines = ut.get_lines(surface_file)
-s_cell, s_surf, s_data = mcnp_input_reader.split_blocs(surflines)
 
 
 class cell_card_tests(unittest.TestCase):
@@ -63,7 +62,7 @@ class surface_card_tests(unittest.TestCase):
         df_error = mcnp_input_reader.surface_reader(err_surf)
         df = mcnp_input_reader.surface_reader(surf_bloc)
         bad_result = mcnp_input_reader.check_surfaces(df_error)
-        bad_list = ['so']
+        bad_list = ["so ['10', '4']"]
         self.assertEqual(bad_result, bad_list)
         good_result = mcnp_input_reader.check_surfaces(df)
         self.assertIsNone(good_result)
@@ -194,7 +193,7 @@ class misc_tests(unittest.TestCase):
                      "c"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
         self.assertEqual(len(ll_index), 1)  # test found a single long line
-        self.assertEqual(ll_index, [3])     # check it found the right index
+        self.assertEqual(ll_index, [4])     # check it found the right index
 
         test_list = ["c cell cards",
                      "C surface ecards",

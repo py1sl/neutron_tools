@@ -8,21 +8,30 @@ import mcnp_input_reader
 
 
 def line_checker(fpath):
-    """ takes a file and checks for lines over 80 chars and tabs"""
+    """ takes a file and checks for lines over 80 chars and coverts tabs to
+    whitespace. prints lines over 80 and those that had tabs."""
     lines = ut.get_lines(fpath)
     tab_list = mcnp_input_reader.tab_finder(lines)
     new_lines = mcnp_input_reader.tab_to_whitespace(lines)
     long_list = mcnp_input_reader.long_line_index(lines)
     for i in tab_list:
         print('\nLine', i, 'has a tab.')
-    for i in long_list:
-        print('\nLine', i, 'is over 79 characters.')
+    if long_list is not None:
+        for i in long_list:
+            print('\nLine', i, 'is over 79 characters.')
+    else:
+        pass
 
     return new_lines
 
 
-def input_summary(fpath, input):
-    """ prints a summary of the mcnp input file """
+def input_summary(fpath):
+    """ returns an input class for printing a summary of the mcnp input file
+    by calling str(). """
+    # initialises input object in the function as it is only for printing
+    # will always be empty beforehand
+    input = mcnp_input_reader.mcnp_input()
+
     ifile = ut.get_lines(fpath)
     cell_bloc, surf_bloc, data_bloc = mcnp_input_reader.split_blocs(ifile)
     cell_list = mcnp_input_reader.process_cell_block(cell_bloc)
@@ -41,12 +50,11 @@ def input_summary(fpath, input):
 def dup_data_checker(ifile):
     """ checks for duplicate card entries in data block. returns mode, nps,
     sdef, mphys, prdmp index and duplicate entry """
-    data = ifile
     bloc = []
     spaced = []
     text = []
     # finds the comments and pops them out and into another list
-    for row in data:
+    for row in ifile:
         text, _, _ = row.partition(' $')
         bloc.append(text)
     for row in bloc:
@@ -91,14 +99,14 @@ def dup_data_checker(ifile):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="""takes file name and will
-                                     print the line numbers of lines more
-                                     than 80 characters long,
-                                     and lines with tabs""")
-    parser.add_argument("input", help="path to input file", type=str)
-    parser.add_argument("lines", help="string lines ending in new line")
+    parser = argparse.ArgumentParser(description="""for checking validity
+                                     of mcnp input and printing summary
+                                     of input file.""")
+    parser.add_argument("filepath", help="path to mcnp input file",
+                        nargs="?", default='test_output/default.txt')
     args = parser.parse_args()
 
-    line_checker(args.input)
-    input_summary(args.lines)
-    dup_data_checker(args.lines)
+    lines = ut.get_lines(args.filepath)
+    line_checker(args.filepath)
+    print(str(input_summary(args.filepath)))
+    dup_data_checker(lines)

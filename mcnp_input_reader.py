@@ -58,7 +58,7 @@ def long_line_index(lines):
     long_lines = []
     for i, line in enumerate(lines):
         if len(line) > 79:
-            long_lines.append(i)
+            long_lines.append(1+i)
     if len(long_lines) == 0:
         return None
     else:
@@ -119,74 +119,65 @@ def get_tally_numbers(lines):
 
 
 def check_surfaces(df):
-    """ check entries on surface card are valid. Returns list of incorrect entries 
-    if there are, if not, returns None"""
+    """ check entries on surface card are valid. Returns list of incorrect
+    entries if there are, if not, returns None"""
 
     types = df.loc[:, 'Type']
     parameters = df.loc[:, 'Parameters']
-    count = 0
-    incorrect_dict = []
+    incorrect_list = []
 
     for i, c in enumerate(types):
         if c.lower() == 'p':
             if 1 <= len(parameters[i]) <= 4:
                 continue
             else:
-                incorrect_dict.append(c)
-                count = +1
+                incorrect_list.append((c + ' ' + str(parameters[i])))
         if c.lower() in ['px', 'py', 'pz', 'so', 'cx', 'cy', 'cz']:
             if len(parameters[i]) == 1:
                 continue
             else:
-                incorrect_dict.append(c)
-                count = +1
+                incorrect_list.append((c + ' ' + str(parameters[i])))
         if c.lower() in ['s', 'k/x', 'k/y', 'k/z']:
             if len(parameters[i]) == 4:
                 continue
             else:
-                incorrect_dict.append(c)
-                count = +1
+                incorrect_list.append((c + ' ' + str(parameters[i])))
         if c.lower() in ['sx', 'sy', 'sz', 'kx', 'ky', 'kz']:
             if len(parameters[i]) == 2:
                 continue
             else:
-                incorrect_dict.append(c)
-                count = +1
+                incorrect_list.append((c + ' ' + str(parameters[i])))
         if c.lower() in ['c/x', 'c/y', 'c/z']:
             if len(parameters[i]) == 3:
                 continue
             else:
-                incorrect_dict.append(c)
-                count = +1
+                incorrect_list.append((c + ' ' + str(parameters[i])))
         # Quadratics
         if c.lower() == 'sq':
             if 3 <= len(parameters[i]) <= 10:
                 continue
             else:
-                incorrect_dict.append(c)
-                count = +1
+                incorrect_list.append((c + ' ' + str(parameters[i])))
         if c.lower() == 'gq':
             if 1 <= len(parameters[i]) <= 10:
                 continue
             else:
-                incorrect_dict.append(c)
-                count = +1
+                incorrect_list.append((c + ' ' + str(parameters[i])))
         # Tori
         if c.lower() in ['tx', 'ty', 'tz']:
             if 3 <= len(parameters[i]) <= 6:
                 continue
             else:
-                incorrect_dict.append(c)
-                count = +1
+                incorrect_list.append((c + ' ' + str(parameters[i])))
         # Points
         if c.lower() == 'xyzp':
             if len(parameters[i]) <= 3:
                 continue
             else:
-                incorrect_dict.append(c)
-                count = +1
-    if count != 0:
-        return incorrect_dict
+                incorrect_list.append((c + ' ' + str(parameters[i])))
+
+    if len(incorrect_list) != 0:
+        return incorrect_list
     else:
         return None
 
@@ -239,20 +230,6 @@ def process_geom(geom, cell):
             for s in part:
                 s = s.strip("()")
                 surfaces.append(float(s))
-        # else:
-        #     print(" part not recogninsed")
-    # for part in geom:
-    #     part = part.strip("()-")
-    #     part_ls = part.split(" ")
-    #     if "imp" in part.lower():
-    #         cell = process_imp(part, cell)
-    #     elif part_ls[0].isdigit():
-    #         part = part.split(":")
-    #         for s in part:
-    #             s = s.strip("()")
-    #             surfaces.append(float(s))
-    #     # else:
-    #     #     print(" part not recogninsed")
     cell.surfaces = surfaces
 
     return cell
@@ -329,7 +306,7 @@ def surface_reader(surf_bloc):
                 surf_clean.pop(i)
 
     # Assumes that a surface description that goes over one line
-    # will have a whitespace at the end of every continuing line.
+    # will have a whitespace at the beginning of the next line.
     bloc = []
     comments_list = []
     surf_new = []
@@ -345,7 +322,7 @@ def surface_reader(surf_bloc):
             surf_new.append(row)
 
     # finds the comments and pops them out and into another list
-    for i, row in enumerate(surf_new):
+    for row in surf_new:
         data, sep, comment = row.partition(' $')
         bloc.append(data)
         if comment == '':
@@ -424,32 +401,24 @@ def read_mcnp_input(fpath, input):
 def unused_surfaces(ifile):
     """ checks input for surfaces not used in cells"""
     cell_bloc, surf_bloc, data_bloc = split_blocs(ifile)
-    cell_data = []
     cell_used = []
-    for row in cell_bloc:
-        new_row = row.split(' ')
-        if new_row[0] != 'c':
-            cell_data.append(new_row)
-
-    for row in cell_data:
-        if row[1] == '0':
-            cell_used.append(row[2])
-            if float_check(row[3]) is True:
-                cell_used.append(row[3])
-            else:
-                continue
-        else:
-            cell_used.append(row[3])
-            if float_check(row[4]) is True:
-                cell_used.append(row[4])
-            else:
-                continue
+    # loops to create list of every surface mentioned in a cell
+    cell_list = process_cell_block(cell_bloc)
+    for i in range(len(cell_list)):
+        cell = cell_list[i]
+        for i in cell.surfaces:
+            cell_used.append(i)
 
     df = surface_reader(surf_bloc)
-    used = df.loc[:, 'Num']
-    used_list = used.values.tolist()
+    surf = df.loc[:, 'Num']
+    surf_list = surf.values.tolist()
+    new_list = []
+    # convert to float for comparison
+    for i in surf_list:
+        x = float(i)
+        new_list.append(x)
 
-    check = all(i in cell_used for i in used_list)
+    check = all(i in cell_used for i in new_list)
 
     if check is False:
         UserWarning
