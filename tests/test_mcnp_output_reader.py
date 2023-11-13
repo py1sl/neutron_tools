@@ -44,6 +44,12 @@ class get_tally_nums_test_case(unittest.TestCase):
         self.assertIn("5", tnums)
         self.assertIn("6", tnums)
         self.assertIn("8", tnums)
+        
+    def test_tally_count(self):
+        # test assignment of mcnp output object num_tallies
+        single = mcnp_output_reader.read_output_file("test_output/singles.io")
+        self.assertEqual(single.num_tallies, 6)
+        
 
 
 class rendevous_test_case(unittest.TestCase):

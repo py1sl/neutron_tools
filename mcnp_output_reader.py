@@ -982,6 +982,8 @@ def read_output_file(path):
     tls = get_tally_nums(ofile_data)
     for tnum in tls:
         mc_data.tally_data.append(read_tally(ofile_data, tnum))
+        
+    mc_data.num_tallies = len(tls)
 
     return mc_data
 
