@@ -26,6 +26,7 @@ class MCNPOutput():
         self.t60 = None
         self.warnings = []
         self.comments = []
+        self.tables = []
 
 
 class MCNP_tally_data():
@@ -193,17 +194,11 @@ def read_summary(data, ptype, rnum):
     return 1
 
 
-def read_table60(lines):
+def read_table60(lines, start_line):
     """ read table 60
        input a list of strings
        returns a reduced list with just the lines in table 60
     """
-
-    # first check there is a table 60,  might not be if it is a continue run
-    try:
-        start_line = ut.find_line("1cells", lines, 6)
-    except ValueError:
-        return None
 
     term_line = ut.find_line("    minimum source weight", lines, 25)
     lines = lines[start_line:term_line]
@@ -346,25 +341,20 @@ def read_tally(lines, tnum, rnum=-1):
 
     # add an error catch
 
-    # check if tally comment
-    if lines[res_start_line + 1][0] == "+":
-        tal_comment_bool = True
-    else:
-        tal_comment_bool = False
+    # Check if tally comment
+    tal_comment_bool = lines[res_start_line + 1][0] == "+"
 
-    # find tally type and create appropriate class
-    if tal_comment_bool:
-        type = lines[res_start_line + 2][22]
-    else:
-        type = lines[res_start_line + 1][22]
+    # Find tally type and create an appropriate class
+    type_index = 2 if tal_comment_bool else 1
+    tally_type = lines[res_start_line+type_index][22]
 
-    if type == '5':
+    if tally_type == '5':
         tally_data = MCNP_type5_tally()
-    elif type == '4' or type == '6':
+    elif tally_type == '4' or tally_type == '6':
         tally_data = MCNP_cell_tally()
-    elif type == '1' or type == '2':
+    elif tally_type == '1' or tally_type == '2':
         tally_data = MCNP_surface_tally()
-    elif type == '8':
+    elif tally_type == '8':
         tally_data = MCNP_pulse_tally()
     else:
         tally_data = MCNP_tally_data()
@@ -373,11 +363,9 @@ def read_tally(lines, tnum, rnum=-1):
     tally_data.number = int(tnum)
 
     # get particle type
-    if tal_comment_bool:
-        tally_data.particle = lines[res_start_line+3][24:33]
-    else:
-        tally_data.particle = lines[res_start_line+2][24:33]
-
+    particle_index = 3 if tal_comment_bool else 2
+    tally_data.particle = lines[res_start_line+particle_index][24:33]
+   
     tally_data.particle = ut.string_cleaner(tally_data.particle)
     tally_data.nps = ut.string_cleaner(lines[res_start_line][28:40])
     try:
@@ -385,7 +373,7 @@ def read_tally(lines, tnum, rnum=-1):
     except ValueError:
         ntlogger.debug('NPS value not an int, could be large value')
         
-    tally_data.type = type
+    tally_data.type = tally_type
 
     # limit lines to just the tally data
     lines = lines[res_start_line + 1:]
@@ -499,7 +487,7 @@ def read_type_surface(tally_data, lines):
                 line = line.strip()
                 surface_list.append(line.split()[-1])
         
-        tally_data.surfaces = surface_list
+        tally_data.surfaces = list(set(surface_list))
         ntlogger.debug("Tally surface numbers:")
         ntlogger.debug(tally_data.surfaces)
 
@@ -958,6 +946,22 @@ def read_stat_tests(lines):
     stat_line = stat_line.split(" ")[1:]
 
     return stat_line
+    
+    
+def get_table_dict(lines):
+    """ finds all mcnp output table numerical identifiers in
+        lines and the starting line for that table, returns dict """
+    table_dict = {}
+    
+    for i, line in enumerate(lines):
+        if "print table" in line:
+            key = line.split(" ")[-1]
+            if key == '160' or key == '161' or len(key)>3:
+                continue
+            else:
+                table_dict[key] = i
+    
+    return table_dict
 
 
 def read_output_file(path):
@@ -975,8 +979,12 @@ def read_output_file(path):
     mc_data.date, mc_data.start_time = read_run_date(ofile_data)
     mc_data.comments, mc_data.warnings = read_comments_warnings(ofile_data)
     mc_data.num_rendevous = count_rendevous(ofile_data)
+    
+    mc_data.tables = get_table_dict(ofile_data)
+    
     # read specific tables
-    # mc_data.t60 = read_table60(ofile_data)
+    if '60' in mc_data.tables:
+        mc_data.t60 = read_table60(ofile_data, mc_data.tables['60'])
 
     # tallies
     tls = get_tally_nums(ofile_data)

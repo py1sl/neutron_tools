@@ -86,8 +86,28 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
 
     for d in data:
         bw = calc_bin_width(d.eng)
-        if d.type == '2':
-            
+        if d.type =='1':
+            plt.ylabel("current n/MeV/" + sp)
+            if len(d.surfaces) > 1:
+                for surf in d.result:
+                    if len(d.ang_bins) > 1:
+                        print("not implemented yet - plotting spectra, angle and multiple surfaces")
+                        raise NotImplementedError
+
+                    else:
+                        y_vals = np.asarray(surf)/bw
+                        splot = plt.step(np.asarray(d.eng),  y_vals)
+                        legend = d.surfaces
+            else:
+                if len(d.ang_bins) > 1:
+                    for ang in d.result:
+                        y_vals = np.asarray(ang)/bw
+                        splot = plt.step(np.asarray(d.eng),  y_vals)
+                        legend = d.ang_bins    
+                else:
+                    y_vals = np.asarray(d.result)/bw
+                    splot = plt.step(np.asarray(d.eng),  y_vals)
+        elif d.type == '2':           
             y_vals = np.asarray(d.result)/bw
             splot = plt.step(np.asarray(d.eng),  y_vals)
         elif d.type == '4' and len(d.cells) > 1:
@@ -99,7 +119,6 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
             for cell in d.result:
                 y_vals = np.asarray(cell)/bw
                 splot = plt.step(np.asarray(d.eng),  y_vals)           
-
         else:
             y_vals = np.asarray(d.result)/bw
             splot = plt.step(np.asarray(d.eng),  y_vals)

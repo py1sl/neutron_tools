@@ -49,7 +49,6 @@ class get_tally_nums_test_case(unittest.TestCase):
         # test assignment of mcnp output object num_tallies
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         self.assertEqual(single.num_tallies, 6)
-        
 
 
 class rendevous_test_case(unittest.TestCase):
@@ -436,7 +435,18 @@ class writelines_test_case(unittest.TestCase):
 
         open_mock.assert_called_with("output1.txt", "w")
         open_mock.return_value.write.assert_any_call("hello\n")
+  
 
+class tables_testing(unittest.TestCase):
+    """ test for output tables """
+    
+    def test_table_numbers(self):
+        path = "test_output/singles_erg.io"
+        single = mcnp_output_reader.read_output_file(path)
+        print(single.tables)
+        self.assertEqual(len(single.tables), 4) 
+        self.assertEqual(single.tables['60'], 69)
+        
 
 if __name__ == '__main__':
     unittest.main()
