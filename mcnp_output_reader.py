@@ -201,9 +201,31 @@ def read_table60(lines, start_line):
     """
 
     term_line = ut.find_line("    minimum source weight", lines, 25)
-    lines = lines[start_line:term_line]
+    
+    table_lines = [ut.string_cleaner(line) for line in lines[start_line:term_line]]
+    
+    # header is split over two lines
+    header1 = table_lines[2]
+    header1 = header1.split(" ")
+    header2 = table_lines[3]
+    header2 = header2.split(" ")
+    # density headings
+    header2[2] = header1[0] + " " + header2[2]
+    header2[3] = header1[1] + " " + header2[3]
+    # importances - 
+    # TODO more than 1 importance
+    header2[-1] = header1[-1] + " " + header2[-1]
+    
+    # now the data
+    datalines = table_lines[5:-3]
+    data = []
+    for line in datalines:
+        dataline = line.split(" ")
+        data.append(dataline[1:])
+        
+    t60df = pd.DataFrame(data, columns=header2)
 
-    return lines
+    return t60df
 
 
 def print_tally_lines_to_file(lines, fname, tnum):
