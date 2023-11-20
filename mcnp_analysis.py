@@ -86,7 +86,7 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
 
     for d in data:
         bw = calc_bin_width(d.eng)
-        if d.type =='1':
+        if d.tally_type =='1':
             plt.ylabel("current n/MeV/" + sp)
             if len(d.surfaces) > 1:
                 for surf in d.result:
@@ -107,15 +107,15 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
                 else:
                     y_vals = np.asarray(d.result)/bw
                     splot = plt.step(np.asarray(d.eng),  y_vals)
-        elif d.type == '2':           
+        elif d.tally_type == '2':           
             y_vals = np.asarray(d.result)/bw
             splot = plt.step(np.asarray(d.eng),  y_vals)
-        elif d.type == '4' and len(d.cells) > 1:
+        elif d.tally_type == '4' and len(d.cells) > 1:
             for cell in d.result:
                 y_vals = np.asarray(cell)/bw
                 splot = plt.step(np.asarray(d.eng),  y_vals)
             legend = d.cells
-        elif d.type == '4' and len(d.cells) == 1:
+        elif d.tally_type == '4' and len(d.cells) == 1:
             for cell in d.result:
                 y_vals = np.asarray(cell)/bw
                 splot = plt.step(np.asarray(d.eng),  y_vals)           
@@ -150,7 +150,7 @@ def plot_spectra_ratio(data1, data2, fname, title):
     plt.xlabel("Energy (MeV)")
     plt.ylabel("ratio")
     plt.xscale('log')
-    if data1.type == '2':
+    if data1.tally_type == '2':
         
         ratio = np.asarray(data1.result)/np.asarray(data2.result)
     else:
@@ -254,7 +254,7 @@ def html_output(mc_object, fname):
         
 
         # add tally type specific data
-        if tdat.type == "4":
+        if tdat.tally_type == "4":
             hlines.append("Number Cells: " + str(len(tdat.cells)))
             cell_string ="".join(tdat.cells)            
             hlines.append("Cells: " + cell_string)            

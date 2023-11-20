@@ -88,7 +88,7 @@ class tally_type1_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
             if tn.number == 1:
-                self.assertEqual(tn.type, '1')
+                self.assertEqual(tn.tally_type, '1')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -105,7 +105,7 @@ class tally_type1_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 1:
-                self.assertEqual(tn.type, '1')
+                self.assertEqual(tn.tally_type, '1')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -122,7 +122,7 @@ class tally_type1_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 1:
-                self.assertEqual(tn.type, '1')
+                self.assertEqual(tn.tally_type, '1')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 200000)
                 self.assertEqual(tn.eng, None)
@@ -144,7 +144,7 @@ class tally_type2_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
-                self.assertEqual(tn.type, '2')
+                self.assertEqual(tn.tally_type, '2')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -161,7 +161,7 @@ class tally_type2_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
-                self.assertEqual(tn.type, '2')
+                self.assertEqual(tn.tally_type, '2')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -178,7 +178,7 @@ class tally_type2_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
-                self.assertEqual(tn.type, '2')
+                self.assertEqual(tn.tally_type, '2')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -197,7 +197,7 @@ class tally_type2_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
-                self.assertEqual(tn.type, '2')
+                self.assertEqual(tn.tally_type, '2')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 200000)
                 self.assertEqual(tn.eng, None)
@@ -218,7 +218,7 @@ class tally_type4_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
             if tn.number == 4:
-                self.assertEqual(tn.type, '4')
+                self.assertEqual(tn.tally_type, '4')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -236,7 +236,7 @@ class tally_type4_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
-                self.assertEqual(tn.type, '4')
+                self.assertEqual(tn.tally_type, '4')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -254,7 +254,7 @@ class tally_type4_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
-                self.assertEqual(tn.type, '4')
+                self.assertEqual(tn.tally_type, '4')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -272,7 +272,7 @@ class tally_type4_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
-                self.assertEqual(tn.type, '4')
+                self.assertEqual(tn.tally_type, '4')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 200000)
                 self.assertEqual(tn.eng, None)
@@ -293,7 +293,7 @@ class tally_type5_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
             if tn.number == 5:
-                self.assertEqual(tn.type, '5')
+                self.assertEqual(tn.tally_type, '5')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -323,7 +323,7 @@ class tally_type5_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 5:
-                self.assertEqual(tn.type, '5')
+                self.assertEqual(tn.tally_type, '5')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -355,7 +355,7 @@ class tally_type6_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
             if tn.number == 6:
-                self.assertEqual(tn.type, '6')
+                self.assertEqual(tn.tally_type, '6')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -373,7 +373,7 @@ class tally_type6_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 6:
-                self.assertEqual(tn.type, '6')
+                self.assertEqual(tn.tally_type, '6')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -394,7 +394,7 @@ class tally_type8_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
             if tn.number == 8:
-                self.assertEqual(tn.type, '8')
+                self.assertEqual(tn.tally_type, '8')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -410,7 +410,7 @@ class tally_type8_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 8:
-                self.assertEqual(tn.type, '8')
+                self.assertEqual(tn.tally_type, '8')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -440,12 +440,20 @@ class writelines_test_case(unittest.TestCase):
 class tables_testing(unittest.TestCase):
     """ test for output tables """
     
-    def test_table_numbers(self):
+    def setUp(self):
         path = "test_output/singles_erg.io"
-        single = mcnp_output_reader.read_output_file(path)
-        print(single.tables)
-        self.assertEqual(len(single.tables), 4) 
-        self.assertEqual(single.tables['60'], 69)
+        self.single = mcnp_output_reader.read_output_file(path)
+    
+    
+    def test_table_numbers(self):
+
+        self.assertEqual(len(self.single.tables), 4) 
+        self.assertEqual(self.single.tables['60'], 69)
+        
+    def test_t60(self):
+        print(self.single.t60)
+        
+    
         
 
 if __name__ == '__main__':

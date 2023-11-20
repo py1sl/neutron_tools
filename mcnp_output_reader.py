@@ -32,9 +32,9 @@ class MCNPOutput():
 class MCNP_tally_data():
     """ generic tally object for data common to all tally types """
     def __init__(self):
-        # general
+        # general data all tallies have
         self.number = 1
-        self.type = 1
+        self.tally_type = 1
         self.particle = "neutron"
         self.nps = 1
         self.result = []
@@ -94,7 +94,7 @@ class MCNP_summary_data():
     """ data for the summary table """
     def __init__(self):
         self.number = 1
-        self.type = 1
+        self.summary_type = 1
 
 
 def read_version(lines):
@@ -156,6 +156,7 @@ def get_tally_nums(lines):
             line = ut.string_cleaner(line)
             line = line.split(" ")[1]
             tal_num_list.append(line)
+    # remove duplicates        
     tal_num_list = set(tal_num_list)
     ntlogger.debug("tally numbers:")
     ntlogger.debug(tal_num_list)
@@ -196,8 +197,8 @@ def read_summary(data, ptype, rnum):
 
 def read_table60(lines, start_line):
     """ read table 60
-       input a list of strings
-       returns a reduced list with just the lines in table 60
+        input a list of strings
+        returns a dataframe with table 60 data
     """
 
     term_line = ut.find_line("    minimum source weight", lines, 25)
@@ -216,7 +217,7 @@ def read_table60(lines, start_line):
     # TODO more than 1 importance
     header2[-1] = header1[-1] + " " + header2[-1]
     
-    # now the data
+    # process the data section
     datalines = table_lines[5:-3]
     data = []
     for line in datalines:
@@ -346,7 +347,7 @@ def find_last_rendevous(lines):
 
 
 def read_tally(lines, tnum, rnum=-1):
-    """reads the lines and extracts the tally results"""
+    """ reads the lines and extracts the tally results"""
 
     # todo add ability to do all rendevous
     # reduce to only the final result set
@@ -395,7 +396,7 @@ def read_tally(lines, tnum, rnum=-1):
     except ValueError:
         ntlogger.debug('NPS value not an int, could be large value')
         
-    tally_data.type = tally_type
+    tally_data.tally_type = tally_type
 
     # limit lines to just the tally data
     lines = lines[res_start_line + 1:]
@@ -412,16 +413,16 @@ def read_tally(lines, tnum, rnum=-1):
     ntlogger.debug('tally end line number: %s', str(tal_end_line))
     ntlogger.debug('tally particle: %s', tally_data.particle)
     ntlogger.debug('tally nps: %s', str(tally_data.nps))
-    ntlogger.debug('tally type: %s', str(tally_data.type))
+    ntlogger.debug('tally type: %s', str(tally_data.tally_type))
 
     # depending on tally type choose what to do now
-    if tally_data.type == "4" or tally_data.type == "6":
+    if tally_data.tally_type == "4" or tally_data.tally_type == "6":
         tally_data = read_type_cell(tally_data, lines)
-    elif tally_data.type == "5":
+    elif tally_data.tally_type == "5":
         tally_data = read_type_5(tally_data, lines)
-    elif tally_data.type == "1" or tally_data.type == "2":
+    elif tally_data.tally_type == "1" or tally_data.tally_type == "2":
         tally_data = read_type_surface(tally_data, lines)
-    elif tally_data.type == "8":
+    elif tally_data.tally_type == "8":
         tally_data = read_type_8(tally_data, lines)
     else:
         ntlogger.info("Tally type not recognised or supported")
@@ -484,7 +485,7 @@ def read_type_surface(tally_data, lines):
     # TODO: if more than a single line of surfaces or areas
     # find areas
     # TODO: sort for type 1 tally with sd card
-    if tally_data.type == "2":
+    if tally_data.tally_type == "2":
         area_line_id = ut.find_line("           areas", lines, 16)
         area_val_line = lines[area_line_id + 2]
         area_val_line = " ".join(area_val_line.split())
@@ -502,7 +503,7 @@ def read_type_surface(tally_data, lines):
 
     first_surface_line_id = ut.find_line(" surface ", lines, 9)
     ntlogger.debug("first surface id %s", first_surface_line_id)
-    if tally_data.type == "1":
+    if tally_data.tally_type == "1":
         surface_list = []
         for line in lines[2:]:
             if "surface" in line:
@@ -671,9 +672,9 @@ def read_type_cell(tally_data, lines):
     # find volumes/ masses
 
     # find line that the volumes or masses start at
-    if tally_data.type == "4":
+    if tally_data.tally_type == "4":
         line_id = ut.find_line("           volumes ", lines, 19)
-    elif tally_data.type == "6":
+    elif tally_data.tally_type == "6":
         line_id = ut.find_line("           masses ", lines, 18)
 
     # extract the values of cell number and volumes
