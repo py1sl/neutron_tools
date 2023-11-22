@@ -9,13 +9,13 @@ class version_test_case(unittest.TestCase):
     """ test for reading the version of output file"""
 
     def test_is_version(self):
-        """ """
+        """ test when a version is in the list of strings """
         list_a = ["          Code Name & Version = MCNP6, 1.0",
                   "  "]
         self.assertEqual(mcnp_output_reader.read_version(list_a), "MCNP6, 1.0")
 
     def test_is_version_none_given_other_list(self):
-        """ test for version """
+        """ test for only allocating if an actual  version not a random string"""
         list_a = ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                   "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
                   "ccccccccccccccccccccccccccccccccccccccccccccccccc",
@@ -390,6 +390,10 @@ class tally_type6_tests(unittest.TestCase):
 class tally_type8_tests(unittest.TestCase):
     """ tests for type 8 tally """
 
+    def setUp(self):
+        path = "test_output/singles_erg.io"
+        self.single = mcnp_output_reader.read_output_file(path)
+    
     def test_single_value_t8_tally(self):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
@@ -406,9 +410,7 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(tn.err[0], 0.00)
 
     def test_ebined_t8_tally(self):
-        path = "test_output/singles_erg.io"
-        single = mcnp_output_reader.read_output_file(path)
-        for tn in single.tally_data:
+        for tn in self.single.tally_data:
             if tn.number == 8:
                 self.assertEqual(tn.tally_type, '8')
                 self.assertEqual(tn.particle, "photons")
@@ -443,18 +445,27 @@ class tables_testing(unittest.TestCase):
     def setUp(self):
         path = "test_output/singles_erg.io"
         self.single = mcnp_output_reader.read_output_file(path)
-    
-    
+        self.t60 = self.single.t60
+        
     def test_table_numbers(self):
-
+        # tests getting all the  print table numbers
         self.assertEqual(len(self.single.tables), 4) 
         self.assertEqual(self.single.tables['60'], 69)
         
     def test_t60(self):
-        print(self.single.t60)
+        # tests print table 60 - cell information
+        self.assertEqual(len(self.t60["mass"]), 4)
+        self.assertEqual(len(self.t60.columns), 8)
         
-    
         
+    def test_t101(self):
+        # tests print table 101 - particles and energy limits
+        self.assertTrue(True)
+        
+    def test_t126(self):
+        # test print table 126 - activity in cells
+        self.assertTrue(True)
+
 
 if __name__ == '__main__':
     unittest.main()

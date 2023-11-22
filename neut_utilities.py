@@ -54,6 +54,13 @@ def string_cleaner(text):
     text = " ".join(text.split())
     return text
 
+    
+def string_clean_and_split(text, spliter=" "):
+    """ clean and split text on spaces """
+    text = string_cleaner(text)
+    text_list = text.split(spliter)
+    return text_list
+        
 
 def find_ind(data, sub):
     """ finds first index in data which contains sub string """
