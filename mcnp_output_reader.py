@@ -115,8 +115,7 @@ def read_run_date(lines):
     if len(lines) > 101:
         lines = lines[:100]
     data_line = lines[ut.find_line("1mcnp", lines, 5)]
-    data_line = ut.string_cleaner(data_line)
-    data_line = data_line.split(" ")
+    data_line = ut.string_clean_and_split(data_line)
     date = data_line[-2]
     time = data_line[-1]
 
@@ -153,8 +152,7 @@ def get_tally_nums(lines):
     tal_num_list = []
     for line in lines:
         if line[0:11] == "1tally     ":
-            line = ut.string_cleaner(line)
-            line = line.split(" ")[1]
+            line = ut.string_clean_and_split(line)[1]
             tal_num_list.append(line)
     # remove duplicates        
     tal_num_list = set(tal_num_list)
@@ -915,13 +913,11 @@ def read_type_5(tally_data, lines):
     # read general f5 tally data
     ave_line_id = ut.find_ind(lines, " average tally per history")
     ave_line = lines[ave_line_id]
-    ave_line = ut.string_cleaner(ave_line)
-    ave_line = ave_line.split("=")
+    ave_line = ut.string_clean_and_split(ave_line, "=")
     tally_data.average_per_history = float(ave_line[1][1:13])
     tally_data.largest_score = float(ave_line[-1])
     n_line = lines[ave_line_id+1]
-    n_line = ut.string_cleaner(n_line)
-    n_line = n_line.split("=")
+    n_line = ut.string_clean_and_split(n_line, "=")
     tally_data.largest_score_nps = float(n_line[-1])
 
     # read score misses data
@@ -929,33 +925,27 @@ def read_type_5(tally_data, lines):
 
     score_miss_line_id = ut.find_ind(lines, "score misses")
     n_line = lines[score_miss_line_id+1]
-    n_line = ut.string_cleaner(n_line)
-    n_line = n_line.split(" ")
+    n_line = ut.string_clean_and_split(n_line)
     tally_data.misses["russian roulette on pd"] = float(n_line[-1])
 
     n_line = lines[score_miss_line_id+2]
-    n_line = ut.string_cleaner(n_line)
-    n_line = n_line.split(" ")
+    n_line = ut.string_clean_and_split(n_line)
     tally_data.misses["psc=0"] = float(n_line[-1])
 
     n_line = lines[score_miss_line_id+3]
-    n_line = ut.string_cleaner(n_line)
-    n_line = n_line.split(" ")
+    n_line = ut.string_clean_and_split(n_line)
     tally_data.misses["russian roulette in transmission"] = float(n_line[-1])
 
     n_line = lines[score_miss_line_id+4]
-    n_line = ut.string_cleaner(n_line)
-    n_line = n_line.split(" ")
+    n_line = ut.string_clean_and_split(n_line)
     tally_data.misses["underflow in transmission"] = float(n_line[-1])
 
     n_line = lines[score_miss_line_id+5]
-    n_line = ut.string_cleaner(n_line)
-    n_line = n_line.split(" ")
+    n_line = ut.string_clean_and_split(n_line)
     tally_data.misses["hit a zero-importance cell"] = float(n_line[-1])
 
     n_line = lines[score_miss_line_id+6]
-    n_line = ut.string_cleaner(n_line)
-    n_line = n_line.split(" ")
+    n_line = ut.string_clean_and_split(n_line)
     tally_data.misses["energy cutoff"] = float(n_line[-1])
 
     return tally_data
@@ -965,9 +955,8 @@ def read_stat_tests(lines):
     """ initial stat test reader"""
     stat_res_line_id = ut.find_line(" passed", lines, 7)
     stat_line = lines[stat_res_line_id]
-    stat_line = ut.string_cleaner(stat_line)
-    stat_line = stat_line.split(" ")[1:]
-
+    stat_line = ut.string_clean_and_split(stat_line)[1:]
+    
     return stat_line
     
     
