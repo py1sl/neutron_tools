@@ -456,11 +456,13 @@ class tables_testing(unittest.TestCase):
         # tests print table 60 - cell information
         self.assertEqual(len(self.t60["mass"]), 4)
         self.assertEqual(len(self.t60.columns), 8)
+        self.assertFalse(self.t60.empty)
         
         
     def test_t101(self):
         # tests print table 101 - particles and energy limits
-        self.assertTrue(True)
+        self.assertEqual(len(self.single.t101['particle_name']), 2)
+        self.assertFalse(self.single.t101.empty)
         
     def test_t126(self):
         # test print table 126 - activity in cells

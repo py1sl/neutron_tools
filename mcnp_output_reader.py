@@ -192,9 +192,36 @@ def read_summary(data, ptype, rnum):
     """ reads the summary tables in the output file """
     return 1
 
+def read_table101(lines, start_line):
+    """ read print table 101
+        print table 101 is particle energy limits and table limits
+        returns a dataframe with the data
+    """
+    
+    term_line = ut.find_line(" *******", lines[start_line:], 8)
+    
+    columns = ["particle_id", "particle_symbol", "particle_name", 
+               "cutoff_energy", "max_energy",
+               "smallest_table_max", "largest_table_max", "always_table_below",
+               "always_model_above"]
+    
+    table_lines = [ut.string_cleaner(line) for line in lines[start_line:start_line + term_line]]
+    table_lines = table_lines[6:]
+    data_lines = []
+    
+    for line in table_lines:
+        if line == "":
+            break
+        else:
+           line = line.split(" ")
+           data_lines.append(line)
 
+    t101df = pd.DataFrame(data_lines, columns=columns)    
+    return t101df
+    
+    
 def read_table60(lines, start_line):
-    """ read table 60
+    """ read print table 60
         input a list of strings
         returns a dataframe with table 60 data
     """
@@ -997,6 +1024,8 @@ def read_output_file(path):
     # read specific tables
     if '60' in mc_data.tables:
         mc_data.t60 = read_table60(ofile_data, mc_data.tables['60'])
+    if '101' in mc_data.tables:
+        mc_data.t101 = read_table101(ofile_data, mc_data.tables['101'])
 
     # tallies
     tls = get_tally_nums(ofile_data)
