@@ -464,6 +464,7 @@ class tables_testing(unittest.TestCase):
         self.assertEqual(len(self.single.t101['particle_name']), 2)
         self.assertFalse(self.single.t101.empty)
         
+        
     def test_t126(self):
         # test print table 126 - activity in cells
         self.assertTrue(True)

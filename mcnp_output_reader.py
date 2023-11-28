@@ -98,7 +98,13 @@ class MCNP_summary_data():
 
 
 def read_version(lines):
-    """ from 1st line of output get the MCNP version"""
+    """ from 1st line of output get the MCNP version
+    Parameters:
+    - lines (list of str): List of lines containing information about the simulation.
+
+    Returns:
+    - str : The MCNP version.
+    """
     version = None
     line = lines[0]
     if line[:29] == "          Code Name & Version":
@@ -109,7 +115,12 @@ def read_version(lines):
 
 
 def read_run_date(lines):
-    """ finds the start date and time of the run """
+    """ finds the start date and time of the run
+    Parameters:
+    - lines (list of str): List of lines containing information about the run.
+
+    Returns:
+    - tuple: A tuple containing the start date and start time.    """
     date = None
     time = None
     if len(lines) > 101:
@@ -125,30 +136,28 @@ def read_run_date(lines):
     return date, time
 
 
-def read_cell_mass(data):
-    """ """
-    return 1
-
-
-def read_surface_area(data):
-    """ """
-    return 1
-
-
 def read_comments_warnings(lines):
-    """ extracts all comments and warnings in the output file """
-    comments = []
-    warnings = []
-    for line in lines:
-        if line[:10] == "  comment.":
-            comments.append(line)
-        elif line[:10] == "  warning.":
-            warnings.append(line)
+    """ extracts all comments and warnings in the output file
+    Parameters:
+    - lines (list of str): List of lines containing information about comments and warnings.
+
+    Returns:
+    - tuple: A tuple containing two lists - comments and warnings.    """
+    comments = [line for line in lines if line.startswith("  comment.")]
+    warnings = [line for line in lines if line.startswith("  warning.")]
+
     return comments, warnings
 
 
 def get_tally_nums(lines):
-    """ finds the tally numbers used in the problem"""
+    """     Finds the tally numbers used in the problem.
+
+    Parameters:
+    - lines (list of str): List of lines containing information about tally numbers.
+
+    Returns:
+    - set: Set of unique tally numbers
+    """
     tal_num_list = []
     for line in lines:
         if line[0:11] == "1tally     ":
@@ -156,14 +165,21 @@ def get_tally_nums(lines):
             tal_num_list.append(line)
     # remove duplicates        
     tal_num_list = set(tal_num_list)
-    ntlogger.debug("tally numbers:")
-    ntlogger.debug(tal_num_list)
+    # 
+    ntlogger.debug("Tally numbers: %s", tal_num_list)
 
     return tal_num_list
 
 
 def get_rendevous_index(data):
-    """ returns the line index of the rendevous line """
+    """ Returns the line indices of the rendezvous lines.
+
+    Parameters:
+    - data (list of str): List of lines containing information.
+
+    Returns:
+    - list of int: List of line indices where the rendezvous line is found.
+    """
     indexes = []
     for i, line in enumerate(data):
         if "master set rendezvous nps" in line:
@@ -180,8 +196,15 @@ def count_rendevous(data):
 
 
 def process_ang_string(line):
-    """ converts the tally string describing the angualr bin edges into
-        a single float value for the angle """
+    """  
+    Converts the tally string describing angular bin edges into a single float value for the angle.
+
+    Parameters:
+    - line (str): The input line containing the angular information.
+
+    Returns:
+    - float: The extracted angle value.
+    """
     line = line.strip()
     ang_string = line.split(":")[1]
     ang_float = float(ang_string.split()[-2])
@@ -193,9 +216,15 @@ def read_summary(data, ptype, rnum):
     return 1
 
 def read_table101(lines, start_line):
-    """ read print table 101
-        print table 101 is particle energy limits and table limits
-        returns a dataframe with the data
+    """
+    Read particle energy limits and table limits from print table 101.
+
+    Parameters:
+    - lines (list): List of lines containing the table data.
+    - start_line (int): Index of the line where the table starts.
+
+    Returns:
+    - pd.DataFrame: DataFrame with the extracted data.
     """
     
     term_line = ut.find_line(" *******", lines[start_line:], 8)
@@ -204,9 +233,8 @@ def read_table101(lines, start_line):
                "cutoff_energy", "max_energy",
                "smallest_table_max", "largest_table_max", "always_table_below",
                "always_model_above"]
-    
-    table_lines = [ut.string_cleaner(line) for line in lines[start_line:start_line + term_line]]
-    table_lines = table_lines[6:]
+
+    table_lines = [ut.string_cleaner(line) for line in lines[start_line:start_line + term_line]][6:]
     data_lines = []
     
     for line in table_lines:
@@ -215,7 +243,7 @@ def read_table101(lines, start_line):
         else:
            line = line.split(" ")
            data_lines.append(line)
-
+    
     t101df = pd.DataFrame(data_lines, columns=columns)    
     return t101df
     
@@ -255,10 +283,16 @@ def read_table60(lines, start_line):
 
 
 def print_tally_lines_to_file(lines, fname, tnum):
-    """ prints tally section to a file for debugging """
-    if ntlogger.getLogger().getEffectiveLevel() == 10:
-        ntlogger.debug("writing " + fname)
-        fname = fname + str(tnum)+".txt" 
+    """ prints tally section to a file for debugging
+ 
+    Parameters:
+    - lines (list of str): List of lines containing tally section information.
+    - fname (str): Base filename for the output file.
+    - tnum : Tally number to print   
+    """
+    if ntlogger.getLogger().getEffectiveLevel() == ntlogger.DEBUG:
+        ntlogger.debug(f"Writing {fname}{tnum}.txt")
+        fname = f"{fname}{tnum}.txt" 
         ut.write_lines(fname, lines)
 
 
@@ -352,7 +386,13 @@ def process_e_t_userbin(data):
 
 
 def find_term_line(lines):
-    """ finds the term line or last dump """
+    """ finds the term line or last dump
+    Parameters:
+    - lines (list of str): List of lines containing information about the simulation.
+
+    Returns:
+    - int or None: Index of the termination line if found, or None if not found.
+    """
     try:
         term_line = ut.find_line("      run terminated ", lines, 21)
     except ValueError:
@@ -362,7 +402,13 @@ def find_term_line(lines):
 
 
 def find_last_rendevous(lines):
-    """ finds line index of last rendevous """
+    """ finds line index of last rendevous 
+    Parameters:
+    - lines (list of str): List of lines containing information about rendezvous points.
+
+    Returns:
+    - int: Index of the last rendezvous line 
+    """
     indexes = get_rendevous_index(lines)
 
     # the last one is generally at the end of the file, if not a complete run
