@@ -21,13 +21,55 @@ class version_test_case(unittest.TestCase):
                   "ccccccccccccccccccccccccccccccccccccccccccccccccc",
                   "ddddddddddddddddddddddddddddddddddddddddddddddddd"]
         list_b = ["a", "b", "c", "d"]
-        self.assertEqual(mcnp_output_reader.read_version(list_a), None)
-        self.assertEqual(mcnp_output_reader.read_version(list_b), None)
+        self.assertIsNone(mcnp_output_reader.read_version(list_a))
+        self.assertIsNone(mcnp_output_reader.read_version(list_b))
 
     def test_is_version_none_given_string(self):
         """ test for version with string"""
         string_a = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        self.assertEqual(mcnp_output_reader.read_version(string_a), None)
+        self.assertIsNone(mcnp_output_reader.read_version(string_a))
+        
+    def test_empty_input(self):
+        """ test for empty list given """
+        empty_list = []
+        self.assertIsNone(mcnp_output_reader.read_version(empty_list))
+        
+        
+class read_warnings_test_case(unittest.TestCase):
+
+    def test_read_comments_warnings_successful(self):
+        """ Test when comments and warnings are present in the lines """
+        lines = [
+            "  comment. This is a comment.",
+            "  warning. This is a warning.",
+            "Some other line"
+        ]
+        result_comments, result_warnings = mcnp_output_reader.read_comments_warnings(lines)
+
+        self.assertEqual(result_comments, ["  comment. This is a comment."])
+        self.assertEqual(result_warnings, ["  warning. This is a warning."])
+
+    def test_read_comments_warnings_no_comments_warnings(self):
+        """ Test when there are no comments or warnings in the lines """
+        lines = ["Some other line"]
+        result_comments, result_warnings = mcnp_output_reader.read_comments_warnings(lines)
+
+        self.assertEqual(result_comments, [])
+        self.assertEqual(result_warnings, [])
+        
+    def test_read_multiple_comments_warnings_successful(self):
+        """ Test when multiple comments and warnings are present in the lines """
+        lines = [
+            "  comment. This is a comment.",
+            "  warning. This is a warning.",
+            "Some other line",
+            "  comment. This is a comment.",
+            "  warning. This is a warning.",
+        ]
+        result_comments, result_warnings = mcnp_output_reader.read_comments_warnings(lines)
+
+        self.assertEqual(len(result_comments), 2)
+        self.assertEqual(len(result_warnings), 2)
 
 
 class get_tally_nums_test_case(unittest.TestCase):

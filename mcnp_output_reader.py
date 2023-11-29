@@ -106,11 +106,14 @@ def read_version(lines):
     - str : The MCNP version.
     """
     version = None
-    line = lines[0]
-    if line[:29] == "          Code Name & Version":
-        version = line.split("=")[1]
-        version = version.strip()
-    ntlogger.debug("Version: %s", version)
+    try:
+        line = lines[0]
+        if line[:29] == "          Code Name & Version":
+            version = line.split("=")[1]
+            version = version.strip()
+        ntlogger.debug("Version: %s", version)
+    except IndexError:
+        ntlogger.debug("Version not found - are you sure this is an MCNP output file")
     return version
 
 
