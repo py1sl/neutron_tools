@@ -232,7 +232,7 @@ def output_as_vtk():
 
 def find_nearest_mid(value, mids):
     """ finds midpoint with shortest absoloute distance to the value """
-    return mids[min(range(len(mids)), key=lambda i: abs(mids[i]-value))]
+    return mids[min(range(len(mids)), key=lambda i: abs(mids[i] - value))]
 
 
 def convert_to_df(mesh):
@@ -312,7 +312,7 @@ def pick_point(x, y, z, mesh, erg=None, time=None):
 def calculate_upper_mesh_vals(mesh1):
     """ adds the absoute max value based on the relative error """
     maxvals = mesh1.data["value"] + (
-              mesh1.data["value"] * mesh1.data["rel_err"])
+        mesh1.data["value"] * mesh1.data["rel_err"])
     mesh1.data["max_vals"] = maxvals
 
     return mesh1
@@ -321,7 +321,7 @@ def calculate_upper_mesh_vals(mesh1):
 def calculate_lower_mesh_vals(mesh1):
     """ adds the absoute min value based on the relative error """
     minvals = mesh1.data["value"] - (
-              mesh1.data["value"] * mesh1.data["rel_err"])
+        mesh1.data["value"] * mesh1.data["rel_err"])
     mesh1.data["min_vals"] = minvals
 
     return mesh1
@@ -409,6 +409,7 @@ def convert_to_3d_array(mesh):
 def calc_mid_points(bounds):
     """ finds the mid points given a set of bounds """
     bounds = np.array(bounds).astype(float)
+
     mids = np.round((bounds[1:] + bounds[:-1]) * 0.5, 5)
     return mids.tolist()
 
@@ -419,9 +420,30 @@ def count_zeros(mesh):
     return count
 
 
+def find_mesh_tally_numbers(data):
+    """ find the different meshes in the file, the tally number
+        and the line it starts on"""
+    tdict = {}
+    for i, l in enumerate(data):
+        if "Mesh Tally Number" in l:
+            talid = int(l.split(" ")[-1])
+            tdict[talid] = i
+    return tdict
+
+
+def find_next_mesh(tnum, tdict):
+    """ finds the start location of the next numerical mesh tally"""
+    keylist = sorted(tdict.keys())
+    if tnum == keylist[-1]:
+        return -1
+    else:
+        for i, v in enumerate(keylist):
+            if v == tnum:
+                return tdict[keylist[i + 1]]
+
+
 def read_meshtally_file(path, mesh_num=None):
     """reads in a mesh file line by line into a meshtally object
-
     Args:
         path (str): path to file
 

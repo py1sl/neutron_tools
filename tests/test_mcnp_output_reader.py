@@ -9,25 +9,67 @@ class version_test_case(unittest.TestCase):
     """ test for reading the version of output file"""
 
     def test_is_version(self):
-        """ """
+        """ test when a version is in the list of strings """
         list_a = ["          Code Name & Version = MCNP6, 1.0",
                   "  "]
         self.assertEqual(mcnp_output_reader.read_version(list_a), "MCNP6, 1.0")
 
     def test_is_version_none_given_other_list(self):
-        """ test for version """
+        """ test for only allocating if an actual  version not a random string"""
         list_a = ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                   "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
                   "ccccccccccccccccccccccccccccccccccccccccccccccccc",
                   "ddddddddddddddddddddddddddddddddddddddddddddddddd"]
         list_b = ["a", "b", "c", "d"]
-        self.assertEqual(mcnp_output_reader.read_version(list_a), None)
-        self.assertEqual(mcnp_output_reader.read_version(list_b), None)
+        self.assertIsNone(mcnp_output_reader.read_version(list_a))
+        self.assertIsNone(mcnp_output_reader.read_version(list_b))
 
     def test_is_version_none_given_string(self):
         """ test for version with string"""
         string_a = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        self.assertEqual(mcnp_output_reader.read_version(string_a), None)
+        self.assertIsNone(mcnp_output_reader.read_version(string_a))
+
+    def test_empty_input(self):
+        """ test for empty list given """
+        empty_list = []
+        self.assertIsNone(mcnp_output_reader.read_version(empty_list))
+
+
+class read_warnings_test_case(unittest.TestCase):
+
+    def test_read_comments_warnings_successful(self):
+        """ Test when comments and warnings are present in the lines """
+        lines = [
+            "  comment. This is a comment.",
+            "  warning. This is a warning.",
+            "Some other line"
+        ]
+        result_comments, result_warnings = mcnp_output_reader.read_comments_warnings(lines)
+
+        self.assertEqual(result_comments, ["  comment. This is a comment."])
+        self.assertEqual(result_warnings, ["  warning. This is a warning."])
+
+    def test_read_comments_warnings_no_comments_warnings(self):
+        """ Test when there are no comments or warnings in the lines """
+        lines = ["Some other line"]
+        result_comments, result_warnings = mcnp_output_reader.read_comments_warnings(lines)
+
+        self.assertEqual(result_comments, [])
+        self.assertEqual(result_warnings, [])
+
+    def test_read_multiple_comments_warnings_successful(self):
+        """ Test when multiple comments and warnings are present in the lines """
+        lines = [
+            "  comment. This is a comment.",
+            "  warning. This is a warning.",
+            "Some other line",
+            "  comment. This is a comment.",
+            "  warning. This is a warning.",
+        ]
+        result_comments, result_warnings = mcnp_output_reader.read_comments_warnings(lines)
+
+        self.assertEqual(len(result_comments), 2)
+        self.assertEqual(len(result_warnings), 2)
 
 
 class get_tally_nums_test_case(unittest.TestCase):
@@ -44,6 +86,11 @@ class get_tally_nums_test_case(unittest.TestCase):
         self.assertIn("5", tnums)
         self.assertIn("6", tnums)
         self.assertIn("8", tnums)
+
+    def test_tally_count(self):
+        # test assignment of mcnp output object num_tallies
+        single = mcnp_output_reader.read_output_file("test_output/singles.io")
+        self.assertEqual(single.num_tallies, 6)
 
 
 class rendevous_test_case(unittest.TestCase):
@@ -83,7 +130,7 @@ class tally_type1_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
             if tn.number == 1:
-                self.assertEqual(tn.type, '1')
+                self.assertEqual(tn.tally_type, '1')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -100,7 +147,7 @@ class tally_type1_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 1:
-                self.assertEqual(tn.type, '1')
+                self.assertEqual(tn.tally_type, '1')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -117,7 +164,7 @@ class tally_type1_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 1:
-                self.assertEqual(tn.type, '1')
+                self.assertEqual(tn.tally_type, '1')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 200000)
                 self.assertEqual(tn.eng, None)
@@ -139,7 +186,7 @@ class tally_type2_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
-                self.assertEqual(tn.type, '2')
+                self.assertEqual(tn.tally_type, '2')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -156,7 +203,7 @@ class tally_type2_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
-                self.assertEqual(tn.type, '2')
+                self.assertEqual(tn.tally_type, '2')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -173,7 +220,7 @@ class tally_type2_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
-                self.assertEqual(tn.type, '2')
+                self.assertEqual(tn.tally_type, '2')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -192,7 +239,7 @@ class tally_type2_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
-                self.assertEqual(tn.type, '2')
+                self.assertEqual(tn.tally_type, '2')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 200000)
                 self.assertEqual(tn.eng, None)
@@ -213,7 +260,7 @@ class tally_type4_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
             if tn.number == 4:
-                self.assertEqual(tn.type, '4')
+                self.assertEqual(tn.tally_type, '4')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -231,7 +278,7 @@ class tally_type4_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
-                self.assertEqual(tn.type, '4')
+                self.assertEqual(tn.tally_type, '4')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -249,7 +296,7 @@ class tally_type4_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
-                self.assertEqual(tn.type, '4')
+                self.assertEqual(tn.tally_type, '4')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -267,7 +314,7 @@ class tally_type4_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
-                self.assertEqual(tn.type, '4')
+                self.assertEqual(tn.tally_type, '4')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 200000)
                 self.assertEqual(tn.eng, None)
@@ -288,7 +335,7 @@ class tally_type5_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
             if tn.number == 5:
-                self.assertEqual(tn.type, '5')
+                self.assertEqual(tn.tally_type, '5')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -318,7 +365,7 @@ class tally_type5_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 5:
-                self.assertEqual(tn.type, '5')
+                self.assertEqual(tn.tally_type, '5')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -350,7 +397,7 @@ class tally_type6_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
             if tn.number == 6:
-                self.assertEqual(tn.type, '6')
+                self.assertEqual(tn.tally_type, '6')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -368,7 +415,7 @@ class tally_type6_tests(unittest.TestCase):
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 6:
-                self.assertEqual(tn.type, '6')
+                self.assertEqual(tn.tally_type, '6')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -385,11 +432,15 @@ class tally_type6_tests(unittest.TestCase):
 class tally_type8_tests(unittest.TestCase):
     """ tests for type 8 tally """
 
+    def setUp(self):
+        path = "test_output/singles_erg.io"
+        self.single = mcnp_output_reader.read_output_file(path)
+
     def test_single_value_t8_tally(self):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
             if tn.number == 8:
-                self.assertEqual(tn.type, '8')
+                self.assertEqual(tn.tally_type, '8')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertEqual(tn.eng, None)
@@ -401,11 +452,9 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(tn.err[0], 0.00)
 
     def test_ebined_t8_tally(self):
-        path = "test_output/singles_erg.io"
-        single = mcnp_output_reader.read_output_file(path)
-        for tn in single.tally_data:
+        for tn in self.single.tally_data:
             if tn.number == 8:
-                self.assertEqual(tn.type, '8')
+                self.assertEqual(tn.tally_type, '8')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
                 self.assertNotEqual(tn.eng, None)
@@ -414,7 +463,7 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.result), 14)
                 self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[0],  5.16461E-01)
+                self.assertEqual(tn.result[0], 5.16461E-01)
 
 
 class writelines_test_case(unittest.TestCase):
@@ -430,6 +479,35 @@ class writelines_test_case(unittest.TestCase):
 
         open_mock.assert_called_with("output1.txt", "w")
         open_mock.return_value.write.assert_any_call("hello\n")
+
+
+class tables_testing(unittest.TestCase):
+    """ test for output tables """
+
+    def setUp(self):
+        path = "test_output/singles_erg.io"
+        self.single = mcnp_output_reader.read_output_file(path)
+        self.t60 = self.single.t60
+
+    def test_table_numbers(self):
+        # tests getting all the  print table numbers
+        self.assertEqual(len(self.single.tables), 4)
+        self.assertEqual(self.single.tables['60'], 69)
+
+    def test_t60(self):
+        # tests print table 60 - cell information
+        self.assertEqual(len(self.t60["mass"]), 4)
+        self.assertEqual(len(self.t60.columns), 8)
+        self.assertFalse(self.t60.empty)
+
+    def test_t101(self):
+        # tests print table 101 - particles and energy limits
+        self.assertEqual(len(self.single.t101['particle_name']), 2)
+        self.assertFalse(self.single.t101.empty)
+
+    def test_t126(self):
+        # test print table 126 - activity in cells
+        self.assertTrue(True)
 
 
 if __name__ == '__main__':

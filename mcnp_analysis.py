@@ -23,7 +23,7 @@ def calc_err_abs(res, err):
     i = 0
     abs_err = []
     while i < len(res):
-        abs_err.append(res[i]*float(err[i]))
+        abs_err.append(res[i] * float(err[i]))
         i = i + 1
     return abs_err
 
@@ -35,7 +35,7 @@ def calc_bin_width(bins):
     bw.append(bins[0])
     i = 1
     while i < len(bins):
-        width = float(bins[i]) - float(bins[i-1])
+        width = float(bins[i]) - float(bins[i - 1])
         bw.append(width)
         i = i + 1
     bw = np.asarray(bw)
@@ -48,7 +48,7 @@ def calc_mid_points(bounds):
     bounds = np.array(bounds).astype(float)
     i = 0
     while i < len(bounds) - 1:
-        val = (bounds[i] + bounds[i+1]) / 2.0
+        val = (bounds[i] + bounds[i + 1]) / 2.0
         mids.append(val)
         i = i + 1
     return mids
@@ -59,10 +59,10 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
     plt.clf()
     plt.title("Neutron energy spectra full model " + title)
     plt.xlabel("Energy (MeV)")
-    plt.ylabel("flux n/cm2/"+sp+"/bin")
+    plt.ylabel("flux n/cm2/" + sp + "/bin")
     plt.xscale('log')
     plt.yscale('log')
-    if type(data) is not list:
+    if not isinstance(data, list):
         data = [data]
 
     for d in data:
@@ -74,7 +74,7 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
 def plot_spectra(data, fname, title, sp="proton", err=False,
                  xlow=None, legend=None):
     """ plots spectr afrom MCNP tally data object, dividing by bin width """
-    if type(data) is not list:
+    if not isinstance(data, list):
         data = [data]
 
     plt.clf()
@@ -86,18 +86,44 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
 
     for d in data:
         bw = calc_bin_width(d.eng)
-        if d.type == '2':
-            y_vals = np.asarray(d.result[0])/bw
-            splot = plt.step(np.asarray(d.eng),  y_vals)
-        elif d.type == '4' and len(d.cells) > 1:
-            for cell in d.result:
-                y_vals = np.asarray(cell)/bw
-                splot = plt.step(np.asarray(d.eng),  y_vals)
-            legend = d.cells
+        if d.tally_type == '1':
+            plt.ylabel("current n/MeV/" + sp)
+            if len(d.surfaces) > 1:
+                for surf in d.result:
+                    if len(d.ang_bins) > 1:
+                        print("not implemented yet - plotting spectra, angle and multiple surfaces")
+                        raise NotImplementedError
 
-        else:
+                    else:
+                        y_vals = np.asarray(surf)/bw
+                        splot = plt.step(np.asarray(d.eng),  y_vals)
+                        legend = d.surfaces
+            else:
+                if len(d.ang_bins) > 1:
+                    for ang in d.result:
+                        y_vals = np.asarray(ang)/bw
+                        splot = plt.step(np.asarray(d.eng),  y_vals)
+                        legend = d.ang_bins
+                else:
+                    y_vals = np.asarray(d.result)/bw
+                    splot = plt.step(np.asarray(d.eng),  y_vals)
+        elif d.tally_type == '2': 
             y_vals = np.asarray(d.result)/bw
             splot = plt.step(np.asarray(d.eng),  y_vals)
+        elif d.tally_type == '4' and len(d.cells) > 1:
+
+            for cell in d.result:
+                y_vals = np.asarray(cell) / bw
+                splot = plt.step(np.asarray(d.eng), y_vals)
+            legend = d.cells
+        elif d.tally_type == '4' and len(d.cells) == 1:
+            for cell in d.result:
+                y_vals = np.asarray(cell) / bw
+                splot = plt.step(np.asarray(d.eng), y_vals)
+
+        else:
+            y_vals = np.asarray(d.result) / bw
+            splot = plt.step(np.asarray(d.eng), y_vals)
 
         if err is True:
             abs_err = calc_err_abs(y_vals, d.err)
@@ -126,10 +152,11 @@ def plot_spectra_ratio(data1, data2, fname, title):
     plt.xlabel("Energy (MeV)")
     plt.ylabel("ratio")
     plt.xscale('log')
-    if data1.type == '2':
-        ratio = np.asarray(data1.result[0])/np.asarray(data2.result[0])
+
+    if data1.tally_type == '2':
+        ratio = np.asarray(data1.result) / np.asarray(data2.result)
     else:
-        ratio = np.asarray(data1.result)/np.asarray(data2.result)
+        ratio = np.asarray(data1.result) / np.asarray(data2.result)
 
     plt.plot(data1.eng, ratio)
     plt.savefig(fname)
@@ -145,7 +172,7 @@ def plot_run_comp(data, err, fname, title, xlab="Run #",
     plt.xlabel(xlab)
     plt.ylabel(ylab)
     x = np.arange(1, len(data) + 1)
-    plt.xlim(xmin=0, xmax=len(x)+1)
+    plt.xlim(xmin=0, xmax=len(x) + 1)
     plt.errorbar(x, data, yerr=err, fmt='o')
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
@@ -178,9 +205,99 @@ def plot_en_time(data, fname):
     ntlogger.info("produced figure: %s", fname)
 
 
-def html_tab_out(data, fname):
+def html_output(mc_object, fname):
+    """produces html output of file """
+    # TODO refactor this to work with a template system
+
+    hlines = []
+    hlines.append("<!DOCTYPE html><HTML><HEAD>")
+    hlines.append("<meta charset=\"utf-8\">")
+    hlines.append("<meta name=\"viewport\" content=\"width=device-width\">")
+    hlines.append("</HEAD>")
+
+    hlines.append("<title>" + mc_object.file_name + "</title>")
+
+    hlines.append("<body>")
+    hlines.append("<H1>" + mc_object.file_name + "</H1>")
+    hlines.append("Date run: " + mc_object.date)
+    hlines.append("Time run: " + mc_object.start_time)
+    hlines.append("Rendevous: " + str(mc_object.num_rendevous))
+    hlines.append("Number of warnings: " + str(len(mc_object.warnings)))
+
+    # add tally specific data
+    for tdat in mc_object.tally_data:
+        hlines.append("<p><H2> Tally Number: " + str(tdat.number) + "</H2>")
+        hlines.append("Particle: " + tdat.particle)
+
+        if tdat.eng:
+            hlines.append("Number Energy Bins: " + str(len(tdat.eng)))
+        if tdat.times:
+            hlines.append("Number Time Bins: " + str(len(tdat.times)))
+
+        if tdat.stat_tests:
+            hlines.append("Statistical test results")
+
+            stat_string = "<table><tr><th>Test</th><th>Result</th></tr>"
+            stat_string += "<tr><td>" + "Mean behaviour" + \
+                "</td> <td>" + tdat.stat_tests[0] + "</td></tr>"
+            stat_string += "<tr><td>" + "Rel err value" + \
+                "</td> <td>" + tdat.stat_tests[1] + "</td></tr>"
+            stat_string += "<tr><td>" + "rel err behavior" + \
+                "</td> <td>" + tdat.stat_tests[2] + "</td></tr>"
+            stat_string += "<tr><td>" + "rel err rate" + \
+                "</td> <td>" + tdat.stat_tests[3] + "</td></tr>"
+            stat_string += "<tr><td>" + "Variance value" + \
+                "</td> <td>" + tdat.stat_tests[4] + "</td></tr>"
+            stat_string += "<tr><td>" + "Variance behavior" + \
+                "</td> <td>" + tdat.stat_tests[5] + "</td></tr>"
+            stat_string += "<tr><td>" + "Variance rate" + \
+                "</td> <td>" + tdat.stat_tests[6] + "</td></tr>"
+            stat_string += "<tr><td>" + "FOM value constant" + \
+                "</td> <td>" + tdat.stat_tests[7] + "</td></tr>"
+            stat_string += "<tr><td>" + "FOM behavior random" + \
+                "</td> <td>" + tdat.stat_tests[8] + "</td></tr>"
+            stat_string += "<tr><td>" + "PDF slope" + \
+                "</td> <td>" + tdat.stat_tests[9] + "</td></tr>"
+            stat_string += "</table>"
+            hlines.append(stat_string)
+
+        else:
+            hlines.append("Warning Statistical test data not found")
+
+        # add tally type specific data
+        if tdat.tally_type == "4":
+            hlines.append("Number Cells: " + str(len(tdat.cells)))
+            cell_string = "".join(tdat.cells)
+            hlines.append("Cells: " + cell_string)
+            hlines.append("Volumes: " + "".join(tdat.vols))
+            # add result plots
+            if tdat.eng and len(tdat.cells) == 1:
+                pname = "tally_" + str(tdat.number) + \
+                    "_" + str(tdat.cells[0]) + ".png"
+                title = tdat.particle + \
+                    " Spectra for cell " + str(tdat.cells[0])
+                plot_spectra(tdat, pname, title, sp="neutron")
+
+                hlines.append(
+                    "<img src=" +
+                    pname +
+                    " alt=\"simulated spectrum\">")
+            else:
+                print("no energy bins or more than one cell")
+
+        hlines.append("</p>")
+
+    hlines.append("</body>")
+    hlines.append("</HTML>")
+
+    # output the file
+    ut.write_html(fname, hlines)
+    ntlogger.info("produced html file: %s", fname)
+
+
+def html_f4_tab_out(data, fname):
     """ produces f4 tally data as html table output """
-    if type(data) is not list:
+    if not isinstance(data, list):
         data = [data]
 
     strTable = "<html><table><tr><th>Tally Number</th><th>CellNumber"
@@ -193,7 +310,7 @@ def html_tab_out(data, fname):
             strTable = strTable + "<td>" + str(tall.err[i]) + "</td>"
             strTable = strTable + "</tr>"
 
-    strTable = strTable+"</table></html>"
+    strTable = strTable + "</table></html>"
 
     hs = open(fname, 'w')
     hs.write(strTable)
@@ -202,7 +319,7 @@ def html_tab_out(data, fname):
 
 def csv_out(data, fname):
     """ produces  tally data as csv output   """
-    if type(data) is not list:
+    if not isinstance(data, list):
         data = [data]
 
     lines = []

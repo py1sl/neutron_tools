@@ -78,10 +78,10 @@ def check_time_units(t_units):
     elif (t_units.lower() == "d") or (t_units.lower() == "days"):
         t_units = "time_days"
     elif (t_units.lower() == "h") or (t_units.lower() == "hours") or (
-          t_units.lower() == "hrs"):
+            t_units.lower() == "hrs"):
         t_units = "time_hours"
     elif (t_units.lower() == "y") or (t_units.lower() == "yrs") or (
-          t_units.lower() == "years"):
+            t_units.lower() == "years"):
         t_units = "time_years"
 
     return t_units
@@ -116,7 +116,7 @@ def plot_act(sum_dat, offset=0, fname=None,
     # i.e. highlight specific times or activities
     if vlines:
         for xc in vlines:
-            plt.vline(x=xc+offset)
+            plt.vline(x=xc + offset)
     if hlines:
         for xc in hlines:
             plt.hline(x=xc)
@@ -159,7 +159,7 @@ def plot_dose(sum_dat, offset=0, fname=None,
     # i.e. highlight specific times or activities
     if vlines:
         for xc in vlines:
-            plt.vline(x=xc+offset)
+            plt.vline(x=xc + offset)
     if hlines:
         for xc in hlines:
             plt.hline(x=xc)
@@ -183,7 +183,7 @@ def plot_spectra(timestep, fname=None):
     plt.ylabel("gamma/s")
     plt.yscale("log")
     plt.xscale("log")
-    y_upper_lim = max(timestep.gspec) + (max(timestep.gspec)*0.5)
+    y_upper_lim = max(timestep.gspec) + (max(timestep.gspec) * 0.5)
     plt.ylim(ymin=1e-4, ymax=y_upper_lim)
 
     # groups are fixed by fispact
@@ -200,18 +200,18 @@ def plot_spectra(timestep, fname=None):
         plt.show()
 
 
-def plot_pie(dom_data, title, param="act",  fname=None, thres=1.0):
+def plot_pie(dom_data, title, param="act", fname=None, thres=1.0):
     """ """
 
     # check valid param
     if param not in dom_data.columns:
         raise ValueError("Plot pie - parameter not recognised")
 
-    dom_data = dom_data[dom_data[param+"_percent"] > thres]
+    dom_data = dom_data[dom_data[param + "_percent"] > thres]
     param_nuc = param + "_nuc"
 
     # cmap = plt.cm.prism
-    colors = plt.cm.Set1(np.arange(len(dom_data[param_nuc]))/len(
+    colors = plt.cm.Set1(np.arange(len(dom_data[param_nuc])) / len(
                          dom_data[param_nuc]))
     plt.clf()
     fig = plt.figure(figsize=[10, 10])
@@ -295,7 +295,7 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
         z_min = zrange[0]
         z_max = zrange[1]
 
-    min_val = inv_dat[prop].min()+1e-8
+    min_val = inv_dat[prop].min() + 1e-8
     max_val = inv_dat[prop].max()
 
     # map Z values to data frame
@@ -317,7 +317,7 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
     # create the plot
     fig, ax = plt.subplots(figsize=(14, 8))
     im = plt.imshow(data, cmap='gnuplot', norm=LogNorm(vmin=min_val,
-                    vmax=max_val))
+                                                       vmax=max_val))
     ax.invert_yaxis()
     plt.xlabel("Z", fontsize=16)
     plt.ylabel("A", fontsize=16)

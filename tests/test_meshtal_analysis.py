@@ -209,7 +209,7 @@ class add_mesh_test(unittest.TestCase):
         self.assertEqual(new_mesh_test.y_bounds, mesh.y_bounds)
         self.assertEqual(new_mesh_test.z_bounds, mesh.z_bounds)
         self.assertEqual(new_mesh_test.data['value'].iloc[0],
-                         2*mesh.data['value'].iloc[0])
+                         2 * mesh.data['value'].iloc[0])
 
 
 class find_nearest_mid_test(unittest.TestCase):

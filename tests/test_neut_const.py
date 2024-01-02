@@ -17,8 +17,8 @@ class conversion_test_case(unittest.TestCase):
     """ test for conversions"""
 
     def test_time_conv(self):
-        self.assertEqual(nc.years_to_seconds(1), 365*24*60*60)
-        self.assertEqual(nc.years_to_hrs(1), 365*24)
+        self.assertEqual(nc.years_to_seconds(1), 365 * 24 * 60 * 60)
+        self.assertEqual(nc.years_to_hrs(1), 365 * 24)
         self.assertEqual(nc.years_to_days(1), 365)
         self.assertEqual(nc.second_to_hour(1), (1/3600))
         self.assertEqual(nc.second_to_day(1), (1/86400))
@@ -46,7 +46,7 @@ class Z_dict_test_case(unittest.TestCase):
 
     def test_table_len(self):
         self.assertEqual((len(nc.Z_dict())), 118)
-    
+
     def test_max_value(self):
         z = nc.Z_dict()
         self.assertEqual(max(z.values()), 118)

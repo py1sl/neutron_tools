@@ -23,7 +23,7 @@ def normalise_mesh(mesh):
 
     result = mesh.data["value"]
     result = result.astype(np.float)
-    norm_const = 0.5/max(result)
+    norm_const = 0.5 / max(result)
 
     norm_data = result * norm_const
 

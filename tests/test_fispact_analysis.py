@@ -30,6 +30,7 @@ class support_function_tests(unittest.TestCase):
 
 class filtering_functions_tests(unittest.TestCase):
     """ test for the inventoryfilters"""
+
     def test_act_filter(self):
         inv = pd.DataFrame()
         inv["act"] = [10, 20, 30, 0, 40]

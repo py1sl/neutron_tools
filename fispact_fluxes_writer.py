@@ -188,7 +188,7 @@ def create_fluxes_data(groups, epos):
         a power line is also added to ensure it is the correct size
     """
 
-    fdata = np.zeros(len(groups)+1)
+    fdata = np.zeros(len(groups) + 1)
     fdata[epos] = 1
     fdata[-1] = 1  # deals with 'power line'
 

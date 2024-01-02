@@ -6,6 +6,7 @@ import neut_utilities as ut
 
 class header_test_case(unittest.TestCase):
     """ tests header function"""
+
     def test_header_lines(self):
         lines = ut.get_lines("test_output/ptrak_asc_all")
         head, lines = mpr.remove_header(lines)
@@ -14,6 +15,7 @@ class header_test_case(unittest.TestCase):
 
 class event_test_case(unittest.TestCase):
     """ tests events functions"""
+
     def test_process_event(self):
         hists = mpr.read_ptrac("test_output/ptrak_asc_all")
         self.assertEqual(len(hists[0].events), 12)
@@ -40,6 +42,7 @@ class event_test_case(unittest.TestCase):
 
 class history_test_case(unittest.TestCase):
     """ tests history functions"""
+
     def test_mean_num_events(self):
         h1 = mpr.history()
         h2 = mpr.history()
@@ -52,6 +55,7 @@ class history_test_case(unittest.TestCase):
 
 class tracks_test_case(unittest.TestCase):
     """ tests history functions"""
+
     def test_process_tracks(self):
         hists = mpr.read_ptrac("test_output/ptrak_asc_all")
         self.assertEqual(hists[0].nps, 1)
@@ -60,6 +64,7 @@ class tracks_test_case(unittest.TestCase):
 
 class read_ptrac_test_case(unittest.TestCase):
     """ tests read ptrac functions"""
+
     def test_read_asc_ptrac_from_file(self):
         hist = mpr.read_ptrac("test_output/ptrak_asc_all")
         self.assertEqual(len(hist), 20)
