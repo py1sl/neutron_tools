@@ -28,13 +28,13 @@ class version_test_case(unittest.TestCase):
         """ test for version with string"""
         string_a = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         self.assertIsNone(mcnp_output_reader.read_version(string_a))
-        
+
     def test_empty_input(self):
         """ test for empty list given """
         empty_list = []
         self.assertIsNone(mcnp_output_reader.read_version(empty_list))
-        
-        
+
+
 class read_warnings_test_case(unittest.TestCase):
 
     def test_read_comments_warnings_successful(self):
@@ -56,7 +56,7 @@ class read_warnings_test_case(unittest.TestCase):
 
         self.assertEqual(result_comments, [])
         self.assertEqual(result_warnings, [])
-        
+
     def test_read_multiple_comments_warnings_successful(self):
         """ Test when multiple comments and warnings are present in the lines """
         lines = [
@@ -86,7 +86,7 @@ class get_tally_nums_test_case(unittest.TestCase):
         self.assertIn("5", tnums)
         self.assertIn("6", tnums)
         self.assertIn("8", tnums)
-        
+
     def test_tally_count(self):
         # test assignment of mcnp output object num_tallies
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
@@ -435,7 +435,7 @@ class tally_type8_tests(unittest.TestCase):
     def setUp(self):
         path = "test_output/singles_erg.io"
         self.single = mcnp_output_reader.read_output_file(path)
-    
+
     def test_single_value_t8_tally(self):
         single = mcnp_output_reader.read_output_file("test_output/singles.io")
         for tn in single.tally_data:
@@ -479,34 +479,32 @@ class writelines_test_case(unittest.TestCase):
 
         open_mock.assert_called_with("output1.txt", "w")
         open_mock.return_value.write.assert_any_call("hello\n")
-  
+
 
 class tables_testing(unittest.TestCase):
     """ test for output tables """
-    
+
     def setUp(self):
         path = "test_output/singles_erg.io"
         self.single = mcnp_output_reader.read_output_file(path)
         self.t60 = self.single.t60
-        
+
     def test_table_numbers(self):
         # tests getting all the  print table numbers
-        self.assertEqual(len(self.single.tables), 4) 
+        self.assertEqual(len(self.single.tables), 4)
         self.assertEqual(self.single.tables['60'], 69)
-        
+
     def test_t60(self):
         # tests print table 60 - cell information
         self.assertEqual(len(self.t60["mass"]), 4)
         self.assertEqual(len(self.t60.columns), 8)
         self.assertFalse(self.t60.empty)
-        
-        
+
     def test_t101(self):
         # tests print table 101 - particles and energy limits
         self.assertEqual(len(self.single.t101['particle_name']), 2)
         self.assertFalse(self.single.t101.empty)
-        
-        
+
     def test_t126(self):
         # test print table 126 - activity in cells
         self.assertTrue(True)

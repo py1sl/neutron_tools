@@ -173,9 +173,9 @@ def get_tally_nums(lines):
         if line[0:11] == "1tally     ":
             line = ut.string_clean_and_split(line)[1]
             tal_num_list.append(line)
-    # remove duplicates        
+    # remove duplicates
     tal_num_list = set(tal_num_list)
-    # 
+    #
     ntlogger.debug("Tally numbers: %s", tal_num_list)
 
     return tal_num_list
@@ -206,7 +206,7 @@ def count_rendevous(data):
 
 
 def process_ang_string(line):
-    """  
+    """
     Converts the tally string describing angular bin edges into a single float value for the angle.
 
     Parameters:
@@ -225,6 +225,7 @@ def read_summary(data, ptype, rnum):
     """ reads the summary tables in the output file """
     return 1
 
+
 def read_table101(lines, start_line):
     """
     Read particle energy limits and table limits from print table 101.
@@ -236,28 +237,28 @@ def read_table101(lines, start_line):
     Returns:
     - pd.DataFrame: DataFrame with the extracted data.
     """
-    
+
     term_line = ut.find_line(" *******", lines[start_line:], 8)
-    
-    columns = ["particle_id", "particle_symbol", "particle_name", 
+
+    columns = ["particle_id", "particle_symbol", "particle_name",
                "cutoff_energy", "max_energy",
                "smallest_table_max", "largest_table_max", "always_table_below",
                "always_model_above"]
 
     table_lines = [ut.string_cleaner(line) for line in lines[start_line:start_line + term_line]][6:]
     data_lines = []
-    
+
     for line in table_lines:
         if line == "":
             break
         else:
-           line = line.split(" ")
-           data_lines.append(line)
-    
-    t101df = pd.DataFrame(data_lines, columns=columns)    
+            line = line.split(" ")
+            data_lines.append(line)
+
+    t101df = pd.DataFrame(data_lines, columns=columns)
     return t101df
-    
-    
+
+
 def read_table60(lines, start_line):
     """ read print table 60
         input a list of strings
@@ -265,9 +266,9 @@ def read_table60(lines, start_line):
     """
 
     term_line = ut.find_line("    minimum source weight", lines, 25)
-    
+
     table_lines = [ut.string_cleaner(line) for line in lines[start_line:term_line]]
-    
+
     # header is split over two lines
     header1 = table_lines[2]
     header1 = header1.split(" ")
@@ -276,17 +277,17 @@ def read_table60(lines, start_line):
     # density headings
     header2[2] = header1[0] + " " + header2[2]
     header2[3] = header1[1] + " " + header2[3]
-    # importances - 
+    # importances -
     # TODO more than 1 importance
     header2[-1] = header1[-1] + " " + header2[-1]
-    
+
     # process the data section
     datalines = table_lines[5:-3]
     data = []
     for line in datalines:
         dataline = line.split(" ")
         data.append(dataline[1:])
-        
+
     t60df = pd.DataFrame(data, columns=header2)
 
     return t60df
@@ -294,15 +295,15 @@ def read_table60(lines, start_line):
 
 def print_tally_lines_to_file(lines, fname, tnum):
     """ prints tally section to a file for debugging
- 
+
     Parameters:
     - lines (list of str): List of lines containing tally section information.
     - fname (str): Base filename for the output file.
-    - tnum : Tally number to print   
+    - tnum : Tally number to print
     """
     if ntlogger.getLogger().getEffectiveLevel() == ntlogger.DEBUG:
         ntlogger.debug(f"Writing {fname}{tnum}.txt")
-        fname = f"{fname}{tnum}.txt" 
+        fname = f"{fname}{tnum}.txt"
 
         ut.write_lines(fname, lines)
 
@@ -413,12 +414,12 @@ def find_term_line(lines):
 
 
 def find_last_rendevous(lines):
-    """ finds line index of last rendevous 
+    """ finds line index of last rendevous
     Parameters:
     - lines (list of str): List of lines containing information about rendezvous points.
 
     Returns:
-    - int: Index of the last rendezvous line 
+    - int: Index of the last rendezvous line
     """
     indexes = get_rendevous_index(lines)
 
@@ -470,7 +471,7 @@ def read_tally(lines, tnum, rnum=-1):
     # get particle type
     particle_index = 3 if tal_comment_bool else 2
     tally_data.particle = lines[res_start_line+particle_index][24:33]
-   
+
     tally_data.particle = ut.string_cleaner(tally_data.particle)
     tally_data.nps = ut.string_cleaner(lines[res_start_line][28:40])
     try:
@@ -1042,23 +1043,23 @@ def read_stat_tests(lines):
     stat_res_line_id = ut.find_line(" passed", lines, 7)
     stat_line = lines[stat_res_line_id]
     stat_line = ut.string_clean_and_split(stat_line)[1:]
-    
+
     return stat_line
-    
-    
+
+
 def get_table_dict(lines):
     """ finds all mcnp output table numerical identifiers in
         lines and the starting line for that table, returns dict """
     table_dict = {}
-    
+
     for i, line in enumerate(lines):
         if "print table" in line:
             key = line.split(" ")[-1]
-            if key == '160' or key == '161' or len(key)>3:
+            if key == '160' or key == '161' or len(key) > 3:
                 continue
             else:
                 table_dict[key] = i
-    
+
     return table_dict
 
 
@@ -1077,9 +1078,9 @@ def read_output_file(path):
     mc_data.date, mc_data.start_time = read_run_date(ofile_data)
     mc_data.comments, mc_data.warnings = read_comments_warnings(ofile_data)
     mc_data.num_rendevous = count_rendevous(ofile_data)
-    
+
     mc_data.tables = get_table_dict(ofile_data)
-    
+
     # read specific tables
     if '60' in mc_data.tables:
         mc_data.t60 = read_table60(ofile_data, mc_data.tables['60'])
@@ -1090,7 +1091,7 @@ def read_output_file(path):
     tls = get_tally_nums(ofile_data)
     for tnum in tls:
         mc_data.tally_data.append(read_tally(ofile_data, tnum))
-        
+
     mc_data.num_tallies = len(tls)
 
     return mc_data

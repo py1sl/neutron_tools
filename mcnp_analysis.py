@@ -86,7 +86,7 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
 
     for d in data:
         bw = calc_bin_width(d.eng)
-        if d.tally_type =='1':
+        if d.tally_type == '1':
             plt.ylabel("current n/MeV/" + sp)
             if len(d.surfaces) > 1:
                 for surf in d.result:
@@ -103,11 +103,11 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
                     for ang in d.result:
                         y_vals = np.asarray(ang)/bw
                         splot = plt.step(np.asarray(d.eng),  y_vals)
-                        legend = d.ang_bins    
+                        legend = d.ang_bins
                 else:
                     y_vals = np.asarray(d.result)/bw
                     splot = plt.step(np.asarray(d.eng),  y_vals)
-        elif d.tally_type == '2':           
+        elif d.tally_type == '2': 
             y_vals = np.asarray(d.result)/bw
             splot = plt.step(np.asarray(d.eng),  y_vals)
         elif d.tally_type == '4' and len(d.cells) > 1:
