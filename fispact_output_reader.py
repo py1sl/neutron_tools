@@ -25,6 +25,7 @@ import pandas as pd
 
 class FispactOutput():
     """ fispact output data"""
+
     def __init__(self):
         """ define data"""
         self.file_name = ""
@@ -43,6 +44,7 @@ class FispactOutput():
 
 class FispactTimeStep():
     """ data for an individual time step can be heating or cooling """
+
     def __init__(self):
         self.step_num = 1
         self.step_length = 0
@@ -110,8 +112,8 @@ def read_fis_out(path):
 
     # parse all time steps except setup step
     i = 1
-    while i < len(time_step_inds)-1:
-        data = lines[time_step_inds[i]:time_step_inds[i+1]]
+    while i < len(time_step_inds) - 1:
+        data = lines[time_step_inds[i]:time_step_inds[i + 1]]
         fo.timestep_data.append(read_time_step(data, i))
         i = i + 1
     # final timestep
@@ -168,16 +170,16 @@ def read_time_step(lines, i):
         ts.appm_he4 = lines[ind][23:33]
         if "E" in ts.appm_he4:
             ts.appm_he4 = float(ts.appm_he4)
-        ts.appm_he3 = lines[ind+1][23:33]
+        ts.appm_he3 = lines[ind + 1][23:33]
         if "E" in ts.appm_he3:
             ts.appm_he3 = float(ts.appm_he3)
-        ts.appm_h3 = lines[ind+2][23:33]
+        ts.appm_h3 = lines[ind + 2][23:33]
         if "E" in ts.appm_h3:
             ts.appm_h3 = float(ts.appm_h3)
-        ts.appm_h2 = lines[ind+3][23:33]
+        ts.appm_h2 = lines[ind + 3][23:33]
         if "E" in ts.appm_h2:
             ts.appm_h2 = float(ts.appm_h2)
-        ts.appm_h1 = lines[ind+4][23:33]
+        ts.appm_h1 = lines[ind + 4][23:33]
         if "E" in ts.appm_h1:
             ts.appm_h1 = float(ts.appm_h1)
         ind = 1
@@ -225,7 +227,7 @@ def read_summary_data(data):
 
     start_ind = data.index(cool_str)
     end_ind = [i for i, line in enumerate(data) if "0 Mass" in line]
-    sum_lines = data[start_ind+1:end_ind[0]]
+    sum_lines = data[start_ind + 1:end_ind[0]]
     sum_data = []
     time_yrs = []
     act = []
@@ -297,9 +299,9 @@ def parse_dominant(data):
     data = data[p1_ind:]
     d1_ind = ut.find_ind(data, "(Bq) ")
     d2_ind = ut.find_ind(data, "GAMMA HEAT")
-    topset = data[d1_ind+2:d2_ind-1]
+    topset = data[d1_ind + 2:d2_ind - 1]
     topset = np.array(topset)
-    lowerset = data[d2_ind+3:]
+    lowerset = data[d2_ind + 3:]
 
     act_nuc = []
     act = []
@@ -365,7 +367,7 @@ def parse_composition(data):
     """
     p1 = ut.find_ind(data, "COMPOSITION  OF  MATERIAL  BY  ELEMENT")
     p2 = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
-    data = data[p1+5:p2-3]
+    data = data[p1 + 5:p2 - 3]
     ele_list = []
     atoms = []
 
@@ -386,7 +388,7 @@ def parse_spectra(data):
         data is in gamma/s/cc
     """
     p1 = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
-    data = data[p1+7:p1+31]
+    data = data[p1 + 7:p1 + 31]
     spectra = []
     for line in data:
         spectra.append(float(line[130:141]))

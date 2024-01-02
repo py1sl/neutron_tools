@@ -463,7 +463,7 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.result), 14)
                 self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[0],  5.16461E-01)
+                self.assertEqual(tn.result[0], 5.16461E-01)
 
 
 class writelines_test_case(unittest.TestCase):

@@ -10,6 +10,7 @@ import neut_utilities as ut
 
 class mcnp_cell():
     """ """
+
     def __init__(self):
         self.number = ""
         self.mat = ""

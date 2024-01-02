@@ -20,6 +20,7 @@ class history():
 
 class event():
     """ event class """
+
     def __init__(self):
         self.x = 0
         self.y = 0
@@ -85,7 +86,7 @@ def mean_num_events(hists):
     for hist in hists:
         n_events = n_events + len(hist.events)
 
-    ave = n_events/n_hist
+    ave = n_events / n_hist
     return ave
 
 
