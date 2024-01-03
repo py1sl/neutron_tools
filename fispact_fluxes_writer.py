@@ -209,7 +209,12 @@ def create_fluxes_from_mcnp_spect(mcnp_spect):
 
 def check_upper_bound(groups, energy):
     """ checks energy is not beyond the upper energy of the group structure """
-    return None
+    if energy > groups[0]:
+         ntlogger.debug("Energy above max group structure energy")
+         return False
+    else:
+        return True
+    
 
 
 def write_fluxes_file(opath, data):

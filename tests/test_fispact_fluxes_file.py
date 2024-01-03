@@ -17,7 +17,7 @@ class writelines_test_case(unittest.TestCase):
 
 
 class fluxes_writer_test_case(unittest.TestCase):
-    """ test for reading the version of output file"""
+    """ tests for reading the version of output file"""
 
     def test_get_group_pos(self):
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
@@ -37,11 +37,37 @@ class fluxes_writer_test_case(unittest.TestCase):
 
     def test_correct_gs_length(self):
         self.assertEqual(len(fw.get_group_struct("709")), 709)
+        self.assertEqual(len(fw.get_group_struct("162")), 162)
+        self.assertFalse(fw.get_group_struct("153"))
 
     def test_gs_check(self):
-        self.assertEqual(fw.check_group_struct("709"), True)
-        self.assertEqual(fw.check_group_struct("162"), True)
-        self.assertEqual(fw.check_group_struct("710"), False)
+        self.assertTrue(fw.check_group_struct("709"))
+        self.assertTrue(fw.check_group_struct("162"))
+        self.assertFalse(fw.check_group_struct("710"))
+
+
+class   create_fluxes_data_test_case(unittest.TestCase):
+    """ tests for creating the fluxes data """
+
+    def test_create_fluxes(self):
+        data = fw.create_fluxes_data([1, 1, 1, 1], 1)
+        self.assertEqual(len(data), 5)
+        self.assertEqual(data[1], 1)
+        self.assertEqual(data[-1], 1)
+        self.assertEqual(data[0], 0)
+
+    def test_create_fluxes_mcnp(self):
+        data = fw.create_fluxes_from_mcnp_spect([1, 2, 3, 4, 5])
+        self.assertEqual(len(data), 6)
+        self.assertEqual(data[1], 4)
+        self.assertEqual(data[-1], 1)
+        self.assertEqual(data[0], 5)
+
+    def test_upper_bound(self):
+        groups = [10, 9, 8, 7]
+        self.assertTrue(fw.check_upper_bound(groups, 3))
+        self.assertTrue(fw.check_upper_bound(groups, 10))
+        self.assertFalse(fw.check_upper_bound(groups, 20.2))
 
 
 if __name__ == '__main__':
