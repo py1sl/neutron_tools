@@ -81,14 +81,32 @@ class plotting_tests(unittest.TestCase):
 
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
-    def test_plot_pie(self):
+    def test_plot_pie(self, mock_show, mock_savefig):
         test_data = pd.DataFrame()
         test_data["act"] = [5, 20, 50, 25]
         test_data["act_percent"] = [5, 20, 50, 25]
         test_data["act_nuc"] = ["H3", "W180", "Ta182", "Co60"]
 
         self.assertRaises(ValueError, fa.plot_pie, test_data, "", param="pyth")
-        # mock_show.assert_called_once()
+        fa.plot_pie(test_data, "")
+        mock_show.assert_called_once()
 
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_plot_nuc_cont(self, mock_show, mock_savefig):
+        # stub
+        h=1
+        #plot=fa.plot_nuc_cont()
+        #mock_show.assert_called_once()
+
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_plot_nuc_chart(self, mock_show, mock_savefig):
+        # stub
+        h=1
+        #fa.plot_nuc_chart()
+        #mock_show.assert_called_once()
+        
+        
 if __name__ == '__main__':
     unittest.main()
