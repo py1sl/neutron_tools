@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, mock_open, call
 import fispact_analysis as fa
+import fispact_output_reader as fo
 import pandas as pd
 
 
