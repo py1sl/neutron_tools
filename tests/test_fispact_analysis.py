@@ -1,6 +1,7 @@
 import unittest
-# from unittest.mock import patch, mock_open
+from unittest.mock import patch, mock_open, call
 import fispact_analysis as fa
+import fispact_output_reader as fo
 import pandas as pd
 
 
@@ -63,8 +64,11 @@ class filtering_functions_tests(unittest.TestCase):
 
 
 class plotting_tests(unittest.TestCase):
-
-    def test_dose_plot(self):
+    """ tests for plotting functions """
+   
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_dose_plot(self, mock_show, mock_savefig):
         test_data = pd.DataFrame()
 
         test_data["time_years"] = [10, 20, 30, 40]
@@ -73,19 +77,39 @@ class plotting_tests(unittest.TestCase):
         test_data["time_secs"] = test_data["time_years"] * 365.4 * 24 * 3600
         test_data["dose_rate"] = [1, 2, 3, 4]
 
-        # plot = fa.plot_dose(test_data)
-        # x_plot, y_plot = plot.get_xydata().T
-        # self.assertEqual(plot.get_xlabel(), "time_hours")
-        # self.assertEqual(plot.get_ylabel(), r"Dose rate $\mu$Sv/h")
+        plot = fa.plot_dose(test_data)
+        mock_show.assert_called_once()
 
-    def test_plot_pie(self):
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_plot_pie(self, mock_show, mock_savefig):
         test_data = pd.DataFrame()
         test_data["act"] = [5, 20, 50, 25]
         test_data["act_percent"] = [5, 20, 50, 25]
         test_data["act_nuc"] = ["H3", "W180", "Ta182", "Co60"]
 
         self.assertRaises(ValueError, fa.plot_pie, test_data, "", param="pyth")
+        fa.plot_pie(test_data, "")
+        mock_show.assert_called_once()
 
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_plot_nuc_cont(self, mock_show, mock_savefig):
+        # stub
+        path = "test_output/fis_test1.out"
+        output = fo.read_fis_out(path)
+        plot=fa.plot_nuc_cont(output, ["co60", "fe55"])
+        mock_show.assert_called_once()
 
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_plot_nuc_chart(self, mock_show, mock_savefig):
+        # stub
+        path = "test_output/fis_test1.out"
+        output = fo.read_fis_out(path)
+        fa.plot_nuc_chart(output.timestep_data[3].inventory)
+        mock_show.assert_called_once()
+        
+        
 if __name__ == '__main__':
     unittest.main()
