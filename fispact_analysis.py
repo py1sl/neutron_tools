@@ -169,8 +169,6 @@ def plot_dose(sum_dat, offset=0, fname=None,
     # plot to screen or file
     if fname:
         plt.savefig(fname)
-    elif matplotlib.rcParams['backend'] == "agg":
-        print("using agg - no plot - give a file name")
     else:
         plt.show()
     return plot
