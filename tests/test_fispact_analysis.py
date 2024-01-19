@@ -107,7 +107,7 @@ class plotting_tests(unittest.TestCase):
         # stub
         path = "test_output/fis_test1.out"
         output = fo.read_fis_out(path)
-        fa.plot_nuc_chart(output.timestep[3].inventory)
+        fa.plot_nuc_chart(output.timestep_data[3].inventory)
         mock_show.assert_called_once()
         
         
