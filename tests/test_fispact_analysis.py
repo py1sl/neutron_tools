@@ -67,7 +67,7 @@ class plotting_tests(unittest.TestCase):
    
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
-    def test_dose_plot(self, mock_show, mock_savefig)):
+    def test_dose_plot(self, mock_show, mock_savefig):
         test_data = pd.DataFrame()
 
         test_data["time_years"] = [10, 20, 30, 40]
