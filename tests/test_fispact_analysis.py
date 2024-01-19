@@ -95,17 +95,19 @@ class plotting_tests(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_plot_nuc_cont(self, mock_show, mock_savefig):
         # stub
-        h=1
-        #plot=fa.plot_nuc_cont()
-        #mock_show.assert_called_once()
+        path = "test_output/fis_test1.out"
+        output = fo.read_fis_out(path)
+        plot=fa.plot_nuc_cont(output, ["co60", "fe55"])
+        mock_show.assert_called_once()
 
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_plot_nuc_chart(self, mock_show, mock_savefig):
         # stub
-        h=1
-        #fa.plot_nuc_chart()
-        #mock_show.assert_called_once()
+        path = "test_output/fis_test1.out"
+        output = fo.read_fis_out(path)
+        fa.plot_nuc_chart(output.timestep[3].inventory)
+        mock_show.assert_called_once()
         
         
 if __name__ == '__main__':
