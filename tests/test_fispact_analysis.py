@@ -131,12 +131,12 @@ class plotting_tests(unittest.TestCase):
         # stub
         path = "test_output/fis_test1.out"
         output = fo.read_fis_out(path)
-        plot=fa.plot_spectra((output.timestep_data[3])
+        plot=fa.plot_spectra(output.timestep_data[3])
         mock_show.assert_called_once()
 
         # called with a file name
         fname="test"
-        plot = fa.plot_spectra((output.timestep_data[3], fname=fname)
+        plot = fa.plot_spectra(output.timestep_data[3], fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
     
