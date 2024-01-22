@@ -100,7 +100,8 @@ class plotting_tests(unittest.TestCase):
         mock_show.assert_called_once()
 
         # called with a file name
-        plot = fa.plot_act(test_data, fname="test")
+        fname="test"
+        plot = fa.plot_act(test_data, fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
         
@@ -118,7 +119,8 @@ class plotting_tests(unittest.TestCase):
         mock_show.assert_called_once()
 
         # called with a file name
-        fa.plot_pie(test_data, fname="test")
+        fname="test"
+        fa.plot_pie(test_data, fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
 
@@ -132,7 +134,8 @@ class plotting_tests(unittest.TestCase):
         mock_show.assert_called_once()
 
         # called with a file name
-        plot = fa.plot_nuc_cont(output, ["V52", "Sc43"], fname="test")
+        fname="test"
+        plot = fa.plot_nuc_cont(output, ["V52", "Sc43"], fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
 
@@ -146,7 +149,8 @@ class plotting_tests(unittest.TestCase):
         mock_show.assert_called_once()
 
         # called with a file name
-        fa.plot_nuc_chart(output.timestep_data[3].inventory, fname="test")
+        fname="test"
+        fa.plot_nuc_chart(output.timestep_data[3].inventory, fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
         
