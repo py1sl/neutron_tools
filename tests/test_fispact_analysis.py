@@ -80,6 +80,31 @@ class plotting_tests(unittest.TestCase):
         plot = fa.plot_dose(test_data)
         mock_show.assert_called_once()
 
+        # called with a file name
+        plot = fa.plot_dose(test_data, fname="test")
+        # Assert that savefig was called with the specified filename
+        mock_savefig.assert_called_once_with(fname)
+
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_act_plot(self, mock_show, mock_savefig):
+        test_data = pd.DataFrame()
+
+        test_data["time_years"] = [10, 20, 30, 40]
+        test_data["time_days"] = test_data["time_years"] * 365.4
+        test_data["time_hours"] = test_data["time_years"] * 365.4 * 24
+        test_data["time_secs"] = test_data["time_years"] * 365.4 * 24 * 3600
+        test_data["act"] = [1, 2, 3, 4]
+
+        plot = fa.plot_act(test_data)
+        mock_show.assert_called_once()
+
+        # called with a file name
+        plot = fa.plot_act(test_data, fname="test")
+        # Assert that savefig was called with the specified filename
+        mock_savefig.assert_called_once_with(fname)
+        
+
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_plot_pie(self, mock_show, mock_savefig):
@@ -92,14 +117,24 @@ class plotting_tests(unittest.TestCase):
         fa.plot_pie(test_data, "")
         mock_show.assert_called_once()
 
+        # called with a file name
+        fa.plot_pie(test_data, fname="test")
+        # Assert that savefig was called with the specified filename
+        mock_savefig.assert_called_once_with(fname)
+
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_plot_nuc_cont(self, mock_show, mock_savefig):
         # stub
         path = "test_output/fis_test1.out"
         output = fo.read_fis_out(path)
-        plot=fa.plot_nuc_cont(output, ["co60", "fe55"])
+        plot=fa.plot_nuc_cont(output, ["V52", "Sc43"])
         mock_show.assert_called_once()
+
+        # called with a file name
+        plot = fa.plot_nuc_cont(output, ["V52", "Sc43"], fname="test")
+        # Assert that savefig was called with the specified filename
+        mock_savefig.assert_called_once_with(fname)
 
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
@@ -109,6 +144,11 @@ class plotting_tests(unittest.TestCase):
         output = fo.read_fis_out(path)
         fa.plot_nuc_chart(output.timestep_data[3].inventory)
         mock_show.assert_called_once()
+
+        # called with a file name
+        fa.plot_nuc_chart(output.timestep_data[3].inventory, fname="test")
+        # Assert that savefig was called with the specified filename
+        mock_savefig.assert_called_once_with(fname)
         
         
 if __name__ == '__main__':
