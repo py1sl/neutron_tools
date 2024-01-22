@@ -81,7 +81,8 @@ class plotting_tests(unittest.TestCase):
         mock_show.assert_called_once()
 
         # called with a file name
-        plot = fa.plot_dose(test_data, fname="test")
+        fname="test"
+        plot = fa.plot_dose(test_data, fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
 
@@ -124,6 +125,21 @@ class plotting_tests(unittest.TestCase):
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
 
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_plot_spectra(self, mock_show, mock_savefig):
+        # stub
+        path = "test_output/fis_test1.out"
+        output = fo.read_fis_out(path)
+        plot=fa.plot_spectra((output.timestep_data[3])
+        mock_show.assert_called_once()
+
+        # called with a file name
+        fname="test"
+        plot = fa.plot_spectra((output.timestep_data[3], fname=fname)
+        # Assert that savefig was called with the specified filename
+        mock_savefig.assert_called_once_with(fname)
+    
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_plot_nuc_cont(self, mock_show, mock_savefig):
