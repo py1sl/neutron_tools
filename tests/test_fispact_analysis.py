@@ -121,7 +121,7 @@ class plotting_tests(unittest.TestCase):
 
         # called with a file name
         fname="test"
-        fa.plot_pie(test_data, fname=fname)
+        fa.plot_pie(test_data, "", fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
 
