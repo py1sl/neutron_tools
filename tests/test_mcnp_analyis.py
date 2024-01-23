@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, mock_open, call
 import mcnp_analysis as ma
 import mcnp_output_reader as mor
 
@@ -57,6 +57,59 @@ class csv_test_case(unittest.TestCase):
             ma.csv_out(data, "output.txt")
 
         open_mock.assert_called_with("output.txt", "w")
+        
+        
+class plotting_test_cases(unittest.TestCase):
+    """ tests for different plotting functions """
+    
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_raw_spec_plot(self, mock_show, mock_savefig):
+        single = mor.read_output_file("test_output/singles_erg.io")
+        for tn in single.tally_data:
+            if tn.number == 4:
+                data = tn
+        fname = "test"        
+        ma.plot_raw_spectra(data, fname, "")
+        # Assert that savefig was called with the specified filename
+        mock_savefig.assert_called_once_with(fname)
+        
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_spec_plot(self, mock_show, mock_savefig):
+        single = mor.read_output_file("test_output/singles_erg.io")
+        for tn in single.tally_data:
+            if tn.number == 4:
+                data = tn
+        fname = "test"        
+        ma.plot_spectra(data, fname, "")
+        # Assert that savefig was called with the specified filename
+        mock_savefig.assert_called_once_with(fname)
+        
+        
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_spec_ratio_plot(self, mock_show, mock_savefig):
+        single = mor.read_output_file("test_output/singles_erg.io")
+        for tn in single.tally_data:
+            if tn.number == 4:
+                data = tn
+        fname = "test"        
+        ma.plot_spectra_ratio(data, data, fname, "")
+        # Assert that savefig was called with the specified filename
+        mock_savefig.assert_called_once_with(fname)
+        
+        
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_run_comp_plot(self, mock_show, mock_savefig):
+        data = [1, 2, 3, 4]
+        err = [0.1, 0.1, 0.1, 0.1]
+        fname = "test"        
+        ma.plot_run_comp(data, err, fname, "")
+        # Assert that savefig was called with the specified filename
+        mock_savefig.assert_called_once_with(fname)
+    
 
 
 if __name__ == '__main__':
