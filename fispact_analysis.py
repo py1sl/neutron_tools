@@ -8,15 +8,18 @@ import neut_constants
 matplotlib.use('agg')
 
 
-def reduce_to_non_zero(variable, time):
-    """ make sensible graphs for short half lives
-        reduce to only positive no zero values for parameter and time
+def reduce_to_non_zero(values, time_values):
+    """ reduce to only positive no zero values for parameter and time
+        this is useful to then make sensible graphs for short half lives
     """
-    zero_pos = ut.find_first_zero(variable)
-    if zero_pos:
-        variable = variable[:zero_pos]
-        time = time[:zero_pos]
-    return variable, time
+    if len(values) != len(time_values):
+        raise ValueError("Lengths of values and time_points must be equal.")
+
+    zero_pos = ut.find_first_zero(values)
+    if zero_pos is not None:
+        values = values[:zero_pos]
+        time_values = time_values[:zero_pos]
+    return values, time_values
 
 
 def is_nuc_present(inv, nuc):
@@ -64,7 +67,7 @@ def output_mcnp_mat(inv, lib=".70c"):
 
     matdf = inv[["ZAID", "atoms_norm"]]
 
-    matdf["output"] = "     " + inv["ZAID"].str + "  " + inv["atoms_norm"].str
+    matdf["output"] = "     " + str(inv["ZAID"]) + "  " + str(inv["atoms_norm"])
 
     return matdf
 
@@ -236,7 +239,7 @@ def plot_nuc_cont(fout, nuc_list, param="act", fname=None, total=False):
     plt.clf()
 
     # get data
-    time_vals = fout.sumdat["time_hours"].unique()
+    time_vals = fout.sumdat["time_hours"]
 
     for nuc in nuc_list:
         vals = []
