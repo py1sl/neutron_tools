@@ -66,7 +66,10 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
         data = [data]
 
     for d in data:
-        plt.step(np.asarray(d.eng), np.asarray(d.result))
+        if not hasattr(d, 'eng'):
+            raise ValueError("Invalid MCNP tally does not have energy bins.")
+        
+        plt.step(np.asarray(d.eng), np.asarray(d.result[0]))
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
 
@@ -153,10 +156,7 @@ def plot_spectra_ratio(data1, data2, fname, title):
     plt.ylabel("ratio")
     plt.xscale('log')
 
-    if data1.tally_type == '2':
-        ratio = np.asarray(data1.result) / np.asarray(data2.result)
-    else:
-        ratio = np.asarray(data1.result) / np.asarray(data2.result)
+    ratio = np.asarray(data1.result[0]) / np.asarray(data2.result[0])
 
     plt.plot(data1.eng, ratio)
     plt.savefig(fname)

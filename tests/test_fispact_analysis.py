@@ -27,6 +27,20 @@ class support_function_tests(unittest.TestCase):
         self.assertEqual(len(t), 4)
         self.assertEqual(len(v), 4)
         self.assertEqual(v, [20, 20, 20, 10])
+        
+        self.assertRaises(ValueError, fa.reduce_to_non_zero, [1, 2, 3], [1, 2])
+
+
+class output_function_tests(unittest.TestCase):
+
+    def test_mcnp_mat_output(self):
+        inv = pd.DataFrame()
+        inv["element"] = ["H", "C"]
+        inv["A"] = [1, 8]
+        inv["atoms"] = [1000, 2000]
+        
+        mat = fa.output_mcnp_mat(inv)
+        self.assertEqual(len(mat["ZAID"]), len(inv["A"]))
 
 
 class filtering_functions_tests(unittest.TestCase):
