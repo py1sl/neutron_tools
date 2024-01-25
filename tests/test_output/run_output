@@ -1,0 +1,66 @@
+mcnp     ver=6.mpi, ld=04/01/16  01/11/24 16:03:43                   
+          Code Name & Version = MCNP6, 1.0
+          Copyright LANS/LANL/DOE - see output file
+  
+     _/      _/        _/_/_/       _/      _/       _/_/_/         _/_/_/
+    _/_/  _/_/      _/             _/_/    _/       _/    _/     _/       
+   _/  _/  _/      _/             _/  _/  _/       _/_/_/       _/_/_/    
+  _/      _/      _/             _/    _/_/       _/           _/    _/   
+ _/      _/        _/_/_/       _/      _/       _/             _/_/      
+  
+ comment. using random number generator  1, initial seed = 19073486328125      
+ imcn   is done
+
+
+ ctm =        0.00   nrn =                 0
+ dump    1 on file test_model.ir   nps =           0   coll =                0
+ xact   is done
+
+ cp0 =   0.52
+ master starting     239 MPI slave tasks with       1 threads each  01/11/24 16:04:16 
+ master broadcasting static commons...
+ master broadcasting dynamic commons...
+ master broadcasting cross section data...
+ master completed initialization broadcasts.
+ master set rendezvous nps =    10000000,  work chunks =   239    01/11/24 16:04:17 
+
+ ctm =       24.60   nrn =         920964084
+ dump    2 on file test_model.ir   nps =    10000000   coll =         65819806
+ master set rendezvous nps =    20000000,  work chunks =   239    01/11/24 16:04:56 
+
+ ctm =       46.89   nrn =        1842032908
+ dump    3 on file test_model.ir   nps =    20000000   coll =        131645940
+ master set rendezvous nps =    30000000,  work chunks =   239    01/11/24 16:05:37 
+
+ ctm =       68.87   nrn =        2763172896
+ dump    4 on file test_model.ir   nps =    30000000   coll =        197477385
+ master set rendezvous nps =    40000000,  work chunks =   239    01/11/24 16:06:17 
+
+ ctm =       90.69   nrn =        3684103654
+ dump    5 on file test_model.ir   nps =    40000000   coll =        263291515
+ master set rendezvous nps =    50000000,  work chunks =   239    01/11/24 16:06:56 
+
+ ctm =      112.43   nrn =        4605064657
+ dump    6 on file test_model.ir   nps =    50000000   coll =        329107507
+ master set rendezvous nps =    60000000,  work chunks =   239    01/11/24 16:07:37 
+
+ ctm =      134.13   nrn =        5526063105
+ dump    7 on file test_model.ir   nps =    60000000   coll =        394929614
+ master set rendezvous nps =    70000000,  work chunks =   239    01/11/24 16:08:17 
+
+ ctm =      155.77   nrn =        6446993639
+ dump    8 on file test_model.ir   nps =    70000000   coll =        460747962
+ master set rendezvous nps =    80000000,  work chunks =   239    01/11/24 16:08:57 
+
+ ctm =      177.39   nrn =        7368130333
+ dump    9 on file test_model.ir   nps =    80000000   coll =        526577226
+ master set rendezvous nps =    90000000,  work chunks =   239    01/11/24 16:09:37 
+
+ ctm =      198.99   nrn =        8288924868
+ dump   10 on file test_model.ir   nps =    90000000   coll =        592384265
+ master set rendezvous nps =   100000000,  work chunks =   239    01/11/24 16:10:18 
+      run terminated when   100000000  particle histories were done.
+
+ ctm =      220.55   nrn =        9210140470
+ dump   11 on file test_model.ir   nps =   100000000   coll =        658220633
+ mcrun  is done
