@@ -68,7 +68,7 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
     for d in data:
         if not hasattr(d, 'eng'):
             raise ValueError("Invalid MCNP tally does not have energy bins.")
-        
+
         plt.step(np.asarray(d.eng), np.asarray(d.result[0]))
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
@@ -110,7 +110,7 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
                 else:
                     y_vals = np.asarray(d.result)/bw
                     splot = plt.step(np.asarray(d.eng),  y_vals)
-        elif d.tally_type == '2': 
+        elif d.tally_type == '2':
             y_vals = np.asarray(d.result)/bw
             splot = plt.step(np.asarray(d.eng),  y_vals)
         elif d.tally_type == '4' and len(d.cells) > 1:

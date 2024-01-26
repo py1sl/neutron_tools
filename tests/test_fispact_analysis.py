@@ -27,7 +27,7 @@ class support_function_tests(unittest.TestCase):
         self.assertEqual(len(t), 4)
         self.assertEqual(len(v), 4)
         self.assertEqual(v, [20, 20, 20, 10])
-        
+
         self.assertRaises(ValueError, fa.reduce_to_non_zero, [1, 2, 3], [1, 2])
 
 
@@ -38,7 +38,7 @@ class output_function_tests(unittest.TestCase):
         inv["element"] = ["H", "C"]
         inv["A"] = [1, 8]
         inv["atoms"] = [1000, 2000]
-        
+
         mat = fa.output_mcnp_mat(inv)
         self.assertEqual(len(mat["ZAID"]), len(inv["A"]))
 
@@ -79,7 +79,7 @@ class filtering_functions_tests(unittest.TestCase):
 
 class plotting_tests(unittest.TestCase):
     """ tests for plotting functions """
-   
+
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_dose_plot(self, mock_show, mock_savefig):
@@ -95,7 +95,7 @@ class plotting_tests(unittest.TestCase):
         mock_show.assert_called_once()
 
         # called with a file name
-        fname="test"
+        fname = "test"
         plot = fa.plot_dose(test_data, fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
@@ -115,11 +115,11 @@ class plotting_tests(unittest.TestCase):
         mock_show.assert_called_once()
 
         # called with a file name
-        fname="test"
+        fname = "test"
         plot = fa.plot_act(test_data, fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
-        
+
 
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
@@ -134,7 +134,7 @@ class plotting_tests(unittest.TestCase):
         mock_show.assert_called_once()
 
         # called with a file name
-        fname="test"
+        fname = "test"
         fa.plot_pie(test_data, "", fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
@@ -145,26 +145,26 @@ class plotting_tests(unittest.TestCase):
         # stub
         path = "test_output/fis_test1.out"
         output = fo.read_fis_out(path)
-        plot=fa.plot_spectra(output.timestep_data[3])
+        plot = fa.plot_spectra(output.timestep_data[3])
         mock_show.assert_called_once()
 
         # called with a file name
-        fname="test"
+        fname = "test"
         plot = fa.plot_spectra(output.timestep_data[3], fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
-    
+
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_plot_nuc_cont(self, mock_show, mock_savefig):
         # stub
         path = "test_output/fis_test1.out"
         output = fo.read_fis_out(path)
-        plot=fa.plot_nuc_cont(output, ["V52", "Sc43"])
+        plot = fa.plot_nuc_cont(output, ["V52", "Sc43"])
         mock_show.assert_called_once()
 
         # called with a file name
-        fname="test"
+        fname = "test"
         plot = fa.plot_nuc_cont(output, ["V52", "Sc43"], fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
@@ -179,11 +179,11 @@ class plotting_tests(unittest.TestCase):
         mock_show.assert_called_once()
 
         # called with a file name
-        fname="test"
+        fname = "test"
         fa.plot_nuc_chart(output.timestep_data[3].inventory, fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
-        
-        
+
+
 if __name__ == '__main__':
     unittest.main()
