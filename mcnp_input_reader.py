@@ -249,6 +249,11 @@ def read_mcnp_input(fpath):
     return ifile, comments, mat_nums, cell_list
 
 
+def vised_compatible(fname):
+    """ makes a mcnp file work with vised mcnpx version """
+    ut.text_replace(fname, "mphys", "c mphys")     
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="reads MCNP input file")
     parser.add_argument("input", help="path to the mcnp input file")
