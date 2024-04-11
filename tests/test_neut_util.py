@@ -97,5 +97,12 @@ class find_zero_test_case(unittest.TestCase):
         self.assertEqual(ut.find_first_zero(test_vals), None)
 
 
+class string_replace_test_case(unittest.TestCase):
+    """ tests for the string replace function """
+    def test_string_replace_error(self):
+        with self.assertRaises(FileNotFoundError):
+            ut.text_replace('no_such_fname', 'old_string', 'new_string')
+        
+
 if __name__ == '__main__':
     unittest.main()
