@@ -247,9 +247,9 @@ def read_mcnp_input(fpath):
     mat_nums = get_material_numbers(data_bloc)
 
     return ifile, comments, mat_nums, cell_list
-    
 
- def vised_compatible(fname):
+
+def vised_compatible(fname):
     """ makes a mcnp file work with vised mcnpx version """
     ut.text_replace(fname, "mphys", "c mphys")     
 
