@@ -25,6 +25,8 @@ class conversion_test_case(unittest.TestCase):
         self.assertEqual(nc.second_to_year(1), (1/3.1536e07))
         self.assertEqual(nc.hour_to_second(1), 3600)
         self.assertEqual(nc.day_to_second(1), 86400)
+        self.assertEqual(nc.shake_to_second(1), 1e-8)
+        self.assertEqual(nc.second_to_shake(1), 1e8)
 
     def test_act_conv(self):
         self.assertEqual(nc.bq_to_curie(1), 2.703e11)
