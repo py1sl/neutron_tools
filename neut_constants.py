@@ -100,13 +100,16 @@ def day_to_second(val):
     """ converts time in days to seconds """
     return val * 86400
 
+
 def shake_to_second(val):
     """ converts time in shakes to seconds """
     return val * 1e-8
 
+
 def second_to_shake(val):
     """ converts time in seconds to shakes """
     return val * 1e8
+
 
 def Z_dict():
     zdict = {
