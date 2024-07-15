@@ -223,7 +223,7 @@ def read_summary_data(data):
     if isFisII(data):
         cool_str = " -----Irradiation Phase-----"
     else:
-        cool_str = "  COOLING STEPS"
+        cool_str = "-----Cooling Phase-----"
 
     start_ind = data.index(cool_str)
     end_ind = [i for i, line in enumerate(data) if "0 Mass" in line]
@@ -241,10 +241,18 @@ def read_summary_data(data):
     inhal = []
     inhal_un = []
     trit = []
+    cooling = []
     to = 0
+    is_cooling = True
 
     for line in sum_lines:
         if isFisII(data):
+            if "Irradn" in line:
+                is_cooling = False
+
+            elif "Cooling" in line:
+                is_cooling = True
+
             if line[1] == "-":
                 to = time_yrs[-1]
             else:
@@ -255,6 +263,7 @@ def read_summary_data(data):
                 ing.append(float(line[104:112]))
                 inhal.append(float(line[127:135]))
                 trit.append(float(line[150:158]))
+                cooling.append(is_cooling)
 
         else:
             time_yrs.append(line[20:28])
@@ -264,6 +273,7 @@ def read_summary_data(data):
             ing.append(line[100:108])
             inhal.append(line[123:131])
             trit.append(line[146:154])
+            cooling.append(is_cooling)
 
     sum_data.append(time_yrs)
     sum_data.append(act)
@@ -277,11 +287,12 @@ def read_summary_data(data):
     sum_data.append(heat_un)
     sum_data.append(ing_un)
     sum_data.append(inhal_un)
+    sum_data.append(cooling)
 
     # convert to dataframe
     col_heads = ["time_years", "act", "dose_rate", "heating", "ingestion",
                  "inhalation", "tritium", "act_un", "dr_un", "heat_un",
-                 "ing_un", "inhal_un"]
+                 "ing_un", "inhal_un", "is_cooling"]
     sum_data = pd.DataFrame(sum_data)
     sum_data = sum_data.transpose()
     sum_data.columns = col_heads

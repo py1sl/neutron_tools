@@ -90,25 +90,34 @@ def check_time_units(t_units):
     return t_units
 
 
-def plot_act(sum_dat, offset=0, fname=None,
-             vlines=None, hlines=None, y_units="Bq/kg", x_units="time_hours"):
-    """ plots activity as function of time """
-    act = sum_dat["act"]
+def plot_summary(sum_dat, column = "act", offset=0, fname=None,
+              vlines=None, hlines=None, x_units="time_hours", y_units=None):
+    """ plots activity and dose as a function of time"""
+
+    data = sum_dat[column]
     x_units = check_time_units(x_units)
     time_vals = sum_dat[x_units]
+    data, time_vals = reduce_to_non_zero(data, time_vals)
 
-    if y_units == "Bq/kg" or "Bq/g":
-        act_lab = "Specific Activity " + y_units
+
+    if column == "dose_rate":
+        data = data * 1e6
+        y_label = r"Dose rate $\mu$Sv/h"
+
+    elif column == "act":
+        if y_units == "Bq/kg" or "Bq/g":
+            y_label = "Specific Activity " + y_units
+        else:
+            y_label = "Activity Bq"
+
     else:
-        act_lab = "Activity Bq"
-
-    act, time_vals = reduce_to_non_zero(act, time_vals)
+        y_label = column
 
     # make plot
     plt.clf()
-    plot = plt.plot(time_vals, act)
+    plot = plt.plot(time_vals, data)
     plt.xlabel(x_units)
-    plt.ylabel(act_lab)
+    plt.ylabel(y_label)
     plt.yscale("log")
 
     # set to x axis to log if longer than 10 hours
@@ -119,61 +128,20 @@ def plot_act(sum_dat, offset=0, fname=None,
     # i.e. highlight specific times or activities
     if vlines:
         for xc in vlines:
-            plt.vline(x=xc + offset)
+            plt.axvline(x=xc + offset)
     if hlines:
         for xc in hlines:
-            plt.hline(x=xc)
+            plt.axhline(x=xc)
 
     plt.legend()
 
     # plot to screen or file
     if fname:
         plt.savefig(fname)
-        logging.info("plotted activity")
+        logging.info("plotted column")
     else:
         plt.show()
-    return plot
 
-
-def plot_dose(sum_dat, offset=0, fname=None,
-              vlines=None, hlines=None, x_units="time_hours"):
-    """ plot dose as function of time """
-
-    dose_rate = sum_dat["dose_rate"]
-    dose_rate = dose_rate * 1e6
-    x_units = check_time_units(x_units)
-
-    time_vals = sum_dat[x_units]
-
-    dose_rate, time_vals = reduce_to_non_zero(dose_rate, time_vals)
-
-    # create plot
-    plt.clf()
-    plot, = plt.plot(time_vals, dose_rate)
-    plt.xlabel(x_units)
-    plt.ylabel(r"Dose rate $\mu$Sv/h")
-    plt.yscale("log")
-
-    # set to x axis to log if longer than 10 hours
-    if max(time_vals) > 10:
-        plt.xscale("log")
-
-    # add any vertical or horizontal lines
-    # i.e. highlight specific times or activities
-    if vlines:
-        for xc in vlines:
-            plt.vline(x=xc + offset)
-    if hlines:
-        for xc in hlines:
-            plt.hline(x=xc)
-
-    plt.legend()
-
-    # plot to screen or file
-    if fname:
-        plt.savefig(fname)
-    else:
-        plt.show()
     return plot
 
 
