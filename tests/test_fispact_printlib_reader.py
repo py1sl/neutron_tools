@@ -5,11 +5,6 @@ import fispact_printlib_reader
 class data_frame_test_case(unittest.TestCase):
     """ test for reading the energy and particle data """
 
-    # def __init__(self, *args, **kwargs):
-    #     super().__init__(*args, **kwargs)
-    #     self.df = None
-
-
     def setUp(self):
         """ creates a sample data frame to check that the filters work """
         self.df = pd.DataFrame({
