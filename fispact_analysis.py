@@ -105,10 +105,22 @@ def plot_summary(sum_dat, column = "act", offset=0, fname=None,
         y_label = r"Dose rate $\mu$Sv/h"
 
     elif column == "act":
-        if y_units == "Bq/kg" or "Bq/g":
+        if y_units in ["Bq/kg", "Bq/g"]:
             y_label = "Specific Activity " + y_units
         else:
             y_label = "Activity Bq"
+
+    elif column == "heat_output":
+        y_label = "Heat output (kW)"
+
+    elif column == "ingestion_dose":
+        y_label = "Ingestion dose (Sv)"
+
+    elif column == "inhalation_dose":
+        y_label = "Inhalation dose (Sv)"
+
+    elif column == "tritium_activity":
+        y_label  = "Tritium activity (Bq)"
 
     else:
         y_label = column
