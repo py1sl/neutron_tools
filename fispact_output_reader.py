@@ -223,7 +223,7 @@ def read_summary_data(data):
     if isFisII(data):
         cool_str = " -----Irradiation Phase-----"
     else:
-        cool_str = "-----Cooling Phase-----"
+        cool_str = "  COOLING STEPS"
 
     start_ind = data.index(cool_str)
     end_ind = [i for i, line in enumerate(data) if "0 Mass" in line]
@@ -242,6 +242,7 @@ def read_summary_data(data):
     inhal_un = []
     trit = []
     cooling = []
+    cooling_time_steps = []
     to = 0
     is_cooling = True
 
@@ -255,6 +256,7 @@ def read_summary_data(data):
 
             if line[1] == "-":
                 to = time_yrs[-1]
+
             else:
                 time_yrs.append(float(line[24:32]) + to)
                 act.append(float(line[35:43]))
@@ -264,6 +266,12 @@ def read_summary_data(data):
                 inhal.append(float(line[127:135]))
                 trit.append(float(line[150:158]))
                 cooling.append(is_cooling)
+
+                if is_cooling:
+                    cooling_time_steps.append(float(line[24:32]) + to)
+
+                else:
+                    cooling_time_steps.append(np.nan)
 
         else:
             time_yrs.append(line[20:28])
@@ -275,6 +283,7 @@ def read_summary_data(data):
             trit.append(line[146:154])
             cooling.append(is_cooling)
 
+ 
     sum_data.append(time_yrs)
     sum_data.append(act)
     sum_data.append(dr)
@@ -288,14 +297,16 @@ def read_summary_data(data):
     sum_data.append(ing_un)
     sum_data.append(inhal_un)
     sum_data.append(cooling)
+    sum_data.append(cooling_time_steps)
 
     # convert to dataframe
     col_heads = ["time_years", "act", "dose_rate", "heating", "ingestion",
                  "inhalation", "tritium", "act_un", "dr_un", "heat_un",
-                 "ing_un", "inhal_un", "is_cooling"]
+                 "ing_un", "inhal_un", "is_cooling", "cooling_times"]
     sum_data = pd.DataFrame(sum_data)
     sum_data = sum_data.transpose()
     sum_data.columns = col_heads
+
     # add columns for time in days, hrs, seconds
     sum_data["time_days"] = sum_data["time_years"] * 365.4
     sum_data["time_hours"] = sum_data["time_years"] * 365.4 * 24

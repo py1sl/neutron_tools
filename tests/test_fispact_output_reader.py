@@ -2,6 +2,7 @@ import unittest
 import os
 import fispact_output_reader as fo
 import neut_utilities as ut
+import numpy as np
 
 
 class version_test_case(unittest.TestCase):
@@ -69,7 +70,7 @@ class read_summary_data_test_case(unittest.TestCase):
     """ tests for the summary data """
 
     def test_cooling(self):
-        """ tests that the data is being accurately classified as irradiated or cooling """
+        """ tests that the data is being accurately classified as irradiated or cooling"""
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
         output = fo.read_fis_out(path)
 
@@ -78,6 +79,25 @@ class read_summary_data_test_case(unittest.TestCase):
         actual_cooling_values = sum_data["is_cooling"].tolist()
 
         self.assertEqual(expected_cooling_values, actual_cooling_values)
+
+    def test_cooling_times(self):
+        """ tests that the length of the cooling time steps array is right """
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
+        output = fo.read_fis_out(path)
+
+        sum_data = output.sumdat
+        cooling_time_steps = sum_data["cooling_times"].tolist()
+
+        self.assertTrue(np.isnan(cooling_time_steps[0]))
+        self.assertTrue(np.isnan(cooling_time_steps[2]))
+        self.assertTrue(np.isnan(cooling_time_steps[3]))
+
+        self.assertFalse(np.isnan(cooling_time_steps[1]))
+        self.assertFalse(np.isnan(cooling_time_steps[4]))
+        self.assertFalse(np.isnan(cooling_time_steps[5]))
+        self.assertFalse(np.isnan(cooling_time_steps[6]))
+        self.assertFalse(np.isnan(cooling_time_steps[7]))
+        self.assertFalse(np.isnan(cooling_time_steps[8]))
 
 
 if __name__ == '__main__':

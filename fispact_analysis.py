@@ -90,9 +90,11 @@ def check_time_units(t_units):
     return t_units
 
 
-def plot_summary(sum_dat, column = "act", offset=0, fname=None,
+def plot_summary(sum_dat, column="act", offset=0, fname=None,
               vlines=None, hlines=None, x_units="time_hours", y_units=None):
-    """ plots activity and dose as a function of time"""
+    """ plots any of the columns from the data frame as a function of time
+    (included: activity, dose rate, heat output, ingestion dose, inhalation dose,
+    tritium activity)"""
 
     data = sum_dat[column]
     x_units = check_time_units(x_units)
@@ -140,17 +142,17 @@ def plot_summary(sum_dat, column = "act", offset=0, fname=None,
     # i.e. highlight specific times or activities
     if vlines:
         for xc in vlines:
-            plt.axvline(x=xc + offset)
+            plt.vline(x=xc + offset)
     if hlines:
         for xc in hlines:
-            plt.axhline(x=xc)
+            plt.hline(x=xc)
 
     plt.legend()
 
     # plot to screen or file
     if fname:
         plt.savefig(fname)
-        logging.info("plotted column")
+        logging.info("plotted " + column)
     else:
         plt.show()
 
