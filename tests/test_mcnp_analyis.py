@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch, mock_open, call
 import mcnp_analysis as ma
 import mcnp_output_reader as mor
+import os
 
 
 class normalise_test_case(unittest.TestCase):
@@ -49,7 +50,8 @@ class csv_test_case(unittest.TestCase):
 
     def test_write_csv(self):
         open_mock = mock_open()
-        single = mor.read_output_file("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        single = mor.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
                 data = tn
@@ -65,7 +67,8 @@ class plotting_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_raw_spec_plot(self, mock_show, mock_savefig):
-        single = mor.read_output_file("test_output/singles_erg.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
+        single = mor.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
                 data = tn
@@ -77,7 +80,8 @@ class plotting_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_spec_plot(self, mock_show, mock_savefig):
-        single = mor.read_output_file("test_output/singles_erg.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
+        single = mor.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
                 data = tn
@@ -89,7 +93,8 @@ class plotting_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_spec_ratio_plot(self, mock_show, mock_savefig):
-        single = mor.read_output_file("test_output/singles_erg.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
+        single = mor.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
                 data = tn

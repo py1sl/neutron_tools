@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch, mock_open, call
+import os
 import fispact_analysis as fa
 import fispact_output_reader as fo
 import pandas as pd
@@ -143,7 +144,7 @@ class plotting_tests(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_plot_spectra(self, mock_show, mock_savefig):
         # stub
-        path = "test_output/fis_test1.out"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
         output = fo.read_fis_out(path)
         plot = fa.plot_spectra(output.timestep_data[3])
         mock_show.assert_called_once()
@@ -158,7 +159,7 @@ class plotting_tests(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_plot_nuc_cont(self, mock_show, mock_savefig):
         # stub
-        path = "test_output/fis_test1.out"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
         output = fo.read_fis_out(path)
         plot = fa.plot_nuc_cont(output, ["V52", "Sc43"])
         mock_show.assert_called_once()
@@ -173,7 +174,7 @@ class plotting_tests(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_plot_nuc_chart(self, mock_show, mock_savefig):
         # stub
-        path = "test_output/fis_test1.out"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
         output = fo.read_fis_out(path)
         fa.plot_nuc_chart(output.timestep_data[3].inventory)
         mock_show.assert_called_once()
