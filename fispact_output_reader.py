@@ -301,6 +301,15 @@ def read_summary_data(data):
     return sum_data
 
 
+def retrieve_cooling_data(sum_data):
+    """ filters the data summary to only include data from the cooling
+    phase """
+
+    cooling_data = sum_data[sum_data["is_cooling"] == True]
+
+    return cooling_data
+
+
 def parse_dominant(data):
     """parse dominant nuclides section and return a list of lists """
     p1_ind = ut.find_ind(data, "DOMINANT NUCLIDES")

@@ -80,6 +80,19 @@ class read_summary_data_test_case(unittest.TestCase):
 
         self.assertEqual(expected_cooling_values, actual_cooling_values)
 
+class retrieve_cooling_data_test_case(unittest.TestCase):
+    """ tests the filtered summary data """
+
+    def test_cooling_columns(self):
+        """ tests that the right amount of data has been filtered """
+
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
+        output = fo.read_fis_out(path)
+
+        sum_data = output.sumdat
+        cooling_data = fo.retrieve_cooling_data(sum_data)
+
+        self.assertEqual(len(cooling_data), 5)
 
 
 if __name__ == '__main__':
