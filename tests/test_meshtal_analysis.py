@@ -3,11 +3,12 @@
 
 import meshtal_analysis as ma
 import unittest
+import os
 
 
-path = "test_output/cup_low_res.imsht"
-meshes_path = "test_output/meshes.imsht"
-timepath = "test_output/time_msht"
+path = os.path.join(os.path.dirname(__file__), 'test_output', 'cup_low_res.imsht')
+meshes_path = os.path.join(os.path.dirname(__file__), 'test_output', 'meshes.imsht')
+timepath = os.path.join(os.path.dirname(__file__), 'test_output', 'time_msht')
 
 
 class calc_mid_points_test(unittest.TestCase):

@@ -1,13 +1,15 @@
 import unittest
 from unittest.mock import patch, mock_open
 import neut_utilities as ut
+import os
 
 
 class getlines_test_case(unittest.TestCase):
     """ tests get_lines function"""
 
     def test_get_lines(self):
-        data = ut.get_lines("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        data = ut.get_lines(path)
         self.assertEqual(len(data), 700)
 
 
