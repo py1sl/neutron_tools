@@ -2,6 +2,7 @@ import unittest
 import os
 import fispact_output_reader as fo
 import neut_utilities as ut
+import numpy as np
 
 
 class version_test_case(unittest.TestCase):
@@ -63,6 +64,35 @@ class read_fis_out_test_case(unittest.TestCase):
         self.assertEqual(ts1.appm_h3, 2.7557E-12)
         self.assertEqual(ts1.appm_h2, 9.3281E-12)
         self.assertEqual(ts1.appm_h1, 5.4402E-11)
+
+
+class read_summary_data_test_case(unittest.TestCase):
+    """ tests for the summary data """
+
+    def test_cooling(self):
+        """ tests that the data is being accurately classified as irradiated or cooling"""
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
+        output = fo.read_fis_out(path)
+
+        sum_data = output.sumdat
+        expected_cooling_values = [False, False, False, False, True, True, True, True, True]
+        actual_cooling_values = sum_data["is_cooling"].tolist()
+
+        self.assertEqual(expected_cooling_values, actual_cooling_values)
+
+class retrieve_cooling_data_test_case(unittest.TestCase):
+    """ tests the filtered summary data """
+
+    def test_cooling_columns(self):
+        """ tests that the right amount of data has been filtered """
+
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
+        output = fo.read_fis_out(path)
+
+        sum_data = output.sumdat
+        cooling_data = fo.retrieve_cooling_data(sum_data)
+
+        self.assertEqual(len(cooling_data), 5)
 
 
 if __name__ == '__main__':
