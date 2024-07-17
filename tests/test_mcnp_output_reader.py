@@ -3,6 +3,7 @@ from unittest.mock import patch, mock_open
 import logging
 import mcnp_output_reader
 import neut_utilities as ut
+import os
 
 
 class version_test_case(unittest.TestCase):
@@ -77,7 +78,8 @@ class get_tally_nums_test_case(unittest.TestCase):
 
     def test_get_tally_num(self):
         # test with a set of differnt tally types
-        data = ut.get_lines("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        data = ut.get_lines(path)
         tnums = mcnp_output_reader.get_tally_nums(data)
         self.assertEqual(len(tnums), 6)
         self.assertIn("1", tnums)
@@ -89,7 +91,8 @@ class get_tally_nums_test_case(unittest.TestCase):
 
     def test_tally_count(self):
         # test assignment of mcnp output object num_tallies
-        single = mcnp_output_reader.read_output_file("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        single = mcnp_output_reader.read_output_file(path)
         self.assertEqual(single.num_tallies, 6)
 
 
@@ -99,7 +102,8 @@ class rendevous_test_case(unittest.TestCase):
     def test_count_rendevous_tests(self):
 
         # test with a single core job count should be 0
-        data = ut.get_lines("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        data = ut.get_lines(path)
         count = mcnp_output_reader.count_rendevous(data)
         self.assertEqual(count, 0)
 
@@ -108,7 +112,8 @@ class rendevous_test_case(unittest.TestCase):
     def test_index_rendevous_tests(self):
 
         # test with a single core job should be 0
-        data = ut.get_lines("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        data = ut.get_lines(path)
         index = mcnp_output_reader.get_rendevous_index(data)
         self.assertEqual(index, [])
 
@@ -127,7 +132,8 @@ class tally_type1_tests(unittest.TestCase):
     """ tests for type 1 tally """
 
     def test_single_value_t1_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 1:
                 self.assertEqual(tn.tally_type, '1')
@@ -143,7 +149,7 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(tn.err[0], 0.0006)
 
     def test_ebined_t1_tally(self):
-        path = "test_output/singles_erg.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 1:
@@ -160,7 +166,7 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(tn.result[0], 2.92000E-02)
 
     def test_tbinned_t1_tally(self):
-        path = "test_output/singles_t.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 1:
@@ -182,7 +188,7 @@ class tally_type2_tests(unittest.TestCase):
     """ tests for type 2 tally """
 
     def test_single_value_t2_tally(self):
-        path = "test_output/singles.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
@@ -199,7 +205,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.err[0], 0.0015)
 
     def test_ebined_t2_tally(self):
-        path = "test_output/singles_erg.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
@@ -216,7 +222,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.result[0], 1.92767E-04)
 
     def test_etbinned_t2_tally(self):
-        path = "test_output/singles_et.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_et.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
@@ -235,7 +241,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.result.shape, (15, 15))
 
     def test_tbinned_t2_tally(self):
-        path = "test_output/singles_t.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 2:
@@ -257,7 +263,8 @@ class tally_type4_tests(unittest.TestCase):
     """ tests for type 4 tally """
 
     def test_single_value_t4_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
                 self.assertEqual(tn.tally_type, '4')
@@ -274,7 +281,7 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.vols, ['3.66519E+03'])
 
     def test_ebined_t4_tally(self):
-        path = "test_output/singles_erg.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
@@ -292,7 +299,7 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.vols, ['3.66519E+03'])
 
     def test_etbinned_t4_tally(self):
-        path = "test_output/singles_et.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_et.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
@@ -310,7 +317,7 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.result.shape, (15, 15))
 
     def test_tbinned_t4_tally(self):
-        path = "test_output/singles_t.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
@@ -332,7 +339,8 @@ class tally_type5_tests(unittest.TestCase):
     """ tests for type 5 tally """
 
     def test_single_value_t5_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 5:
                 self.assertEqual(tn.tally_type, '5')
@@ -361,7 +369,7 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.misses["energy cutoff"], 0)
 
     def test_ebined_t5_tally(self):
-        path = "test_output/singles_erg.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 5:
@@ -394,7 +402,8 @@ class tally_type6_tests(unittest.TestCase):
     """ tests for type 6 tally """
 
     def test_single_value_t6_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 6:
                 self.assertEqual(tn.tally_type, '6')
@@ -411,7 +420,7 @@ class tally_type6_tests(unittest.TestCase):
                 self.assertEqual(tn.vols, ['9.89602E+03'])
 
     def test_ebined_t6_tally(self):
-        path = "test_output/singles_erg.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 6:
@@ -433,11 +442,12 @@ class tally_type8_tests(unittest.TestCase):
     """ tests for type 8 tally """
 
     def setUp(self):
-        path = "test_output/singles_erg.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
         self.single = mcnp_output_reader.read_output_file(path)
 
     def test_single_value_t8_tally(self):
-        single = mcnp_output_reader.read_output_file("test_output/singles.io")
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 8:
                 self.assertEqual(tn.tally_type, '8')
@@ -485,7 +495,7 @@ class tables_testing(unittest.TestCase):
     """ test for output tables """
 
     def setUp(self):
-        path = "test_output/singles_erg.io"
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
         self.single = mcnp_output_reader.read_output_file(path)
         self.t60 = self.single.t60
 

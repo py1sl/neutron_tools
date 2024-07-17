@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch, mock_open, call
+import os
 import mcnp_run_plot as mrp
 
 
@@ -10,7 +11,7 @@ class plotting_tests(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_run_plot(self, mock_show, mock_savefig):
 
-        test_path = "test_output/run_output"
+        test_path = os.path.join(os.path.dirname(__file__), 'test_output', 'run_output')
         mrp.plot_nps_stats(test_path)
         mock_show.assert_called_once()
 
