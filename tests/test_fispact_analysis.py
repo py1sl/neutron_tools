@@ -103,22 +103,22 @@ class plotting_tests(unittest.TestCase):
 
         # testing that plots can be generated for every column
         fa.plot_summary(test_data, column="act")
-        mock_show.assert_called()        
+        mock_show.assert_called()
         fa.plot_summary(test_data, column="dose_rate")
-        mock_show.assert_called()        
+        mock_show.assert_called()
         fa.plot_summary(test_data, column="heat_output")
-        mock_show.assert_called()        
+        mock_show.assert_called()
         fa.plot_summary(test_data, column="ingestion_dose")
-        mock_show.assert_called()        
+        mock_show.assert_called()
         fa.plot_summary(test_data, column="inhalation_dose")
-        mock_show.assert_called()        
+        mock_show.assert_called()
         fa.plot_summary(test_data, column="tritium_activity")
         mock_show.assert_called()
 
         mock_show.assert_has_calls([call()]*6)
         mock_show.reset_mock()
 
-        #testing that plots can be saved for every column
+        # testing that plots can be saved for every column
         fa.plot_summary(test_data, column="act", fname="test")
         fa.plot_summary(test_data, column="dose_rate", fname="test1")
         fa.plot_summary(test_data, column="heat_output", fname="test2")
