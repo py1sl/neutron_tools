@@ -1,4 +1,5 @@
 import logging
+import imageio
 import matplotlib
 from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt
@@ -259,7 +260,8 @@ def plot_nuc_cont(fout, nuc_list, param="act", fname=None, total=False):
     return plot
 
 
-def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
+def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None,
+                   vmin = None, vmax = None):
     """ plots a table of nuclides style plot of the given parameter """
     # set up the array
     z_min = 0
@@ -281,9 +283,19 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
     min_val = inv_dat[prop].min() + 1e-8
     max_val = inv_dat[prop].max()
 
+    if vmin is None:
+        vmin = min_val
+    elif vmin < min_val:
+        vmin = min_val
+    if vmax is None:
+        vmax = max_val
+
     # map Z values to data frame
     zdict = neut_constants.Z_dict()
     inv_dat["Z"] = inv_dat["element"].map(zdict)
+
+    z_lim = int(max(inv_dat["Z"])) + 2
+    a_lim = int(max(inv_dat["A"])) + 2
 
     # map the values to the array positions
     for a in np.arange(a_min, a_max):
@@ -299,13 +311,14 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
 
     # create the plot
     fig, ax = plt.subplots(figsize=(14, 8))
-    im = plt.imshow(data, cmap='gnuplot', norm=LogNorm(vmin=min_val,
-                                                       vmax=max_val))
+    im = plt.imshow(data, cmap='gnuplot', norm=LogNorm(vmin, vmax))
     ax.invert_yaxis()
+    plt.minorticks_on()
+    plt.grid(alpha = 0.5, which = 'both')
     plt.xlabel("Z", fontsize=16)
     plt.ylabel("A", fontsize=16)
-    plt.xlim(z_min, z_max)
-    plt.ylim(a_min, a_max)
+    plt.xlim(z_min, z_lim)
+    plt.ylim(a_min, a_lim)
     plt.title(prop)
     fig.colorbar(im, cax=fig.add_axes([0.91, 0.2, 0.03, 0.6]))
 
@@ -313,3 +326,42 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
         plt.savefig(fname)
     else:
         plt.show()
+
+    return fig
+
+
+def fig_to_array(fig):
+    """ Convert a Matplotlib figure to a numpy array """
+    fig.canvas.draw()  # Render the figure to the canvas
+    # Extract the image as a numpy array
+    img = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+    img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+    return img
+
+def create_nuc_chart_gif(output, fname = None):
+    """ Creates a gif from multiple charts of nuclides"""
+
+    frames = []
+    global_min = float(np.inf)
+    global_max = 0
+
+    for timestep in output.timestep_data:
+        inventory = timestep.inventory
+        temp_min = inventory["act"].min()
+        temp_max = inventory["act"].max()
+        global_min = min(global_min, temp_min)
+        global_max = max(global_max, temp_max)
+
+    for i in range(len(output.timestep_data)):
+        fig = plot_nuc_chart(output.timestep_data[i].inventory, fname = "test{0}.png".format(i),
+                             vmin = global_min, vmax = global_max)
+        image = fig_to_array(fig)
+        frames.append(image)
+        plt.close(fig)
+
+    if fname:
+        imageio.mimsave('./{0}'.format(fname), frames, fps = 1, loop = 0)
+    else:
+        plt.show()
+
+    return frames
