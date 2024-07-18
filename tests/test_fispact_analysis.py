@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, mock_open, call
 import os
+import imageio
 import fispact_analysis as fa
 import fispact_output_reader as fo
 import pandas as pd
@@ -196,6 +197,16 @@ class plotting_tests(unittest.TestCase):
         fa.plot_nuc_chart(output.timestep_data[3].inventory, fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
+
+    def test_create_nuc_chart_gif(self):
+        """tests that the correct number of frames is in the gif"""
+
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
+        output = fo.read_fis_out(path)
+
+        frames = fa.create_nuc_chart_gif(output)
+
+        self.assertEqual(len(frames), 9)
 
 
 if __name__ == '__main__':
