@@ -90,13 +90,12 @@ def find_first_zero(val_list):
 
 def text_replace(fname, old_string, new_string):
     """ replaces strings in place in a file """
-    
+
     # replace string
     with open(fname, 'r') as file:
         data = file.read()
         data = data.replace(old_string, new_string)
-    
+
     # output modified data
     with open(fname, 'w') as file:
         file.write(data)
-     

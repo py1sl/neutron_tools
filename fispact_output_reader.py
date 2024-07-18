@@ -270,7 +270,6 @@ def read_summary_data(data):
             inhal.append(line[123:131])
             trit.append(line[146:154])
 
- 
     sum_data.append(time_yrs)
     sum_data.append(act)
     sum_data.append(dr)
@@ -304,9 +303,7 @@ def read_summary_data(data):
 def retrieve_cooling_data(sum_data):
     """ filters the data summary to only include data from the cooling
     phase """
-
     cooling_data = sum_data[sum_data["is_cooling"] == True]
-
     return cooling_data
 
 

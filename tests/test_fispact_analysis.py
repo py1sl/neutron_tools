@@ -83,7 +83,6 @@ class plotting_tests(unittest.TestCase):
 
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
-
     def test_plot_summary(self, mock_show, mock_savefig):
         """ testing that the plot_summary function can generate and save plots for every
         column currently existing in the data frame """
@@ -102,37 +101,35 @@ class plotting_tests(unittest.TestCase):
         test_data["inhalation_dose"] = [0.5, 0.6, 0.7, 0.8]
         test_data["tritium_activity"] = [13, 14, 15, 16]
 
+        # testing that plots can be generated for every column
+        fa.plot_summary(test_data, column="act")
+        mock_show.assert_called()
+        fa.plot_summary(test_data, column="dose_rate")
+        mock_show.assert_called()
+        fa.plot_summary(test_data, column="heat_output")
+        mock_show.assert_called()
+        fa.plot_summary(test_data, column="ingestion_dose")
+        mock_show.assert_called()
+        fa.plot_summary(test_data, column="inhalation_dose")
+        mock_show.assert_called()
+        fa.plot_summary(test_data, column="tritium_activity")
+        mock_show.assert_called()
 
-        #testing that plots can be generated for every column
-        fa.plot_summary(test_data, column ="act")
-        mock_show.assert_called()
-        fa.plot_summary(test_data, column = "dose_rate")
-        mock_show.assert_called()
-        fa.plot_summary(test_data, column = "heat_output")
-        mock_show.assert_called()
-        fa.plot_summary(test_data, column = "ingestion_dose")
-        mock_show.assert_called()
-        fa.plot_summary(test_data, column = "inhalation_dose")
-        mock_show.assert_called()
-        fa.plot_summary(test_data, column = "tritium_activity")
-        mock_show.assert_called()
-
-        mock_show.assert_has_calls([call()] * 6)
+        mock_show.assert_has_calls([call()]*6)
         mock_show.reset_mock()
 
-        #testing that plots can be saved for every column
-        fa.plot_summary(test_data, column ="act", fname = "test")
-        fa.plot_summary(test_data, column = "dose_rate", fname = "test1")
-        fa.plot_summary(test_data, column = "heat_output", fname = "test2")
-        fa.plot_summary(test_data, column = "ingestion_dose", fname = "test3")
-        fa.plot_summary(test_data, column = "inhalation_dose", fname = "test4")
-        fa.plot_summary(test_data, column = "tritium_activity", fname = "test5")
+        # testing that plots can be saved for every column
+        fa.plot_summary(test_data, column="act", fname="test")
+        fa.plot_summary(test_data, column="dose_rate", fname="test1")
+        fa.plot_summary(test_data, column="heat_output", fname="test2")
+        fa.plot_summary(test_data, column="ingestion_dose", fname="test3")
+        fa.plot_summary(test_data, column="inhalation_dose", fname="test4")
+        fa.plot_summary(test_data, column="tritium_activity", fname="test5")
 
         # Assert that savefig was called with the specified filename
         expected_calls = [call("test"), call("test1"), call("test2"), call("test3"), call("test4"), call("test5")]
         mock_savefig.assert_has_calls(expected_calls, any_order=True)
         self.assertEqual(mock_savefig.call_count, 6)
-
 
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")

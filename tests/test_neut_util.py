@@ -104,7 +104,7 @@ class string_replace_test_case(unittest.TestCase):
     def test_string_replace_error(self):
         with self.assertRaises(FileNotFoundError):
             ut.text_replace('no_such_fname', 'old_string', 'new_string')
-        
+
 
 if __name__ == '__main__':
     unittest.main()

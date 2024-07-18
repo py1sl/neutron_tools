@@ -64,8 +64,7 @@ class MCNP_type5_tally(MCNP_tally_data):
         self.largest_score_nps = 0.0
         self.average_per_history = 0.0
         self.misses = None
- 
-    
+
     def __str__(self):
         print_list = []
         print_list.append("Tally number: "+str(self.number))
@@ -75,14 +74,15 @@ class MCNP_type5_tally(MCNP_tally_data):
         print_list.append("Z: "+str(self.z))
         if self.eng is not None:
             print_list.append("Energy Bins: True")
-        else:    
+        else:
             print_list.append("Energy Bins: False")
         if self.times is not None:
             print_list.append("Time Bins: True")
-        else:    
+        else:
             print_list.append("Time Bins: False")
-            
+
         return "\n".join(print_list)
+
 
 class MCNP_surface_tally(MCNP_tally_data):
     """ specific tally object for a type 1 or 2 surface tally"""
@@ -93,8 +93,7 @@ class MCNP_surface_tally(MCNP_tally_data):
         self.surfaces = None
         self.areas = None
         self.ang_bins = None
-    
-    
+
     def __str__(self):
         print_list = []
         print_list.append("Tally number: "+str(self.number))
@@ -102,15 +101,15 @@ class MCNP_surface_tally(MCNP_tally_data):
         print_list.append("Number of Surfaces: " + str(len(self.surfaces)))
         if self.eng is not None:
             print_list.append("Energy Bins: True")
-        else:    
+        else:
             print_list.append("Energy Bins: False")
         if self.times is not None:
             print_list.append("Time Bins: True")
-        else:    
+        else:
             print_list.append("Time Bins: False")
         if self.ang_bins is not None:
             print_list.append("Angular Bins: True")
-        else:    
+        else:
             print_list.append("Angular Bins: False")
         return "\n".join(print_list)
 
@@ -124,7 +123,6 @@ class MCNP_cell_tally(MCNP_tally_data):
         self.cells = None
         self.vols = None
 
-
     def __str__(self):
         print_list = []
         print_list.append("Tally number: "+str(self.number))
@@ -132,14 +130,13 @@ class MCNP_cell_tally(MCNP_tally_data):
         print_list.append("Number of Cells: " + str(len(self.cells)))
         if self.eng is not None:
             print_list.append("Energy Bins: True")
-        else:    
+        else:
             print_list.append("Energy Bins: False")
         if self.times is not None:
             print_list.append("Time Bins: True")
-        else:    
+        else:
             print_list.append("Time Bins: False")
         return "\n".join(print_list)
-
 
 
 class MCNP_pulse_tally(MCNP_tally_data):
@@ -150,7 +147,6 @@ class MCNP_pulse_tally(MCNP_tally_data):
         # for type 8
         self.cells = None
 
-
     def __str__(self):
         print_list = []
         print_list.append("Tally number: "+str(self.number))
@@ -158,14 +154,13 @@ class MCNP_pulse_tally(MCNP_tally_data):
         print_list.append("Number of Cells: " + str(len(self.cells)))
         if self.eng is not None:
             print_list.append("Energy Bins: True")
-        else:    
+        else:
             print_list.append("Energy Bins: False")
         if self.times is not None:
             print_list.append("Time Bins: True")
-        else:    
+        else:
             print_list.append("Time Bins: False")
         return "\n".join(print_list)
-
 
 
 class MCNP_summary_data():
