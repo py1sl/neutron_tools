@@ -2,7 +2,6 @@ import unittest
 import os
 import fispact_output_reader as fo
 import neut_utilities as ut
-import numpy as np
 
 
 class version_test_case(unittest.TestCase):
@@ -79,6 +78,7 @@ class read_summary_data_test_case(unittest.TestCase):
         actual_cooling_values = sum_data["is_cooling"].tolist()
 
         self.assertEqual(expected_cooling_values, actual_cooling_values)
+
 
 class retrieve_cooling_data_test_case(unittest.TestCase):
     """ tests the filtered summary data """
