@@ -198,6 +198,16 @@ class plotting_tests(unittest.TestCase):
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
 
+    def test_create_nuc_chart_gif(self):
+        """tests that the correct number of frames is in the gif"""
+
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
+        output = fo.read_fis_out(path)
+
+        frames = fa.create_nuc_chart_gif(output)
+
+        self.assertEqual(len(frames), 9)
+
 
     def test_create_nuc_chart_gif(self):
         """tests that the correct number of frames is in the gif"""
