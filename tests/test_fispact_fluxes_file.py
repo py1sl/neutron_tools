@@ -46,7 +46,7 @@ class fluxes_writer_test_case(unittest.TestCase):
         self.assertFalse(fw.check_group_struct("710"))
 
 
-class   create_fluxes_data_test_case(unittest.TestCase):
+class create_fluxes_data_test_case(unittest.TestCase):
     """ tests for creating the fluxes data """
 
     def test_create_fluxes(self):
