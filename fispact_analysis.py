@@ -93,7 +93,7 @@ def check_time_units(t_units):
 
 
 def plot_summary(sum_dat, column="act", offset=0, fname=None,
-              vlines=None, hlines=None, x_units="time_hours", y_units=None):
+                 vlines=None, hlines=None, x_units="time_hours", y_units=None):
     """ plots any of the columns from the data frame as a function of time
     (included: activity, dose rate, heat output, ingestion dose, inhalation dose,
     tritium activity)"""
@@ -102,7 +102,6 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
     x_units = check_time_units(x_units)
     time_vals = sum_dat[x_units]
     data, time_vals = reduce_to_non_zero(data, time_vals)
-
 
     if column == "dose_rate":
         data = data * 1e6
@@ -124,8 +123,7 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
         y_label = "Inhalation dose (Sv)"
 
     elif column == "tritium_activity":
-        y_label  = "Tritium activity (Bq)"
-
+        y_label = "Tritium activity (Bq)"
     else:
         y_label = column
 
@@ -329,6 +327,7 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None,
         plt.show()
 
     return fig
+
 
 def fig_to_array(fig):
     """ Convert a Matplotlib figure to a numpy array """
