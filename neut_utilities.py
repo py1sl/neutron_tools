@@ -10,10 +10,9 @@ def setup_ntlogger():
 
 def write_lines(path, lines):
     """ writes lines list to file at path """
-    f = open(path, 'w')
-    for line in lines:
-        f.write("%s\n" % line)
-    f.close()
+    with open(path, 'w') as f:
+        for line in lines:
+            f.write(f"{line}\n")
 
 
 def write_points_file(path, x, y, z):
@@ -34,7 +33,6 @@ def get_lines(path):
     """ reads file at path and returns a list with 1 entry per line """
     with open(path) as f:
         lines = f.read().splitlines()
-    f.close()
     return lines
 
 
@@ -43,9 +41,9 @@ def find_line(text, lines, num):
         in the first num characters
     """
     for i, line in enumerate(lines):
-        if line[0:num] == text:
+        if line[:num] == text:
             return i
-    raise ValueError
+    raise ValueError(f"'{text}' not found within the first {num} characters of any line.")
 
 
 def string_cleaner(text):
@@ -67,15 +65,14 @@ def find_ind(data, sub):
     for i, s in enumerate(data):
         if sub in s:
             return i
-    raise ValueError
+    raise ValueError(f"The substring - '{sub}' was not found.")
 
 
 def find_first_non_zero(val_list):
     """ finds the first non zero value in a list and returns its position """
     for i, val in enumerate(val_list):
-        if (val > 0.0) or (val < 0.0):
+        if val !=0:
             return i
-            break
     return None
 
 
@@ -84,8 +81,20 @@ def find_first_zero(val_list):
     for i, val in enumerate(val_list):
         if val == 0:
             return i
-            break
     return None
+
+
+def get_list_dimensions(lst):
+    """ finds dimensions of a list or list of lists etc"""
+    if not isinstance(lst, list):
+        return []
+    
+    dimensions = []
+    while isinstance(lst, list):
+        dimensions.append(len(lst))
+        lst = lst[0] if len(lst) > 0 else []
+    
+    return dimensions
 
 
 def text_replace(fname, old_string, new_string):
@@ -99,3 +108,8 @@ def text_replace(fname, old_string, new_string):
     # output modified data
     with open(fname, 'w') as file:
         file.write(data)
+
+
+def is_same_value(v1, v2, tolerance=1e-6):
+    """ check if two float values are effectively equal within tolerance."""
+    return abs(v1 - v2) < tolerance

@@ -105,6 +105,16 @@ class string_replace_test_case(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             ut.text_replace('no_such_fname', 'old_string', 'new_string')
 
+          
+class same_value_test_case(unittest.TestCase):
+    """test for the is_same_value function """
+    def test_same_value(self):
+        self.assertTrue(ut.is_same_value(1.0, 1.0)) # when same
+        self.assertTrue(ut.is_same_value(1.00000001, 1.0)) # when nearly same
+        self.assertFalse(ut.is_same_value(2.0, 1.0)) # when different
+        self.assertFalse(ut.is_same_value(2.0, 1.0, tolerance=1e-3)) # custom tolerance
+        self.assertTrue(ut.is_same_value(1.0001, 1.0, tolerance=1e-3)) # custom tolerance
+
 
 if __name__ == '__main__':
     unittest.main()
