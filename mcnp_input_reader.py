@@ -251,7 +251,7 @@ def read_mcnp_input(fpath):
 
 def vised_compatible(fname):
     """ makes a mcnp file work with vised mcnpx version """
-    ut.text_replace(fname, "mphys", "c mphys")     
+    ut.text_replace(fname, "mphys", "c mphys")
 
 
 if __name__ == "__main__":

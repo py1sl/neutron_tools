@@ -52,8 +52,7 @@ class meshtally:
     def voxel_uniform_volume(self):
         """ Member Function of meshtally. check uniform and finds volume
         from distance to adjacent vertex.
-        Raises:
-            ValueError: voxels not uniform
+
         Returns:
             float: volume of voxel
         """
@@ -74,7 +73,7 @@ class meshtally:
         finds the mesh average volume by finding overall volume of all meshes
         and dividing by the number of meshes
         Returns:
-            float - mesh volume
+            float - average voxel volume
         """
         # find min x y z and max x y z respectively
         x = np.abs(np.diff(np.max(self.x_bounds), np.min(self.x_bounds)))
@@ -103,8 +102,14 @@ def check_uniform(bounds):
     Returns:
         bool: true if uniformly spaced
     """
+    if not bounds:
+        # check for empty list
+        return False
+
+    # calculate the difference    
     diff = np.diff(list(map(float, bounds)))
-    return all(np.isclose(i, diff[0]) for i in diff)
+    # check if all differences are close
+    return np.allclose(diff, diff[0])
 
 
 def rel_err_hist(df, fname=None):
@@ -169,7 +174,7 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
         slice_obj.j_lab = "Z co-ord (cm)"
     else:
         # Catch plane not recognised
-        raise ValueError("Plane not recognised format : XZ, XY, YZ")
+        raise ValueError(f"Plane not recognised format : XZ, XY, YZ")
 
     # find closest mid point
     slice_obj.value = find_nearest_mid(value, slice_obj.axis_mids)
@@ -237,14 +242,22 @@ def find_nearest_mid(value, mids):
 
 def convert_to_df(mesh):
     """ converts mesh.data in raw format to a pandas dataframe """
-    if mesh.ctype == "6col_e":
-        cols = ("Energy", "x", "y", "z", "value", "rel_err")
-    elif mesh.ctype == "6col_t":
-        cols = ("Time", "x", "y", "z", "value", "rel_err")
-    elif mesh.ctype == "5col":
-        cols = ("x", "y", "z", "value", "rel_err")
+    # Define column mappings for different mesh types
+    col_mappings = {
+        "6col_e": ("Energy", "x", "y", "z", "value", "rel_err"),
+        "6col_t": ("Time", "x", "y", "z", "value", "rel_err"),
+        "5col": ("x", "y", "z", "value", "rel_err")
+    }
+    
+    # Check if the column type is valid for future proofing
+    if mesh.ctype not in col_mappings:
+        raise ValueError(f"Unknown mesh type: {mesh.ctype}")
 
+    # Create the DataFrame with the appropriate columns
+    cols = col_mappings[mesh.ctype]
     data = pd.DataFrame(mesh.data, columns=cols)
+    
+    # convert to float
     data["x"] = pd.to_numeric(data["x"], downcast="float")
     data["y"] = pd.to_numeric(data["y"], downcast="float")
     data["z"] = pd.to_numeric(data["z"], downcast="float")
@@ -335,17 +348,17 @@ def add_mesh(mesh1, mesh2):
     if ((mesh1.x_bounds != mesh2.x_bounds) or
             (mesh1.y_bounds != mesh2.y_bounds) or
             (mesh1.z_bounds != mesh2.z_bounds)):
-        raise ValueError(' position bounds not equal')
+        raise ValueError(f' position bounds not equal')
     if mesh1.ctype == "6col_e":
         col = "Energy"
         if (mesh1.e_bounds != mesh2.e_bounds):
-            raise ValueError(' energy bounds not equal')
+            raise ValueError(f' energy bounds not equal')
     if mesh1.ctype == "6col_t":
         col = "Time"
         if (mesh1.t_bounds != mesh2.t_bounds):
-            raise ValueError('time bounds are not equal')
+            raise ValueError(f'time bounds are not equal')
     if mesh1.ctype != mesh2.ctype:
-        raise ValueError('column types are not equal')
+        raise ValueError(f'column types are not equal')
 
     else:
         new_val = mesh1.data['value'] + mesh2.data['value']

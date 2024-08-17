@@ -281,6 +281,16 @@ class find_point_test(unittest.TestCase):
         self.assertAlmostEqual(result, 1.0428E-06, 7)
 
 
+class check_uniform_test(unittest.TestCase):
+    def test_check_uniform(self):
+        test_list_uniform = [1, 2, 3, 4, 5]
+        test_list_non_uniform = [1, 10, 11, 15, 50]
+
+        self.assertTrue(ma.check_uniform(test_list_uniform))
+        self.assertFalse(ma.check_uniform([]))
+        self.assertFalse(ma.check_uniform(test_list_non_uniform))
+
+
 class find_line_test(unittest.TestCase):
 
     def test_extract_line(self):

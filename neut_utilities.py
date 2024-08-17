@@ -3,6 +3,7 @@ import logging
 
 
 def setup_ntlogger():
+    """ setting up logging """
     ntlogger = logging.getLogger('nt_logger')
     ntlogger.setLevel(level=logging.DEBUG)
     return ntlogger
@@ -71,7 +72,7 @@ def find_ind(data, sub):
 def find_first_non_zero(val_list):
     """ finds the first non zero value in a list and returns its position """
     for i, val in enumerate(val_list):
-        if val !=0:
+        if val != 0:
             return i
     return None
 
@@ -88,12 +89,12 @@ def get_list_dimensions(lst):
     """ finds dimensions of a list or list of lists etc"""
     if not isinstance(lst, list):
         return []
-    
+
     dimensions = []
     while isinstance(lst, list):
         dimensions.append(len(lst))
         lst = lst[0] if len(lst) > 0 else []
-    
+
     return dimensions
 
 
