@@ -23,15 +23,15 @@ class fluxes_writer_test_case(unittest.TestCase):
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
                                           "1.00E+03"), 0)  # top edge of bins
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
-                                          "9.60E+02"), 0)  # 1st bin edge
+                                          "9.60E+02"), 1)  # 1st bin edge
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
-                                          "9.20E+02"), 1)  # 2nd bin edge
+                                          "9.20E+02"), 2)  # 2nd bin edge
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
                                           "9.40E+02"), 1)  # 2nd bin mid
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
-                                          9.20E+02), 1)  # 2nd bin mid as float
+                                          9.40E+02), 1)  # 2nd bin mid as float
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
-                                          920), 1)  # 2nd bin mid as int
+                                          940), 1)  # 2nd bin mid as int
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
                                           "1.05E-11"), 707)  # last bin edge
 

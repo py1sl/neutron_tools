@@ -16,9 +16,24 @@ def get_group_pos(groups, energy):
         output is the position in the list of the bin in whihc that energy sits
     """
     energy = float(energy)
-    for i, e in enumerate(groups[1:]):
-        if energy >= e:
+    i = 0
+    n = len(groups)
+    
+    # check for energy above the highest group
+    if energy > groups[0]:
+        return 0
+    # check for energy below the lowest energy
+    if energy <= groups[-1]:
+        return n - 2
+        
+    # find bin for energies in the group structure range
+    while i < n -1:
+        if energy <= groups[i] and energy > groups [i+1]:
             return i
+        i += 1
+    
+    # just in case it does not fit in the above categories
+    return -1
 
 
 def get_group_struct(gs):
