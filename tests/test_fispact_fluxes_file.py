@@ -17,7 +17,7 @@ class writelines_test_case(unittest.TestCase):
 
 
 class fluxes_writer_test_case(unittest.TestCase):
-    """ tests for reading the version of output file"""
+    """ tests for checking the group strucutre and finding energy bins"""
 
     def test_get_group_pos(self):
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
@@ -55,13 +55,19 @@ class create_fluxes_data_test_case(unittest.TestCase):
         self.assertEqual(data[1], 1)
         self.assertEqual(data[-1], 1)
         self.assertEqual(data[0], 0)
+        
+        with self.assertRaises(ValueError):
+            data = fw.create_fluxes_data([1, 1, 1, 1], 10)
 
     def test_create_fluxes_mcnp(self):
-        data = fw.create_fluxes_from_mcnp_spect([1, 2, 3, 4, 5])
+        data = fw.convert_mcnp_spect_to_fispact_fluxes_format([1, 2, 3, 4, 5])
         self.assertEqual(len(data), 6)
         self.assertEqual(data[1], 4)
         self.assertEqual(data[-1], 1)
         self.assertEqual(data[0], 5)
+        
+        with self.assertRaises(ValueError):
+            fw.convert_mcnp_spect_to_fispact_fluxes_format([1, 1, 4, 3, 5])
 
     def test_upper_bound(self):
         groups = [10, 9, 8, 7]
