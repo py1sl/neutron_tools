@@ -97,7 +97,7 @@ def read_fis_out(path):
     fo.tot_fluence = read_parameter(lines, "Total fluence")
     fo.num_irrad_step = read_parameter(lines, "Number of on-times")
 
-    if isFisII:
+    if fo.isFisII:
         search_string = "fispact run time"
     else:
         search_string = "CPU Time used for case"
@@ -105,20 +105,20 @@ def read_fis_out(path):
 
     # find where each time step starts
     time_step_inds = []
-    for line in lines:
+    for index, line in enumerate(lines):
         if len(line) > 0:
             if line[0:7] == "1 * * *":
-                time_step_inds.append(lines.index(line))
+                time_step_inds.append(index)
 
-    # parse all time steps except setup step
-    i = 1
-    while i < len(time_step_inds) - 1:
-        data = lines[time_step_inds[i]:time_step_inds[i + 1]]
+    # Parse time step data
+    for i in range(1, len(time_step_inds)):
+        start = time_step_inds[i]
+        if i + 1 < len(time_step_inds):
+            end = time_step_inds[i + 1]  
+        else: 
+            end = None
+        data = lines[start:end]
         fo.timestep_data.append(read_time_step(data, i))
-        i = i + 1
-    # final timestep
-    data = lines[time_step_inds[-1]:]
-    fo.timestep_data.append(read_time_step(data, i))
 
     return fo
 
@@ -217,15 +217,28 @@ def isFisII(data):
         return False
 
 
+def find_summary_block(data, fisII):
+    """
+    Finds the start and end of the summary block in the data.
+    """
+    if fisII:
+        cool_str = " -----Irradiation Phase-----" 
+    else:
+        cool_str = "  COOLING STEPS"
+    
+    try:
+        start_ind = data.index(cool_str)
+        end_ind = next(i for i, line in enumerate(data) if "0 Mass" in line)
+    except ValueError as e:
+        raise ValueError("Summary data section could not be found in the file.") from e
+    
+    return start_ind, end_ind
+        
 def read_summary_data(data):
     """ Processes the summary block at the end of the file"""
 
-    if isFisII(data):
-        cool_str = " -----Irradiation Phase-----"
-    else:
-        cool_str = "  COOLING STEPS"
-
-    start_ind = data.index(cool_str)
+    fisII = isFisII(data)
+    start_ind, end_ind = find_summary_block(data, fisII)
     end_ind = [i for i, line in enumerate(data) if "0 Mass" in line]
     sum_lines = data[start_ind + 1:end_ind[0]]
     sum_data = []
@@ -246,7 +259,7 @@ def read_summary_data(data):
     is_cooling = False
 
     for line in sum_lines:
-        if isFisII(data):
+        if fisII:
             if line[1] == "-":
                 to = time_yrs[-1]
                 is_cooling = True
