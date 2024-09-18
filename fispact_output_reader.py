@@ -114,8 +114,8 @@ def read_fis_out(path):
     for i in range(1, len(time_step_inds)):
         start = time_step_inds[i]
         if i + 1 < len(time_step_inds):
-            end = time_step_inds[i + 1]  
-        else: 
+            end = time_step_inds[i + 1]
+        else:
             end = None
         data = lines[start:end]
         fo.timestep_data.append(read_time_step(data, i))
@@ -222,18 +222,18 @@ def find_summary_block(data, fisII):
     Finds the start and end of the summary block in the data.
     """
     if fisII:
-        cool_str = " -----Irradiation Phase-----" 
+        cool_str = " -----Irradiation Phase-----"
     else:
         cool_str = "  COOLING STEPS"
-    
+
     try:
         start_ind = data.index(cool_str)
         end_ind = next(i for i, line in enumerate(data) if "0 Mass" in line)
     except ValueError as e:
         raise ValueError("Summary data section could not be found in the file.") from e
-    
+
     return start_ind, end_ind
-        
+
 def read_summary_data(data):
     """ Processes the summary block at the end of the file"""
 
@@ -392,9 +392,10 @@ def parse_composition(data):
         returns dataframe with two columns, one with name of element,
         one with the number of atoms
     """
-    p1 = ut.find_ind(data, "COMPOSITION  OF  MATERIAL  BY  ELEMENT")
-    p2 = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
-    data = data[p1 + 5:p2 - 3]
+    start = ut.find_ind(data, "COMPOSITION  OF  MATERIAL  BY  ELEMENT") + 5
+    end = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND") - 3
+
+    data = data[start:end]
     ele_list = []
     atoms = []
 
@@ -405,6 +406,12 @@ def parse_composition(data):
     composition = pd.DataFrame()
     composition["element"] = ele_list
     composition["atoms"] = atoms
+    
+    # Calculate the total number of atoms
+    total_atoms = sum(atoms)
+
+    # Compute the atom fraction for each element
+    composition["atom_fraction"] = composition["atoms"] / total_atoms
 
     return composition
 
@@ -415,10 +422,18 @@ def parse_spectra(data):
         data is in gamma/s/cc
     """
     p1 = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
+    
+    # check data is long enough - checks for bad files
+    if len(data) < p1 + 31:
+        raise ValueError("data is too short for complete gamma spectra")
+    
     data = data[p1 + 7:p1 + 31]
     spectra = []
     for line in data:
-        spectra.append(float(line[130:141]))
+        try:
+            spectra.append(float(line[130:141]))
+        except ValueError as e:
+            raise ValueError(f" Error parsing gamma spec line: {line} ") from e
     return spectra
 
 
