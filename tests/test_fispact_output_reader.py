@@ -78,7 +78,7 @@ class read_summary_data_test_case(unittest.TestCase):
         actual_cooling_values = sum_data["is_cooling"].tolist()
 
         self.assertEqual(expected_cooling_values, actual_cooling_values)
-        
+
     def test_find_summary(self):
         """ tests the find summary function """
         # for fisII is False
@@ -86,14 +86,13 @@ class read_summary_data_test_case(unittest.TestCase):
         start_ind, end_ind = fo.find_summary_block(data, False)
         self.assertEqual(start_ind, 1)
         self.assertEqual(end_ind, 3)
-        
+
         # for fisII is true
-        data = ["text", " -----Irradiation Phase-----" , "text2", "0 Mass"]
+        data = ["text", " -----Irradiation Phase-----", "text2", "0 Mass"]
         start_ind, end_ind = fo.find_summary_block(data, True)
         self.assertEqual(start_ind, 1)
         self.assertEqual(end_ind, 3)
-        
-        
+
         # test raises error when cooling string not found
         data = ["text", " more text",  "0 Mass"]
 

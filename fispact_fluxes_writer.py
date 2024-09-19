@@ -18,20 +18,20 @@ def get_group_pos(groups, energy):
     energy = float(energy)
     i = 0
     n = len(groups)
-    
+
     # check for energy above the highest group
     if energy > groups[0]:
         return 0
     # check for energy below the lowest energy
     if energy <= groups[-1]:
         return n - 2
-        
+
     # find bin for energies in the group structure range
     while i < n -1:
-        if energy <= groups[i] and energy > groups [i+1]:
+        if energy <= groups[i] and energy > groups[i+1]:
             return i
         i += 1
-    
+
     # just in case it does not fit in the above categories
     return -1
 
@@ -202,7 +202,7 @@ def create_fluxes_data(groups, epos):
         all other bins are set to zero
         a power line is also added to ensure it is the correct size
     """
-    
+
     # Check if epos is within bounds
     if not 0 <= epos < len(groups):
         raise ValueError(f" The energy bin position ({epos}) is out of bounds for the given groups array.")
@@ -220,11 +220,11 @@ def convert_mcnp_spect_to_fispact_fluxes_format(mcnp_spect):
         adds a power line
     """
     mcnp_spect = np.asarray(mcnp_spect)
-    
-     # Check if the input is sorted in ascending order
+
+    # Check if the input is sorted in ascending order
     if not np.all(mcnp_spect[:-1] <= mcnp_spect[1:]):
         raise ValueError("MCNP spectrum is not sorted in ascending order (low to high energy).")
-    
+
     # reverse to be high to low energy
     fispact_spect = mcnp_spect[::-1]
     # add power line

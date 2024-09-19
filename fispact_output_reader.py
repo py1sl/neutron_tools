@@ -234,6 +234,7 @@ def find_summary_block(data, fisII):
 
     return start_ind, end_ind
 
+
 def read_summary_data(data):
     """ Processes the summary block at the end of the file"""
 
@@ -316,7 +317,8 @@ def read_summary_data(data):
 def retrieve_cooling_data(sum_data):
     """ filters the data summary to only include data from the cooling
     phase """
-    cooling_data = sum_data[sum_data["is_cooling"] == True]
+    # filters to is_cooling true values
+    cooling_data = sum_data[sum_data["is_cooling"]]
     return cooling_data
 
 
@@ -406,7 +408,7 @@ def parse_composition(data):
     composition = pd.DataFrame()
     composition["element"] = ele_list
     composition["atoms"] = atoms
-    
+
     # Calculate the total number of atoms
     total_atoms = sum(atoms)
 
@@ -422,11 +424,11 @@ def parse_spectra(data):
         data is in gamma/s/cc
     """
     p1 = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
-    
+
     # check data is long enough - checks for bad files
     if len(data) < p1 + 31:
         raise ValueError("data is too short for complete gamma spectra")
-    
+
     data = data[p1 + 7:p1 + 31]
     spectra = []
     for line in data:

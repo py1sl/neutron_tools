@@ -106,7 +106,7 @@ def check_uniform(bounds):
         # check for empty list
         return False
 
-    # calculate the difference    
+    # calculate the difference
     diff = np.diff(list(map(float, bounds)))
     # check if all differences are close
     return np.allclose(diff, diff[0])
@@ -248,7 +248,7 @@ def convert_to_df(mesh):
         "6col_t": ("Time", "x", "y", "z", "value", "rel_err"),
         "5col": ("x", "y", "z", "value", "rel_err")
     }
-    
+
     # Check if the column type is valid for future proofing
     if mesh.ctype not in col_mappings:
         raise ValueError(f"Unknown mesh type: {mesh.ctype}")
@@ -256,7 +256,7 @@ def convert_to_df(mesh):
     # Create the DataFrame with the appropriate columns
     cols = col_mappings[mesh.ctype]
     data = pd.DataFrame(mesh.data, columns=cols)
-    
+
     # convert to float
     data["x"] = pd.to_numeric(data["x"], downcast="float")
     data["y"] = pd.to_numeric(data["y"], downcast="float")

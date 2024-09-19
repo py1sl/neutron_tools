@@ -21,7 +21,7 @@ def calc_err_abs(results, errors):
     # check same length
     if len(results) != len(errors):
         raise ValueError(f"The length of results and errors must be the same")
-    
+
     # calculate absolute error for all results
     abs_err = [res*float(err) for res, err in zip(results, errors)]
 
@@ -30,7 +30,7 @@ def calc_err_abs(results, errors):
 
 def calc_bin_width(bins):
     """ calculate energy bin widths """
-    # calculate bin widths and add 1st bin 
+    # calculate bin widths and add 1st bin
     bw = np.diff(bins, prepend=bins[0])
     return bw
 
