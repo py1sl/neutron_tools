@@ -58,16 +58,18 @@ def output_mcnp_mat(inv, lib=".70c"):
     """ convert the fispact inventory into an MCNP material
         note: metastables are converted to ground state
     """
-    zdict = neut_constants.Z_dict()
-    inv["Z"] = inv["element"].map(zdict)
-    inv["ZAID"] = (inv["Z"] * 1000)
-    inv["ZAID"] = inv["ZAID"] + inv["A"]
+    zdict = neut_constants.Z_dict()  # Load Z to element dictionary
+    inv["Z"] = inv["element"].map(zdict)  # Map elements to Z
+    inv["ZAID"] = inv["Z"] * 1000 + inv["A"]  # Calculate ZAID
 
+    # Normalize atom counts
     inv["atoms_norm"] = inv["atoms"] / inv["atoms"].sum()
 
-    matdf = inv[["ZAID", "atoms_norm"]]
+    # Select necessary columns
+    matdf = inv[["ZAID", "atoms_norm"]].copy()  # Create a copy to avoid SettingWithCopyWarning
 
-    matdf["output"] = "     " + str(inv["ZAID"]) + "  " + str(inv["atoms_norm"])
+    # Format the output string using f-strings and apply
+    matdf["output"] = matdf.apply(lambda row: f"     {row['ZAID']}  {row['atoms_norm']:.5e}", axis=1)
 
     return matdf
 
@@ -144,8 +146,6 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
     if hlines:
         for xc in hlines:
             plt.hline(x=xc)
-
-    plt.legend()
 
     # plot to screen or file
     if fname:
@@ -291,7 +291,7 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
             if df.empty:
                 value = 0.0
             else:
-                value = df[prop].item()
+                value = df[prop].iloc[0]
 
             data[a][z] = value
 
