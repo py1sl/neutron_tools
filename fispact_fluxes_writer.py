@@ -27,7 +27,7 @@ def get_group_pos(groups, energy):
         return n - 2
 
     # find bin for energies in the group structure range
-    while i < n -1:
+    while i < n - 1:
         if energy <= groups[i] and energy > groups[i+1]:
             return i
         i += 1

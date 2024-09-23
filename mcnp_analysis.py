@@ -31,7 +31,10 @@ def calc_err_abs(results, errors):
 def calc_bin_width(bins):
     """ calculate energy bin widths """
     # calculate bin widths and add 1st bin
-    bw = np.diff(bins, prepend=bins[0])
+    if len(bins) < 2:
+        raise ValueError("At least two bin edges are required to calculate bin widths.")
+
+    bw = np.diff(bins, prepend=0)
     return bw
 
 

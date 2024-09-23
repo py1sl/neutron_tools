@@ -55,7 +55,7 @@ class create_fluxes_data_test_case(unittest.TestCase):
         self.assertEqual(data[1], 1)
         self.assertEqual(data[-1], 1)
         self.assertEqual(data[0], 0)
-        
+
         with self.assertRaises(ValueError):
             data = fw.create_fluxes_data([1, 1, 1, 1], 10)
 
@@ -65,7 +65,7 @@ class create_fluxes_data_test_case(unittest.TestCase):
         self.assertEqual(data[1], 4)
         self.assertEqual(data[-1], 1)
         self.assertEqual(data[0], 5)
-        
+
         with self.assertRaises(ValueError):
             fw.convert_mcnp_spect_to_fispact_fluxes_format([1, 1, 4, 3, 5])
 
