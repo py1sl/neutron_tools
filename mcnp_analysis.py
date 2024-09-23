@@ -12,33 +12,29 @@ matplotlib.use('agg')
 
 def normalise(data, norm_val):
     """convert raw data to normalised data"""
-    norm = []
-    for i in data:
-        norm.append(float(i) * float(norm_val))
+    norm = [float(i)*float(norm_val) for i in data]
     return norm
 
 
-def calc_err_abs(res, err):
+def calc_err_abs(results, errors):
     """ calculates absolute errors"""
-    i = 0
-    abs_err = []
-    while i < len(res):
-        abs_err.append(res[i] * float(err[i]))
-        i = i + 1
+    # check same length
+    if len(results) != len(errors):
+        raise ValueError(f"The length of results and errors must be the same")
+
+    # calculate absolute error for all results
+    abs_err = [res*float(err) for res, err in zip(results, errors)]
+
     return abs_err
 
 
 def calc_bin_width(bins):
     """ calculate energy bin widths """
-    bw = []
-    # 1st bin is its own width
-    bw.append(bins[0])
-    i = 1
-    while i < len(bins):
-        width = float(bins[i]) - float(bins[i - 1])
-        bw.append(width)
-        i = i + 1
-    bw = np.asarray(bw)
+    # calculate bin widths and add 1st bin
+    if len(bins) < 2:
+        raise ValueError("At least two bin edges are required to calculate bin widths.")
+
+    bw = np.diff(bins, prepend=0)
     return bw
 
 

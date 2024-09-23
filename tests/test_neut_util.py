@@ -23,6 +23,14 @@ class writelines_test_case(unittest.TestCase):
 
         open_mock.assert_called_with("output.txt", "w")
         open_mock.return_value.write.assert_any_call("hello\n")
+        open_mock.return_value.write.assert_any_call("world\n")
+
+    @patch("builtins.open", new_callable=mock_open)
+    def test_write_line_empty_list(self, mock_file):
+        lines = []
+        ut.write_lines("output.txt", lines)
+        mock_file.assert_called_once_with('output.txt', 'w')
+        mock_file().write.assert_not_called()
 
 
 class writepoints_test_case(unittest.TestCase):
@@ -35,6 +43,14 @@ class writepoints_test_case(unittest.TestCase):
 
         open_mock.assert_called_with("output.txt", "w")
         open_mock.return_value.write.assert_any_call("1 3 5 1\n")
+
+    def test_write_points_error(self):
+        open_mock = mock_open()
+        with patch("neut_utilities.open", open_mock, create=True):
+            with self.assertRaises(IndexError):
+                ut.write_points_file("output.txt", [1, 2], [3, 4], [5])
+
+        open_mock.assert_not_called()
 
 
 class string_cleaner_test_case(unittest.TestCase):
@@ -105,15 +121,15 @@ class string_replace_test_case(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             ut.text_replace('no_such_fname', 'old_string', 'new_string')
 
-          
+
 class same_value_test_case(unittest.TestCase):
     """test for the is_same_value function """
     def test_same_value(self):
-        self.assertTrue(ut.is_same_value(1.0, 1.0)) # when same
-        self.assertTrue(ut.is_same_value(1.00000001, 1.0)) # when nearly same
-        self.assertFalse(ut.is_same_value(2.0, 1.0)) # when different
-        self.assertFalse(ut.is_same_value(2.0, 1.0, tolerance=1e-3)) # custom tolerance
-        self.assertTrue(ut.is_same_value(1.0001, 1.0, tolerance=1e-3)) # custom tolerance
+        self.assertTrue(ut.is_same_value(1.0, 1.0))  # when same
+        self.assertTrue(ut.is_same_value(1.00000001, 1.0))  # when nearly same
+        self.assertFalse(ut.is_same_value(2.0, 1.0))  # when different
+        self.assertFalse(ut.is_same_value(2.0, 1.0, tolerance=1e-3))  # custom tolerance
+        self.assertTrue(ut.is_same_value(1.0001, 1.0, tolerance=1e-3))  # custom tolerance
 
 
 if __name__ == '__main__':

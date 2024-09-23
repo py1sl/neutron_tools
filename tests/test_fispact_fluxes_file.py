@@ -17,21 +17,21 @@ class writelines_test_case(unittest.TestCase):
 
 
 class fluxes_writer_test_case(unittest.TestCase):
-    """ tests for reading the version of output file"""
+    """ tests for checking the group strucutre and finding energy bins"""
 
     def test_get_group_pos(self):
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
                                           "1.00E+03"), 0)  # top edge of bins
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
-                                          "9.60E+02"), 0)  # 1st bin edge
+                                          "9.60E+02"), 1)  # 1st bin edge
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
-                                          "9.20E+02"), 1)  # 2nd bin edge
+                                          "9.20E+02"), 2)  # 2nd bin edge
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
                                           "9.40E+02"), 1)  # 2nd bin mid
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
-                                          9.20E+02), 1)  # 2nd bin mid as float
+                                          9.40E+02), 1)  # 2nd bin mid as float
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
-                                          920), 1)  # 2nd bin mid as int
+                                          940), 1)  # 2nd bin mid as int
         self.assertEqual(fw.get_group_pos(fw.get_group_struct("709"),
                                           "1.05E-11"), 707)  # last bin edge
 
@@ -56,12 +56,18 @@ class create_fluxes_data_test_case(unittest.TestCase):
         self.assertEqual(data[-1], 1)
         self.assertEqual(data[0], 0)
 
+        with self.assertRaises(ValueError):
+            data = fw.create_fluxes_data([1, 1, 1, 1], 10)
+
     def test_create_fluxes_mcnp(self):
-        data = fw.create_fluxes_from_mcnp_spect([1, 2, 3, 4, 5])
+        data = fw.convert_mcnp_spect_to_fispact_fluxes_format([1, 2, 3, 4, 5])
         self.assertEqual(len(data), 6)
         self.assertEqual(data[1], 4)
         self.assertEqual(data[-1], 1)
         self.assertEqual(data[0], 5)
+
+        with self.assertRaises(ValueError):
+            fw.convert_mcnp_spect_to_fispact_fluxes_format([1, 1, 4, 3, 5])
 
     def test_upper_bound(self):
         groups = [10, 9, 8, 7]

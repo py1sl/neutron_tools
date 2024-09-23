@@ -16,9 +16,24 @@ def get_group_pos(groups, energy):
         output is the position in the list of the bin in whihc that energy sits
     """
     energy = float(energy)
-    for i, e in enumerate(groups[1:]):
-        if energy >= e:
+    i = 0
+    n = len(groups)
+
+    # check for energy above the highest group
+    if energy > groups[0]:
+        return 0
+    # check for energy below the lowest energy
+    if energy <= groups[-1]:
+        return n - 2
+
+    # find bin for energies in the group structure range
+    while i < n - 1:
+        if energy <= groups[i] and energy > groups[i+1]:
             return i
+        i += 1
+
+    # just in case it does not fit in the above categories
+    return -1
 
 
 def get_group_struct(gs):
@@ -188,20 +203,31 @@ def create_fluxes_data(groups, epos):
         a power line is also added to ensure it is the correct size
     """
 
-    fdata = np.zeros(len(groups) + 1)
-    fdata[epos] = 1
-    fdata[-1] = 1  # deals with 'power line'
+    # Check if epos is within bounds
+    if not 0 <= epos < len(groups):
+        raise ValueError(f" The energy bin position ({epos}) is out of bounds for the given groups array.")
 
-    return fdata
+    flux_data = np.zeros(len(groups) + 1)
+    flux_data[epos] = 1
+    flux_data[-1] = 1  # deals with 'power line'
+
+    return flux_data
 
 
-def create_fluxes_from_mcnp_spect(mcnp_spect):
+def convert_mcnp_spect_to_fispact_fluxes_format(mcnp_spect):
     """ takes a list asumed to be ordered low to high energy
         inverts to fispact fluxes format high to low energy
         adds a power line
     """
     mcnp_spect = np.asarray(mcnp_spect)
+
+    # Check if the input is sorted in ascending order
+    if not np.all(mcnp_spect[:-1] <= mcnp_spect[1:]):
+        raise ValueError("MCNP spectrum is not sorted in ascending order (low to high energy).")
+
+    # reverse to be high to low energy
     fispact_spect = mcnp_spect[::-1]
+    # add power line
     fispact_spect = np.append(fispact_spect, 1.0)
 
     return fispact_spect
@@ -228,11 +254,10 @@ def check_group_struct(gs):
     """
     structures = ("709", "162")
     if gs not in structures:
-        ntlogger.debug("%s group structure recognised.", gs)
+        ntlogger.debug(f"{gs} group structure is not recognised.")
         return False
-    else:
-        ntlogger.debug("%s group structure recognised.", gs)
-        return True
+    ntlogger.debug(f"{gs} group structure recognised.")
+    return True
 
 
 if __name__ == "__main__":

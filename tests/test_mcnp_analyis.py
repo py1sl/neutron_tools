@@ -18,6 +18,13 @@ class normalise_test_case(unittest.TestCase):
         self.assertAlmostEqual(result[2], 0.3, 7)
         self.assertAlmostEqual(result[3], 0.4, 7)
 
+        # empty list
+        self.assertEqual(ma.normalise([],1), [])
+
+        # non numeric
+        with self.assertRaises(ValueError):
+            ma.normalise([1, "two", 3], 1)
+
 
 class calc_absolute_err_test(unittest.TestCase):
     """ test for absolute error calculation function"""
@@ -97,6 +104,8 @@ class plotting_test_cases(unittest.TestCase):
         single = mor.read_output_file(path)
         for tn in single.tally_data:
             if tn.number == 4:
+                tn.result = [[1, 2, 3, 4, 5, 6], [1]]
+                tn.eng = [10, 20, 30, 40, 50, 60]
                 data = tn
         fname = "test"
         ma.plot_spectra_ratio(data, data, fname, "")
