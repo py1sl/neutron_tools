@@ -17,9 +17,9 @@ class conversion_test_case(unittest.TestCase):
     """ test for conversions"""
 
     def test_time_conv(self):
-        self.assertEqual(nc.years_to_seconds(1), 365 * 24 * 60 * 60)
-        self.assertEqual(nc.years_to_hrs(1), 365 * 24)
-        self.assertEqual(nc.years_to_days(1), 365)
+        self.assertEqual(nc.years_to_seconds(1), 365.25 * 24 * 60 * 60)
+        self.assertEqual(nc.years_to_hrs(1), 365.25 * 24)
+        self.assertEqual(nc.years_to_days(1), 365.25)
         self.assertEqual(nc.second_to_hour(1), (1/3600))
         self.assertEqual(nc.second_to_day(1), (1/86400))
         self.assertEqual(nc.second_to_year(1), (1/3.1536e07))
@@ -41,6 +41,10 @@ class conversion_test_case(unittest.TestCase):
         self.assertEqual(nc.eV_to_wavelength_photon(1), 1.24e-6)
         self.assertEqual(nc.wavelength_to_meV_neutron(1), 81.81)
         self.assertEqual(nc.joule_to_ev(1), (1/1.602e-19))
+
+    def test_xs_conv(self):
+        self.assertAlmostEqual(nc.barn_to_cm2(1), 1e-24, places=15)
+        self.assertAlmostEqual(nc.cm2_to_barn(1), 1e24, places=15)
 
 
 class Z_dict_test_case(unittest.TestCase):

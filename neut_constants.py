@@ -33,17 +33,17 @@ def sv_to_rem(val):
 
 def years_to_seconds(val):
     """ convert years to seconds"""
-    return val * 365 * 24 * 60 * 60
+    return val * 365.25 * 24 * 60 * 60
 
 
 def years_to_hrs(val):
     """ convert years to hours"""
-    return val * 365 * 24
+    return val * 365.25 * 24
 
 
 def years_to_days(val):
     """ convert years to days """
-    return val * 365
+    return val * 365.25
 
 
 def bq_to_curie(val):
@@ -109,6 +109,16 @@ def shake_to_second(val):
 def second_to_shake(val):
     """ converts time in seconds to shakes """
     return val * 1e8
+
+
+def barn_to_cm2(val):
+    """ converts barns to cm2 """
+    return val/ 1e24
+
+
+def cm2_to_barn(val):
+    """ converts cm2 to barns """
+    return val * 1e24
 
 
 def Z_dict():
