@@ -36,18 +36,58 @@ def output_csv(data, outpath="output.csv"):
         writer = csv.writer(file)
         writer.writerows(data)
 
-        
+
 def list_to_html_table(data):
     """Converts a list of lists into an HTML table.
 
     """
-    html = "<table border='1'>\n"
-    
-    for row in data:
-        html += "  <tr>\n"
+    html = "<table style='border-collapse: collapse; width: 100%;'> \n "
+
+       for i, row in enumerate(data):
+        if i == 0:
+            html += "<tr style='background-color: green; color: white;'>\n"
+        else:
+            html += "<tr>\n"
+
         for item in row:
-            html += f"    <td>{item}</td>\n"
+            html += f"    <td style='border: 1px solid black; padding: 8px;'>{item}</td>\n"
         html += "  </tr>\n"
-    
+
     html += "</table>"
     return html
+
+
+def output_html(tables, title="Results", fname="output.html")
+    """ output and html file from a list of html strings """
+    if isinstance(tables, str):
+        tables = [tables]
+
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{title}</title>
+        <style>
+            table {{border-collapse: collapse; width: 100%; margin-bottom: 20px;}}
+            th, td {{border: 1px solid black; padding: 8px;}}
+            tr:first-child {{background-color: green; color: white;}}
+        </style>
+    </head>
+    <body>
+    <h1>{title}</h1>
+    """
+
+    # Add each table to the body
+    for table in tables:
+        html += table + "\n"
+
+    # Close the tags
+    html += """
+    </body>
+    </html>
+    """
+
+    # write to file
+    with open(fnam, "w") as f:
+    f.write(html)
