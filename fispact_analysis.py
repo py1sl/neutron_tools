@@ -4,6 +4,7 @@ from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt
 import numpy as np
 import neut_utilities as ut
+import output_utilities as o_ut
 import neut_constants
 matplotlib.use('agg')
 
@@ -157,6 +158,12 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
     return plot
 
 
+def get_fispact_gamma_bounds():
+    return bounds = (0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8,
+                     1.0, 1.22, 1.44, 1.66, 2.0, 2.5, 3.0, 4.0, 5.0, 6.5,
+                     8.0, 10.0, 12.0, 14.0, 20.0)
+
+
 def plot_spectra(timestep, fname=None):
     """ plots the group wise gamma emission spectra """
     plt.clf()
@@ -168,9 +175,7 @@ def plot_spectra(timestep, fname=None):
     plt.ylim(ymin=1e-4, ymax=y_upper_lim)
 
     # groups are fixed by fispact
-    xbounds = (0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8,
-               1.0, 1.22, 1.44, 1.66, 2.0, 2.5, 3.0, 4.0, 5.0, 6.5,
-               8.0, 10.0, 12.0, 14.0, 20.0)
+    xbounds = get_fispact_gamma_bounds()
 
     plt.step(xbounds, timestep.gspec)
 
@@ -311,3 +316,25 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
         plt.savefig(fname)
     else:
         plt.show()
+
+
+def summary_to_html(fout, fname=None):
+    """ converts fispact summary data table to html table"""
+    data = fout.sumdat
+    sumdata_html = o_ut.dataframe_to_html_table(data)
+
+    if fname:
+        o_ut.output_html(sumdata_html, title="Fispact Summary Results", fname=fname)
+
+    return sumdata_html
+
+
+def gamma_spec_to_html_table(timestep):
+    """ converts time step gamma spectrum to HTML table string """
+    bounds = get_fispact_gamma_bounds()
+    values = timestep.gspec
+    data = [bounds, values]
+    html_spectra = o_ut.list_to_html_table(data)
+
+    return html_spectra
+

@@ -3,6 +3,7 @@ uesful utilities for common output options
 """
 import csv
 import neut_utilities as ut
+import pandas
 
 
 def output_points(x_vals, y_vals, z_vals, data_val=None, outpath="lost"):
@@ -91,3 +92,47 @@ def output_html(tables, title="Results", fname="output.html")
     # write to file
     with open(fnam, "w") as f:
     f.write(html)
+
+
+def dataframe_to_html_table(df):
+    """Converts  DataFrame into an HTML table.
+
+    """
+    # CSS for table styling
+    styles = """ <style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: left;
+    }
+    thead tr {
+        background-color: green;
+        color: white;
+    }
+    </style>
+    """
+    
+    # add top part
+    html = f"\n {styles} \n <table> \n <thead> \n <tr>\n"
+    
+    # Add the column names
+    for col in df.columns:
+        html += f"<th>{col}</th>"
+    
+    html += "</tr></thead><tbody>"
+    
+    # loop over rows
+    for _, row in df.iterrows():
+        html += "<tr>"
+        for item in row:
+            html += f"<td>{item}</td>"
+        html += "</tr>"
+    
+    # add the closing tags
+    html += "</tbody></table>"
+    
+    return html
