@@ -44,7 +44,7 @@ def list_to_html_table(data):
     """
     html = "<table style='border-collapse: collapse; width: 100%;'> \n "
 
-       for i, row in enumerate(data):
+    for i, row in enumerate(data):
         if i == 0:
             html += "<tr style='background-color: green; color: white;'>\n"
         else:
@@ -58,7 +58,7 @@ def list_to_html_table(data):
     return html
 
 
-def output_html(tables, title="Results", fname="output.html")
+def output_html(tables, title="Results", fname="output.html"):
     """ output and html file from a list of html strings """
     if isinstance(tables, str):
         tables = [tables]
@@ -91,7 +91,7 @@ def output_html(tables, title="Results", fname="output.html")
 
     # write to file
     with open(fnam, "w") as f:
-    f.write(html)
+        f.write(html)
 
 
 def dataframe_to_html_table(df):

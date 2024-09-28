@@ -159,9 +159,11 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
 
 
 def get_fispact_gamma_bounds():
-    return bounds = (0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8,
-                     1.0, 1.22, 1.44, 1.66, 2.0, 2.5, 3.0, 4.0, 5.0, 6.5,
-                     8.0, 10.0, 12.0, 14.0, 20.0)
+    """ returns the 24 gamma spectra energy bounds used by fispact """
+    bounds = (0.01, 0.02, 0.05, 0.1, 0.2, 0.3, 0.4, 0.6, 0.8,
+              1.0, 1.22, 1.44, 1.66, 2.0, 2.5, 3.0, 4.0, 5.0, 6.5,
+              8.0, 10.0, 12.0, 14.0, 20.0)
+    return bounds
 
 
 def plot_spectra(timestep, fname=None):
@@ -337,4 +339,46 @@ def gamma_spec_to_html_table(timestep):
     html_spectra = o_ut.list_to_html_table(data)
 
     return html_spectra
+
+
+def inv_to_html(timestep):
+    """ convert the nuclide inventory to html """
+    html = ""
+    return html
+
+
+def dominant_to_html(timestep):
+    """ convert dominant nuclides part of a time step to html """
+    html = ""
+    return html
+
+
+def timestep_to_html(timestep):
+    """ converts time step to html """
+
+    html = ""
+    html += inv_to_html(timestep)
+    html += dominant_to_html(timestep)
+    html += gamma_spec_to_html(timestep)
+
+    return html
+
+
+def fispact_output_to_html(fout, fname="fispact_results.html"):
+    """ converts a fispact output to an html output
+        acts as a quick summary of the output
+
+    """
+    html = []
+
+    # loop over time steps
+    for ts in fout.timestep_data:
+        html.append(timestep_to_html(ts))
+
+    # add summary
+    html.append(summary_to_html(fout))
+
+    # write file
+    o_ut.output_html(html, title="Fispact Results", fname=fname)
+
 
