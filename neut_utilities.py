@@ -114,3 +114,11 @@ def text_replace(fname, old_string, new_string):
 def is_same_value(v1, v2, tolerance=1e-6):
     """ check if two float values are effectively equal within tolerance."""
     return abs(v1 - v2) < tolerance
+
+
+def check_line_length(string, length=79):
+    """ checks length of a string """
+    if len(string) > length:
+        return True
+    else:
+        return False
