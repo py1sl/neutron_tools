@@ -221,10 +221,6 @@ def convert_mcnp_spect_to_fispact_fluxes_format(mcnp_spect):
     """
     mcnp_spect = np.asarray(mcnp_spect)
 
-    # Check if the input is sorted in ascending order
-    if not np.all(mcnp_spect[:-1] <= mcnp_spect[1:]):
-        raise ValueError("MCNP spectrum is not sorted in ascending order (low to high energy).")
-
     # reverse to be high to low energy
     fispact_spect = mcnp_spect[::-1]
     # add power line
