@@ -388,13 +388,13 @@ def spectra_to_mcnp_source(timestep, dist_num="1", fname="source_spect.txt"):
     bounds = get_fispact_gamma_bounds()
     for bound in bounds:
         si_line += str(bound) + "\n       "
-        
-    
+
+
     sp_line = "SP"  + dist_num + " "
     for value in timestep.gspec:
         sp_line += str(value) + "\n       "
-        
-        
+
+
     data = [si_line, sp_line]
     ut.write_lines(fname, data)
 
