@@ -169,6 +169,14 @@ class MCNP_summary_data():
     def __init__(self):
         self.number = 1
         self.summary_type = 1
+        self.nps = 1
+        self.particle = "Neutron"
+
+    def __str__(self):
+        print_list = []
+        print_list.append(f"NPS: {self.nps}")
+        print_list.append(f"Particle: {self.particle}")
+        return "\n".join(print_list)
 
 
 def read_version(lines):
@@ -398,12 +406,9 @@ def process_time_bin_only(lines):
     return time_bins, results, errs
 
 
-def process_e_t_userbin(data):
-    """ processes energy time bins in a tally """
+def eng_time_get_time_bins(data):
+    """ for an energy and time bin tally, get the time bin boundary values """
     time_bins = []
-    erg_bins = []
-
-    # first find time bins
     for line in data:
         if "time" in line:
             line = " ".join(line.split())
@@ -411,7 +416,15 @@ def process_e_t_userbin(data):
             for t in line:
                 time_bins.append(t)
 
-    # find energy bins
+    # use set in case of multiple cells or surfaces causing duplication
+    return list(set(time_bins))
+
+
+def eng_time_get_eng_bins(data):
+    """ for an energy and time binned tally get the energy
+        bin boundary values
+    """
+    energy_bins = []
     in_data = False
     for line in data:
         if in_data:
@@ -420,12 +433,35 @@ def process_e_t_userbin(data):
                 break
             line = " ".join(line.split())
             erg = line.split(" ")[0]
-            erg_bins.append(erg)
+            energy_bins.append(erg)
         elif not in_data:
             if "energy" in line:
                 in_data = True
 
-    erg_bins.append("total")
+    # add the total line
+    energy_bins.append("total")
+
+    return energy_bins
+
+
+def convert_energy_time_data_to_df(data, time_bins, energy_bins):
+    """ """
+    try:
+        df = pd.DataFrame(data, index=time_bins, columns=energy_bins)
+        return df
+    except ValueError as e:
+        ntlogger.debug("cannot convert to dataframe ")
+        print(f"cannot convert to dataframe: {e}")
+        return data
+
+
+def process_e_t_userbin(data):
+    """ processes energy time bins in a tally """
+    time_bins = eng_time_get_time_bins(data)
+    erg_bins = eng_time_get_eng_bins(data)
+    res_list = []
+    err_list = []
+
     # create data arrays
     res_data = np.zeros((len(time_bins), len(erg_bins)))
     err_data = np.zeros((len(time_bins), len(erg_bins)))
@@ -453,15 +489,23 @@ def process_e_t_userbin(data):
         elif not in_data:
             if "energy" in line:
                 in_data = True
-                tcol = tcol + len_tcol
                 erow = 0
-    try:
-        res_df = pd.DataFrame(res_data, index=time_bins, columns=erg_bins)
-    except ValueError:
-        ntlogger.debug("cannot convert to dataframe ")
-        res_df = res_data
+                tcol = tcol + len_tcol
 
-    return time_bins, erg_bins, res_df, err_data
+                if tcol == len(time_bins):
+                    # convert to data frame
+                    res_df = convert_energy_time_data_to_df(res_data, time_bins, erg_bins)
+                    err_df = convert_energy_time_data_to_df(err_data, time_bins, erg_bins)
+                    res_list.append(res_df)
+                    err_list.append(err_df)
+
+                    # reset data
+                    res_data = np.zeros((len(time_bins), len(erg_bins)))
+                    err_data = np.zeros((len(time_bins), len(erg_bins)))
+                    tcol = 0
+
+
+    return time_bins, erg_bins, res_list, err_list
 
 
 def find_term_line(lines):
@@ -626,6 +670,31 @@ def read_type_8(tally_data, lines):
     return tally_data
 
 
+def get_type2_surface_areas(lines):
+    """ extracts the surface areas for a type 2 surface tally"""
+    # TODO: if more than a single line of areas
+    areas = []
+    area_line_id = ut.find_line("           areas", lines, 16)
+    area_val_line = lines[area_line_id + 2]
+    area_val_line = " ".join(area_val_line.split())
+    areas = np.asarray(area_val_line.split(" "))
+
+    return areas
+
+
+def get_type2_surface_numbers(lines):
+    """ extracts the surface numbers for a type2 urface tally"""
+    # TODO: if more than a single line of areas
+    surfaces = []
+    area_line_id = ut.find_line("           areas", lines, 16)
+    suf_val_line = lines[area_line_id + 1]
+    suf_val_line = " ".join(suf_val_line.split())
+    suf_val_line = suf_val_line.split(":")[1]
+    surfaces = suf_val_line.split(" ")[1:]
+
+    return surfaces
+
+
 def read_type_surface(tally_data, lines):
     """ process type 1 or type 2 tally output data"""
     ntlogger.debug("Surface Tally")
@@ -636,15 +705,8 @@ def read_type_surface(tally_data, lines):
     # find areas
     # TODO: sort for type 1 tally with sd card
     if tally_data.tally_type == "2":
-        area_line_id = ut.find_line("           areas", lines, 16)
-        area_val_line = lines[area_line_id + 2]
-        area_val_line = " ".join(area_val_line.split())
-        tally_data.areas = np.asarray(area_val_line.split(" "))
-        # find surfaces
-        suf_val_line = lines[area_line_id + 1]
-        suf_val_line = " ".join(suf_val_line.split())
-        suf_val_line = suf_val_line.split(":")[1]
-        tally_data.surfaces = suf_val_line.split(" ")[1:]
+        tally_data.areas = get_type2_surface_areas(lines)
+        tally_data.surfaces = get_type2_surface_numbers(lines)
 
         ntlogger.debug("Tally surface numbers:")
         ntlogger.debug(tally_data.surfaces)
@@ -1107,7 +1169,11 @@ def read_type_5(tally_data, lines):
 
 def read_stat_tests(lines):
     """ initial stat test reader"""
-    stat_res_line_id = ut.find_line(" passed", lines, 7)
+    try:
+        stat_res_line_id = ut.find_line(" passed", lines, 7)
+    except ValueError:
+        return ["no"]
+
     stat_line = lines[stat_res_line_id]
     stat_line = ut.string_clean_and_split(stat_line)[1:]
 
