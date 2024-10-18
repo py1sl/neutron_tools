@@ -468,7 +468,7 @@ def convert_energy_time_data_to_df(data, time_bins, energy_bins):
         return df
     except ValueError as e:
         ntlogger.debug(f"cannot convert to dataframe: {e}")
-        
+
         return data
 
 
@@ -695,7 +695,7 @@ def get_type2_surface_areas(lines):
 
 
 def get_type2_surface_numbers(lines):
-    """ extracts the surface numbers for a type2 urface tally"""
+    """ extracts the surface numbers for a type2 surface tally"""
     # TODO: if more than a single line of areas
     surfaces = []
     area_line_id = ut.find_line("           areas", lines, 16)
@@ -705,6 +705,58 @@ def get_type2_surface_numbers(lines):
     surfaces = suf_val_line.split(" ")[1:]
 
     return surfaces
+
+
+def get_type1_surface_numbers(lines):
+    """ extract the surface numbers for a type 1 surface tally """
+    surface_list = []
+    for line in lines[2:]:
+        if "surface" in line:
+            line = line.strip()
+            surface_list.append(line.split()[-1])
+
+    return surface_list
+
+
+def process_energy_angle_tally(tally_data, lines, first_surface_line_id):
+    """ """
+
+    ntlogger.debug("energy bins")
+    angles_bins = [-1.0]
+
+    ebin = []
+    rel_err = []
+    res = []
+    res_df = []
+    rel_err_df = []
+    in_res = False
+
+    for line in lines[first_surface_line_id:]:
+        if line[:11] == " angle  bin":
+            ang_float = process_ang_string(line)
+            angles_bins.append(ang_float)
+
+        if line[:13] == "      total  ":
+            in_res = False
+            ebin = np.array(ebin)
+            tally_data.eng = ebin
+            rel_err = np.array(rel_err)
+            rel_err_df.append(rel_err)
+            res = np.array(res)
+            res_df.append(res)
+            ebin = []
+            rel_err = []
+            res = []
+        if in_res:
+            line = line.strip()
+            line = line.split(" ")
+            ebin.append(float(line[0]))
+            res.append(float(line[3]))
+            rel_err.append(float(line[4]))
+        if line == "      energy   ":
+            in_res = True
+
+    return res_df, rel_err_df, angles_bins
 
 
 def read_type_surface(tally_data, lines):
@@ -725,23 +777,20 @@ def read_type_surface(tally_data, lines):
         ntlogger.debug("Tally surface areas:")
         ntlogger.debug(tally_data.areas)
 
-    first_surface_line_id = ut.find_line(" surface ", lines, 9)
-    ntlogger.debug("first surface id %s", first_surface_line_id)
     if tally_data.tally_type == "1":
-        surface_list = []
-        for line in lines[2:]:
-            if "surface" in line:
-                line = line.strip()
-                surface_list.append(line.split()[-1])
-
+        surface_list = get_type1_surface_numbers(lines)
         tally_data.surfaces = list(set(surface_list))
         ntlogger.debug("Tally surface numbers:")
         ntlogger.debug(tally_data.surfaces)
 
     loc = 0
+    first_surface_line_id = ut.find_line(" surface ", lines, 9)
+    ntlogger.debug("first surface id %s", first_surface_line_id)
+
     surface_line_id = first_surface_line_id
     res_df = []
     rel_err_df = []
+
     if "energy" in lines[first_surface_line_id + 1]:
         ntlogger.debug("energy bins only")
 
@@ -776,37 +825,7 @@ def read_type_surface(tally_data, lines):
         ntlogger.debug("angle bins")
 
         if lines[first_surface_line_id + 2] == "      energy   ":
-            ntlogger.debug("energy bins")
-            angles_bins = [-1.0]
-
-            ebin = []
-            rel_err = []
-            res = []
-            in_res = False
-            for line in lines[first_surface_line_id:]:
-                if line[:11] == " angle  bin":
-                    ang_float = process_ang_string(line)
-                    angles_bins.append(ang_float)
-                    ntlogger.debug(ang_float)
-                if line[:13] == "      total  ":
-                    in_res = False
-                    ebin = np.array(ebin)
-                    tally_data.eng = ebin
-                    rel_err = np.array(rel_err)
-                    rel_err_df.append(rel_err)
-                    res = np.array(res)
-                    res_df.append(res)
-                    ebin = []
-                    rel_err = []
-                    res = []
-                if in_res:
-                    line = line.strip()
-                    line = line.split(" ")
-                    ebin.append(float(line[0]))
-                    res.append(float(line[3]))
-                    rel_err.append(float(line[4]))
-                if line == "      energy   ":
-                    in_res = True
+            res_df, rel_err_df, angles_bins = process_energy_angle_tally(tally_data, lines, first_surface_line_id)
 
             tally_data.result = res_df
             tally_data.err = rel_err_df
@@ -847,12 +866,7 @@ def read_type_surface(tally_data, lines):
             ntlogger.debug("time bins only")
             end_line_id = ut.find_ind(lines, "total") + 2
             lines = lines[first_surface_line_id + 1:end_line_id]
-
-            time_bins, results, errs = process_time_bin_only(lines)
-
-            tally_data.times = time_bins
-            tally_data.result = results
-            tally_data.err = errs
+            tally_data.times, tally_data.result, tally_data.err= process_time_bin_only(lines)
 
     elif len(tally_data.surfaces) > 1:
         for s in tally_data.surfaces:
@@ -958,11 +972,7 @@ def read_type_cell(tally_data, lines):
                 end_line_id = ut.find_ind(lines, "total") + 2
                 lines = lines[cell_res_start + 1:end_line_id]
 
-                time_bins, results, errs = process_time_bin_only(lines)
-
-                tally_data.times = time_bins
-                tally_data.result = results
-                tally_data.err = errs
+                tally_data.times, tally_data.result, tally_data.err = process_time_bin_only(lines)
 
         else:
             # single value per cell data
@@ -1009,7 +1019,7 @@ def read_type_5(tally_data, lines):
     elif "time" in res_line:
         ntlogger.debug("found time")
         # TODO: sort out f5 time dep tally
-       
+
     elif "user bin" in res_line:
         # user bins used
         # assumes if user bins then also energy and time bins
