@@ -169,6 +169,14 @@ class MCNP_summary_data():
     def __init__(self):
         self.number = 1
         self.summary_type = 1
+        self.nps = 1
+        self.particle = "Neutron"
+
+    def __str__(self):
+        print_list = []
+        print_list.append(f"NPS: {self.nps}")
+        print_list.append(f"Particle: {self.particle}")
+        return "\n".join(print_list)
 
 
 def read_version(lines):
@@ -398,20 +406,26 @@ def process_time_bin_only(lines):
     return time_bins, results, errs
 
 
-def process_e_t_userbin(data):
-    """ processes energy time bins in a tally """
+def eng_time_get_time_bins(data):
+    """ for an energy and time bin tally, get the time bin boundary values """
     time_bins = []
-    erg_bins = []
-
-    # first find time bins
     for line in data:
         if "time" in line:
             line = " ".join(line.split())
             line = line.split(" ")[1:]
             for t in line:
-                time_bins.append(t)
+                # need to avoid duplicates if multiple cells/surfaces etc
+                if t not in time_bins:
+                    time_bins.append(t)
 
-    # find energy bins
+    return time_bins
+
+
+def eng_time_get_eng_bins(data):
+    """ for an energy and time binned tally get the energy
+        bin boundary values
+    """
+    energy_bins = []
     in_data = False
     for line in data:
         if in_data:
@@ -420,12 +434,51 @@ def process_e_t_userbin(data):
                 break
             line = " ".join(line.split())
             erg = line.split(" ")[0]
-            erg_bins.append(erg)
+            energy_bins.append(erg)
         elif not in_data:
             if "energy" in line:
                 in_data = True
 
-    erg_bins.append("total")
+    # add the total line
+    energy_bins.append("total")
+
+    return energy_bins
+
+
+def process_energy_lines(erg_lines):
+    """ process the results section for a tally with only energy bins """
+    erg = []
+    res = []
+    rel_err = []
+
+    for line in erg_lines:
+        line = line.strip()
+        line = line.split(" ")
+        erg.append(float(line[0]))
+        res.append(float(line[3]))
+        rel_err.append(float(line[4]))
+
+    return erg, res, rel_err
+
+
+def convert_energy_time_data_to_df(data, time_bins, energy_bins):
+    """ """
+    try:
+        df = pd.DataFrame(data, index=time_bins, columns=energy_bins)
+        return df
+    except ValueError as e:
+        ntlogger.debug(f"cannot convert to dataframe: {e}")
+
+        return data
+
+
+def process_e_t_userbin(data):
+    """ processes energy time bins in a tally """
+    time_bins = eng_time_get_time_bins(data)
+    erg_bins = eng_time_get_eng_bins(data)
+    res_list = []
+    err_list = []
+
     # create data arrays
     res_data = np.zeros((len(time_bins), len(erg_bins)))
     err_data = np.zeros((len(time_bins), len(erg_bins)))
@@ -453,15 +506,23 @@ def process_e_t_userbin(data):
         elif not in_data:
             if "energy" in line:
                 in_data = True
-                tcol = tcol + len_tcol
                 erow = 0
-    try:
-        res_df = pd.DataFrame(res_data, index=time_bins, columns=erg_bins)
-    except ValueError:
-        ntlogger.debug("cannot convert to dataframe ")
-        res_df = res_data
+                tcol = tcol + len_tcol
 
-    return time_bins, erg_bins, res_df, err_data
+                if tcol == len(time_bins):
+                    # convert to data frame
+                    res_df = convert_energy_time_data_to_df(res_data, time_bins, erg_bins)
+                    err_df = convert_energy_time_data_to_df(err_data, time_bins, erg_bins)
+                    res_list.append(res_df)
+                    err_list.append(err_df)
+
+                    # reset data
+                    res_data = np.zeros((len(time_bins), len(erg_bins)))
+                    err_data = np.zeros((len(time_bins), len(erg_bins)))
+                    tcol = 0
+
+
+    return time_bins, erg_bins, res_list, err_list
 
 
 def find_term_line(lines):
@@ -605,12 +666,7 @@ def read_type_8(tally_data, lines):
                                         lines[cell_res_start + 1:], 15)
             erg_lines = lines[cell_res_start + 2:cell_res_start +
                               1 + loc_line_id2]
-            for line in erg_lines:
-                line = line.strip()
-                line = line.split(" ")
-                tally_data.eng.append(float(line[0]))
-                tally_data.result.append(float(line[3]))
-                tally_data.err.append(float(line[4]))
+            tally_data.eng, tally_data.result, tally_data.err = process_energy_lines(erg_lines)
         else:
             # single value result
             ntlogger.debug('tally e bin count = 1')
@@ -626,6 +682,83 @@ def read_type_8(tally_data, lines):
     return tally_data
 
 
+def get_type2_surface_areas(lines):
+    """ extracts the surface areas for a type 2 surface tally"""
+    # TODO: if more than a single line of areas
+    areas = []
+    area_line_id = ut.find_line("           areas", lines, 16)
+    area_val_line = lines[area_line_id + 2]
+    area_val_line = " ".join(area_val_line.split())
+    areas = np.asarray(area_val_line.split(" "))
+
+    return areas
+
+
+def get_type2_surface_numbers(lines):
+    """ extracts the surface numbers for a type2 surface tally"""
+    # TODO: if more than a single line of areas
+    surfaces = []
+    area_line_id = ut.find_line("           areas", lines, 16)
+    suf_val_line = lines[area_line_id + 1]
+    suf_val_line = " ".join(suf_val_line.split())
+    suf_val_line = suf_val_line.split(":")[1]
+    surfaces = suf_val_line.split(" ")[1:]
+
+    return surfaces
+
+
+def get_type1_surface_numbers(lines):
+    """ extract the surface numbers for a type 1 surface tally """
+    surface_list = []
+    for line in lines[2:]:
+        if "surface" in line:
+            line = line.strip()
+            surface_list.append(line.split()[-1])
+
+    return surface_list
+
+
+def process_energy_angle_tally(tally_data, lines, first_surface_line_id):
+    """ """
+
+    ntlogger.debug("energy bins")
+    angles_bins = [-1.0]
+
+    ebin = []
+    rel_err = []
+    res = []
+    res_df = []
+    rel_err_df = []
+    in_res = False
+
+    for line in lines[first_surface_line_id:]:
+        if line[:11] == " angle  bin":
+            ang_float = process_ang_string(line)
+            angles_bins.append(ang_float)
+
+        if line[:13] == "      total  ":
+            in_res = False
+            ebin = np.array(ebin)
+            tally_data.eng = ebin
+            rel_err = np.array(rel_err)
+            rel_err_df.append(rel_err)
+            res = np.array(res)
+            res_df.append(res)
+            ebin = []
+            rel_err = []
+            res = []
+        if in_res:
+            line = line.strip()
+            line = line.split(" ")
+            ebin.append(float(line[0]))
+            res.append(float(line[3]))
+            rel_err.append(float(line[4]))
+        if line == "      energy   ":
+            in_res = True
+
+    return res_df, rel_err_df, angles_bins
+
+
 def read_type_surface(tally_data, lines):
     """ process type 1 or type 2 tally output data"""
     ntlogger.debug("Surface Tally")
@@ -636,38 +769,28 @@ def read_type_surface(tally_data, lines):
     # find areas
     # TODO: sort for type 1 tally with sd card
     if tally_data.tally_type == "2":
-        area_line_id = ut.find_line("           areas", lines, 16)
-        area_val_line = lines[area_line_id + 2]
-        area_val_line = " ".join(area_val_line.split())
-        tally_data.areas = np.asarray(area_val_line.split(" "))
-        # find surfaces
-        suf_val_line = lines[area_line_id + 1]
-        suf_val_line = " ".join(suf_val_line.split())
-        suf_val_line = suf_val_line.split(":")[1]
-        tally_data.surfaces = suf_val_line.split(" ")[1:]
+        tally_data.areas = get_type2_surface_areas(lines)
+        tally_data.surfaces = get_type2_surface_numbers(lines)
 
         ntlogger.debug("Tally surface numbers:")
         ntlogger.debug(tally_data.surfaces)
         ntlogger.debug("Tally surface areas:")
         ntlogger.debug(tally_data.areas)
 
-    first_surface_line_id = ut.find_line(" surface ", lines, 9)
-    ntlogger.debug("first surface id %s", first_surface_line_id)
     if tally_data.tally_type == "1":
-        surface_list = []
-        for line in lines[2:]:
-            if "surface" in line:
-                line = line.strip()
-                surface_list.append(line.split()[-1])
-
+        surface_list = get_type1_surface_numbers(lines)
         tally_data.surfaces = list(set(surface_list))
         ntlogger.debug("Tally surface numbers:")
         ntlogger.debug(tally_data.surfaces)
 
     loc = 0
+    first_surface_line_id = ut.find_line(" surface ", lines, 9)
+    ntlogger.debug("first surface id %s", first_surface_line_id)
+
     surface_line_id = first_surface_line_id
     res_df = []
     rel_err_df = []
+
     if "energy" in lines[first_surface_line_id + 1]:
         ntlogger.debug("energy bins only")
 
@@ -682,16 +805,7 @@ def read_type_surface(tally_data, lines):
                               2:surface_line_id + tot_line_id]
             loc = surface_line_id + tot_line_id + 1
 
-            # set arrays
-            erg = []
-            res = []
-            rel_err = []
-            for line in erg_lines:
-                line = line.strip()
-                line = line.split(" ")
-                erg.append(float(line[0]))
-                res.append(float(line[3]))
-                rel_err.append(float(line[4]))
+            erg, res, rel_err = process_energy_lines(erg_lines)
 
             res_df.append(res)
             rel_err_df.append(rel_err)
@@ -711,37 +825,7 @@ def read_type_surface(tally_data, lines):
         ntlogger.debug("angle bins")
 
         if lines[first_surface_line_id + 2] == "      energy   ":
-            ntlogger.debug("energy bins")
-            angles_bins = [-1.0]
-
-            ebin = []
-            rel_err = []
-            res = []
-            in_res = False
-            for line in lines[first_surface_line_id:]:
-                if line[:11] == " angle  bin":
-                    ang_float = process_ang_string(line)
-                    angles_bins.append(ang_float)
-                    ntlogger.debug(ang_float)
-                if line[:13] == "      total  ":
-                    in_res = False
-                    ebin = np.array(ebin)
-                    tally_data.eng = ebin
-                    rel_err = np.array(rel_err)
-                    rel_err_df.append(rel_err)
-                    res = np.array(res)
-                    res_df.append(res)
-                    ebin = []
-                    rel_err = []
-                    res = []
-                if in_res:
-                    line = line.strip()
-                    line = line.split(" ")
-                    ebin.append(float(line[0]))
-                    res.append(float(line[3]))
-                    rel_err.append(float(line[4]))
-                if line == "      energy   ":
-                    in_res = True
+            res_df, rel_err_df, angles_bins = process_energy_angle_tally(tally_data, lines, first_surface_line_id)
 
             tally_data.result = res_df
             tally_data.err = rel_err_df
@@ -782,12 +866,7 @@ def read_type_surface(tally_data, lines):
             ntlogger.debug("time bins only")
             end_line_id = ut.find_ind(lines, "total") + 2
             lines = lines[first_surface_line_id + 1:end_line_id]
-
-            time_bins, results, errs = process_time_bin_only(lines)
-
-            tally_data.times = time_bins
-            tally_data.result = results
-            tally_data.err = errs
+            tally_data.times, tally_data.result, tally_data.err= process_time_bin_only(lines)
 
     elif len(tally_data.surfaces) > 1:
         for s in tally_data.surfaces:
@@ -893,11 +972,7 @@ def read_type_cell(tally_data, lines):
                 end_line_id = ut.find_ind(lines, "total") + 2
                 lines = lines[cell_res_start + 1:end_line_id]
 
-                time_bins, results, errs = process_time_bin_only(lines)
-
-                tally_data.times = time_bins
-                tally_data.result = results
-                tally_data.err = errs
+                tally_data.times, tally_data.result, tally_data.err = process_time_bin_only(lines)
 
         else:
             # single value per cell data
@@ -939,93 +1014,12 @@ def read_type_5(tally_data, lines):
         total_line_id2 = ut.find_line(
             "      total", lines[loc_line_id + 1:], 11)
         erg_lines = lines[loc_line_id + 2:loc_line_id + total_line_id2 + 1]
+        tally_data.eng, tally_data.result, tally_data.err = process_energy_lines(erg_lines)
 
-        for line in erg_lines:
-            line = line.strip()
-            line = line.split(" ")
-            tally_data.eng.append(float(line[0]))
-            tally_data.result.append(float(line[3]))
-            tally_data.err.append(float(line[4]))
     elif "time" in res_line:
         ntlogger.debug("found time")
-        # add time counter
-        times = []
-        t1_res = []
-        t1_err = []
-        t2_res = []
-        t2_err = []
-        t3_res = []
-        t3_err = []
-        t4_res = []
-        t4_err = []
-        t5_res = []
-        t5_err = []
-        ergs = []
+        # TODO: sort out f5 time dep tally
 
-        tcount = 0
-        loc_line_id2 = ut.find_line(" detector located",
-                                    lines[loc_line_id + 2:], 17)
-        erg_lines = lines[loc_line_id + 1:loc_line_id + loc_line_id2 - 1]
-        in_res = False
-        for line in erg_lines:
-            if ("total" in line) and ("time" not in line):
-                in_res = False
-                tally_data.result.append(t1_res)
-                tally_data.result.append(t2_res)
-                tally_data.result.append(t3_res)
-                tally_data.result.append(t4_res)
-                tally_data.result.append(t5_res)
-                tally_data.err.append(t1_err)
-                tally_data.err.append(t2_err)
-                tally_data.err.append(t3_err)
-                tally_data.err.append(t4_err)
-                tally_data.err.append(t5_err)
-                tally_data.eng = ergs
-                t1_res = []
-                t1_err = []
-                t2_res = []
-                t2_err = []
-                t3_res = []
-                t3_err = []
-                t4_res = []
-                t4_err = []
-                t5_res = []
-                t5_err = []
-                ergs = []
-            elif in_res:
-                line = line.strip()
-                line = " ".join(line.split())
-                line = line.split(" ")
-                ergs.append(float(line[0]))
-                if tcount >= 1:
-                    t1_res.append(float(line[1]))
-                    t1_err.append(float(line[2]))
-                if tcount >= 2:
-                    t2_res.append(float(line[3]))
-                    t2_err.append(float(line[4]))
-                if tcount >= 3:
-                    t3_res.append(float(line[5]))
-                    t3_err.append(float(line[6]))
-                if tcount >= 4:
-                    t4_res.append(float(line[7]))
-                    t4_err.append(float(line[8]))
-                if tcount >= 5:
-                    t5_res.append(float(line[9]))
-                    t5_err.append(float(line[10]))
-
-            elif "energy" in line:
-                in_res = True
-            elif "time" in line:
-                line = line.strip()
-                line = " ".join(line.split())
-                line = line.split(" ")
-                tcount = len(line[1:])
-                ntlogger.debug("tcount: %s", tcount)
-
-                for t in line[1:]:
-                    times.append(t)
-
-        tally_data.times = times
     elif "user bin" in res_line:
         # user bins used
         # assumes if user bins then also energy and time bins
@@ -1107,7 +1101,11 @@ def read_type_5(tally_data, lines):
 
 def read_stat_tests(lines):
     """ initial stat test reader"""
-    stat_res_line_id = ut.find_line(" passed", lines, 7)
+    try:
+        stat_res_line_id = ut.find_line(" passed", lines, 7)
+    except ValueError:
+        return ["no"]
+
     stat_line = lines[stat_res_line_id]
     stat_line = ut.string_clean_and_split(stat_line)[1:]
 
