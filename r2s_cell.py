@@ -1,9 +1,15 @@
 import json
 import argparse
+import pandas
+import os
+import shutil
+from pathlib import Path
 
 import mcnp_output_reader as mor
 import mcnp_input_reader as mir
 import fispact_output_reader as fisor
+import neut_utilities as ut
+import fispact_fluxes_writer as ffw
 
 
 class usr_inputs:
@@ -18,6 +24,7 @@ class usr_inputs:
         self.tallies = None
         self.cells = None
         self.fispact_path = None
+        self.cooling_step = 1
 
 
 def read_config(config_fp):
@@ -48,8 +55,13 @@ def read_config(config_fp):
             inputs.cells = config["cells"]
         elif key == "fispact_path":
             inputs.fispact_path = config["fispact_path"]
+        elif key == "cooling_step":
+            inputs.cooling_step = config["cooling_step"]
+        else:
+            raise ValueError('input not recognised')
  
     return inputs
+
 
 def get_cells_mcnp(mcnp_output, particle="neutron"):
     """ """
@@ -61,6 +73,95 @@ def get_cells_mcnp(mcnp_output, particle="neutron"):
        
     return cell_list
     
+    
+def get_cell_data(mc_input, cell_list):
+    """ """
+    for cell in cell_list:
+        
+    
+    return cell_data
+
+
+def write_collapse(path):
+    """ """
+    lines = []
+    ut.write_lines()
+    return 0
+
+
+def write_array(path):
+    """ """
+    lines = []
+    ut.write_lines()
+    return 0    
+
+
+def write_fispact(path):
+    """ """
+    lines = []
+    ut.write_lines()
+    return 0
+    
+    
+def copy_files_file(inputs, path):
+    """ """
+    shutil.copyfile(inputs.files_files, path+"/FILES")
+    return 0
+
+
+def write_fluxes(path):
+    """ """
+    return 0
+
+
+def check_files_file():
+    """ """
+    return 0
+    
+    
+def check_fispact_errors(log_file):
+    """ """
+    log = ut.get_lines(log_file)
+    return 0
+
+    
+def cleanup_fispact_run(path):
+    """ """
+    return 0
+
+
+def run_fispact(fispath, path):
+    """ """
+    # move into folder
+    # run collapse
+    # check collapse run
+    # run array
+    # check array run
+    
+    # run fispact main
+    # check main run
+    
+    # remember to move out of folder
+    
+    return 0
+    
+    
+def fispact_setup(cell, inputs):
+    """ """
+    path = "cell"+str(cell)
+    isExist = os.path.exists(path)
+    if not isExist:
+       # Create a new directory because it does not exist
+       os.makedirs(path)
+    
+    write_collapse(path)    
+    write_array(path)
+    write_fispact(path)
+    copy_files_file(inputs, path)
+    
+    return 0
+ 
+ 
 def main(config_fp):
     """ """
     # read config
@@ -69,6 +170,9 @@ def main(config_fp):
     # read mc output
     if inputs.mc_code.upper() == "MCNP":
         mc_output = mor.read_output_file(inputs.mc_output)
+        if mc_output.fatal == True:
+            raise ValueError('MCNP output contains a fatal error')
+            
         cells = get_cells_mcnp(mc_output)
     else:
         raise NotImplementedError()
@@ -76,6 +180,7 @@ def main(config_fp):
     # read mc input
     if inputs.mc_code.upper() == "MCNP":
         mc_input = mir.read_input_file(inputs.mc_input)
+        cell_data = get_cell_data(mc_input, cells)
     else:
         raise NotImplementedError()
     

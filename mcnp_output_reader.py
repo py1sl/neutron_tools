@@ -28,6 +28,7 @@ class MCNPOutput():
         self.warnings = []
         self.comments = []
         self.tables = []
+        self.fatal = False
 
 
 class MCNP_tally_data():
@@ -1130,6 +1131,14 @@ def get_table_dict(lines):
     return table_dict
 
 
+def check_fatal(ofile_data):
+    """ checks if there are any fatal errors in the output file """
+    for line in ofile_data:
+        if "fatal" in line.lower():
+            return True
+    return False
+    
+    
 def read_output_file(path):
     """ reads an mcnp output file
         input is a path the to an ouput file
@@ -1145,7 +1154,7 @@ def read_output_file(path):
     mc_data.date, mc_data.start_time = read_run_date(ofile_data)
     mc_data.comments, mc_data.warnings = read_comments_warnings(ofile_data)
     mc_data.num_rendevous = count_rendevous(ofile_data)
-
+    mc_data.fatal = check_fatal(ofile_data)
     mc_data.tables = get_table_dict(ofile_data)
 
     # read specific tables
