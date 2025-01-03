@@ -236,7 +236,9 @@ def print_cell(cell):
 
 
 def read_mcnp_input(fpath):
-    """ """
+    """ reads the mcnp input file,
+        main entry point for this module
+    """
 
     ifile = ut.get_lines(fpath)
     cell_bloc, surf_bloc, data_bloc = split_blocs(ifile)

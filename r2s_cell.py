@@ -13,7 +13,7 @@ import fispact_fluxes_writer as ffw
 
 
 class usr_inputs:
-    """ """
+    """ input from usr read from json file """
     def __init__(self):
         self.mc_input = None
         self.mc_ouput = None
@@ -28,7 +28,7 @@ class usr_inputs:
 
 
 def read_config(config_fp):
-    """ """
+    """ reads the json file and assigns values """
     if not Path(config_fp).exists():
         raise FileNotFoundError(f"config file {config_fp} not found")
 
@@ -63,19 +63,22 @@ def read_config(config_fp):
     return inputs
 
 
-def get_cells_mcnp(mcnp_output, particle="neutron"):
-    """ """
+def get_cells_mcnp(mcnp_output, particle="neutron", tallies=None):
+    """ reads from mcnp output and gets cell numbers from tallies"""
     cell_list = []
     for tal in mcnp_output.tally_data:
-        if tal.tally_type == 4:
-            if tal.particle == particle:
+        if tal.tally_type == 4 and tal.particle == particle:
+            if tallies != None:
+                if tal.number in tallies:
+                    cell_list = cell_list + tal.cells
+            else:
                 cell_list = cell_list + tal.cells
        
     return cell_list
     
     
 def get_cell_data(mc_input, cell_list):
-    """ """
+    """ get the cll material, mass and volume data"""
     for cell in cell_list:
         
     
@@ -83,55 +86,55 @@ def get_cell_data(mc_input, cell_list):
 
 
 def write_collapse(path):
-    """ """
+    """ writes the collapse stage fispact input file"""
     lines = []
     ut.write_lines()
     return 0
 
 
 def write_array(path):
-    """ """
+    """ writes the array stage fispact input file"""
     lines = []
     ut.write_lines()
     return 0    
 
 
 def write_fispact(path):
-    """ """
+    """ writes the main fispact runner """
     lines = []
     ut.write_lines()
     return 0
     
     
 def copy_files_file(inputs, path):
-    """ """
+    """ copy the files file into the folde for the current cell"""
     shutil.copyfile(inputs.files_files, path+"/FILES")
     return 0
 
 
 def write_fluxes(path):
-    """ """
+    """ write the fluxes file for the current cell"""
     return 0
 
 
 def check_files_file():
-    """ """
+    """ check the files file matches the data library with the current particle and group structure"""
     return 0
     
     
 def check_fispact_errors(log_file):
-    """ """
+    """ check the fispact log files for any fatal errors"""
     log = ut.get_lines(log_file)
     return 0
 
     
 def cleanup_fispact_run(path):
-    """ """
+    """ remove the fispact files after the run """
     return 0
 
 
 def run_fispact(fispath, path):
-    """ """
+    """ run the three fispact runs for a cell """
     # move into folder
     # run collapse
     # check collapse run
@@ -147,7 +150,7 @@ def run_fispact(fispath, path):
     
     
 def fispact_setup(cell, inputs):
-    """ """
+    """ set up the different the parts of the fispact runs for a cell """
     path = "cell"+str(cell)
     isExist = os.path.exists(path)
     if not isExist:
@@ -163,7 +166,7 @@ def fispact_setup(cell, inputs):
  
  
 def main(config_fp):
-    """ """
+    """  main calculation flow """
     # read config
     inputs = read_config(config_fp)          
 
