@@ -48,7 +48,7 @@ def read_config(config_fp):
         elif key == "files_file":
             inputs.files_file = config["files_file"]
         elif key == "fispact_template":
-            inputs.fisact_template = config["fispact_template"]
+            inputs.fispact_template = config["fispact_template"]
         elif key == "tallies":
             inputs.tallies = config["tallies"]
         elif key == "cells":
