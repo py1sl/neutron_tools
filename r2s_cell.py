@@ -80,7 +80,7 @@ def get_cells_mcnp(mcnp_output, particle="neutron", tallies=None):
 def get_cell_data(mc_input, cell_list):
     """ get the cll material, mass and volume data"""
     for cell in cell_list:
-        
+     cell_data =1    
     
     return cell_data
 
