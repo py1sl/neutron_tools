@@ -107,7 +107,9 @@ def write_fispact(path):
     
     
 def copy_files_file(inputs, path):
-    """ copy the files file into the folde for the current cell"""
+    """ copy the files file into the folder for the current cell"""
+    if not Path(inputs.files_file).exists():
+        raise FileNotFoundError(f" Files file {inputs.files_file} not found")
     shutil.copyfile(inputs.files_files, path+"/FILES")
     return 0
 
@@ -119,11 +121,17 @@ def write_fluxes(path):
 
 def check_files_file():
     """ check the files file matches the data library with the current particle and group structure"""
+    if not Path(files_file).exists():
+        raise FileNotFoundError(f" Files file {files_file} not found")
+    
     return 0
     
     
 def check_fispact_errors(log_file):
     """ check the fispact log files for any fatal errors"""
+    if not Path(log_file).exists():
+        raise FileNotFoundError(f" Fispact log file {log_file} not found")
+    
     log = ut.get_lines(log_file)
     return 0
 
@@ -163,6 +171,31 @@ def fispact_setup(cell, inputs):
     copy_files_file(inputs, path)
     
     return 0
+
+
+def read_data_from_mcnp_output(inputs):
+    """ """
+    if not Path(inputs.mc_output).exists():
+        raise FileNotFoundError(f"MCNP output file {inputs.mc_output} not found")
+        
+     mc_output = mor.read_output_file(inputs.mc_output)
+        if mc_output.fatal == True:
+            raise ValueError('MCNP output contains a fatal error')
+            
+        cells = get_cells_mcnp(mc_output)
+        
+        return cells
+        
+        
+def read_data_from_mcnp_input(inputs, cell_list):
+    """ reads the data from an mcnp input file """
+    if not Path(inputs.mc_input).exists():
+        raise FileNotFoundError(f"MCNP input file {inputs.mc_input} not found")
+        
+    mc_input = mir.read_input_file(inputs.mc_input)
+    cell_data = get_cell_data(mc_input, cells_list)
+     
+    return cell_data
  
  
 def main(config_fp):
@@ -172,18 +205,13 @@ def main(config_fp):
 
     # read mc output
     if inputs.mc_code.upper() == "MCNP":
-        mc_output = mor.read_output_file(inputs.mc_output)
-        if mc_output.fatal == True:
-            raise ValueError('MCNP output contains a fatal error')
-            
-        cells = get_cells_mcnp(mc_output)
+        cells = read_data_from_mcnp_output(inputs)
     else:
         raise NotImplementedError()
         
     # read mc input
     if inputs.mc_code.upper() == "MCNP":
-        mc_input = mir.read_input_file(inputs.mc_input)
-        cell_data = get_cell_data(mc_input, cells)
+       cell_data = read_data_from_mcnp_input(inputs, cells)
     else:
         raise NotImplementedError()
     

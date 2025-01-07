@@ -16,9 +16,41 @@ class json_read_test_case(unittest.TestCase):
         self.assertEqual(inputs.fispact_template, "fis_main.i")
         self.assertEqual(inputs.fispact_path, "fispact")
         self.assertEqual(inputs.cooling_step, 1)
+        
+    def test_no_config(self):
+        config_fp = "nonexistent_config.yaml"
 
+        with self.assertRaises(FileNotFoundError) as context:
+            r2s_cell.read_config(config_fp)  
+        self.assertEqual(str(context.exception), f"config file {config_fp} not found")    
+        
+        
+class cell_data_test_case(unittest.TestCase):
+    """ tests related to getting data about the cells, """
     
+    def test_get_cells_mcnp(self):
+        self.assertEqual(1,1)
+        
+    def test_get_cell_data(self):
+        self.assertEqual(1,1)
+  
+  
+class fispact_inputs_test_case(unittest.TestCase):
+    """ tests related to fispact input aspects """
+    
+    def test_check_fispact_errors(self):
+        self.assertEqual(1,1)
       
+    def test_fispact_setup(self):
+        self.assertEqual(1,1) 
+
+
+class main_run_test_case(unittest.TestCase):
+    """ tests related to main flow  and control of the calculation """
+    
+    def test_missing_files(self):
+        self.assertEqual(1,1)
+            
 
 if __name__ == '__main__':
     unittest.main()
