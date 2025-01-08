@@ -1,13 +1,26 @@
-# -*- coding: utf-8 -*-
 """
 MCNP input file reader
-S Lilley
-March 2019
 """
 import argparse
 import neut_utilities as ut
 
 
+class mcnp_input():
+    """ """
+    
+    def __init__(self):
+        self.cell_list = None
+        self.mat_num_list = None
+        self.mat_list = None
+        self.tall_num_list = None
+        self.surface_list = None
+        self.surface_block = None
+        self.cell_block = None
+        self.data_block = None
+        self.comments = None
+        self.file_path = None
+        
+        
 class mcnp_cell():
     """ """
 
@@ -20,6 +33,18 @@ class mcnp_cell():
         self.geom = ""
         self.surfaces = []
         self.param_list = []
+        
+    def __str__(self):
+        print_list = []
+        print_list.append("Cell number: ", self.number)
+        print_list.append("Cell material: ", self.mat)
+        print_list.append("Cell density: ", self.density)
+        print_list.append("Cell geom: ", self.geom)
+        print_list.append("Cell surfaces: ", self.surfaces)
+        print_list.append("Cell imp p:", self.imp_p)
+        print_list.append("Cell imp n:", self.imp_n)
+        
+        return "\n".join(print_list)
 
 
 def long_line_index(lines):
@@ -224,31 +249,23 @@ def cells_with_mat(mat_num, cell_list):
     return cells
 
 
-def print_cell(cell):
-    """ pretty printing of cell object """
-    print("Cell number: ", cell.number)
-    print("Cell material: ", cell.mat)
-    print("Cell density: ", cell.density)
-    print("Cell geom: ", cell.geom)
-    print("Cell surfaces: ", cell.surfaces)
-    print("Cell imp p:", cell.imp_p)
-    print("Cell imp n:", cell.imp_n)
-
-
 def read_mcnp_input(fpath):
     """ reads the mcnp input file,
         main entry point for this module
     """
 
     ifile = ut.get_lines(fpath)
-    cell_bloc, surf_bloc, data_bloc = split_blocs(ifile)
-    cell_list = process_cell_block(cell_bloc)
+    
+    mc_in = mcnp_input()
+    mc_in.file_path = fpath
+    mc_in.cell_block, mc_in.surface_block, mc_in.data_block = split_blocs(ifile)
+    mc_in.cell_list = process_cell_block(mc_in.cell_block)
+    
+    mc_comments = get_full_line_comments(ifile)
 
-    comments = get_full_line_comments(ifile)
+    mc_in.mat_num_list = get_material_numbers(mc_in.data_block)
 
-    mat_nums = get_material_numbers(data_bloc)
-
-    return ifile, comments, mat_nums, cell_list
+    return mc_in
 
 
 def vised_compatible(fname):
@@ -261,4 +278,4 @@ if __name__ == "__main__":
     parser.add_argument("input", help="path to the mcnp input file")
     args = parser.parse_args()
 
-    read_mcnp_input(args.input)
+    mc_in = read_mcnp_input(args.input)
