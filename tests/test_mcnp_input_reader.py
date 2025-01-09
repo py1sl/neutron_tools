@@ -97,7 +97,22 @@ class data_card_tests(unittest.TestCase):
         self.assertEqual(mnums[0], 1)    # test for lower case m
         self.assertEqual(mnums[1], 10)   # test for upper case m
         self.assertEqual(len(mnums), 2)  # check nothing else added
-
+        
+    def test_get_material(self):
+        lines = ["m1 $ a material", "      1000.21c 1", 
+                 "m2 $ next mat", "      1001.21c 1"]
+        
+        self.assertEqual(mcnp_input_reader.read_material(1, lines),
+                         ["m1 $ a material", "      1000.21c 1"])
+        self.assertEqual(mcnp_input_reader.read_material(2, lines),
+                         ["m2 $ next mat", "      1001.21c 1"])
+        self.assertEqual(mcnp_input_reader.read_material("2", lines),
+                         ["m2 $ next mat", "      1001.21c 1"])
+        self.assertEqual(mcnp_input_reader.read_material(3, lines),
+                         [])
+        self.assertEqual(mcnp_input_reader.read_material(1, []),
+                         [])                         
+        
     def test_get_tal_nums(self):
         """ """
         test_list = ["f1",

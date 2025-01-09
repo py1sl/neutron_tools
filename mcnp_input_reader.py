@@ -12,13 +12,14 @@ class mcnp_input():
         self.cell_list = None
         self.mat_num_list = None
         self.mat_list = None
-        self.tall_num_list = None
+        self.tal_num_list = None
         self.surface_list = None
         self.surface_block = None
         self.cell_block = None
         self.data_block = None
         self.comments = None
         self.file_path = None
+        self.mode = None
         
         
 class mcnp_cell():
@@ -80,10 +81,10 @@ def check_mode_valid(mode):
 
 def get_full_line_comments(lines):
     """  extracts all full line comments """
-    comments = []
-    for line in lines:
+    comments = {}
+    for i, line in enumerate(lines):
         if len(line) > 1 and line[0].lower() == "c" and line[1] == " ":
-            comments.append(line)
+            comments[i] = line
     return comments
 
 
@@ -221,7 +222,7 @@ def process_cell_block(bloc):
                 cell.density = float(line[2])
                 geo_start_pos = 3
             geom = line[geo_start_pos:]
-        elif line[0:4] == "     ":
+        elif line.startswith("     "):
             geom.append(line)
 
     # add last cell
@@ -247,6 +248,29 @@ def cells_with_mat(mat_num, cell_list):
         if mat_num == cell.mat:
             cells.append(cell)
     return cells
+    
+    
+def read_material(mat_num, lines):
+    """ """
+    material = []
+    in_mat = False
+    for line in lines:
+        # check if line is a continuation of material
+        if in_mat and line.startswith("    "):
+            material.append(line)
+        # find end of material 
+        elif in_mat and not line.startswith("    "):
+            in_mat = False
+        # find material lines
+        if len(line) > 1 and line[0].lower() == "m" and line[1].isdigit():
+            line = ut.string_cleaner(line)
+            mnum = line.split(" ")[0]
+            mnum = mnum[1:]
+            if mnum == str(mat_num):
+                in_mat = True
+                material.append(line)
+    
+    return material
 
 
 def read_mcnp_input(fpath):
@@ -262,7 +286,9 @@ def read_mcnp_input(fpath):
     mc_in.cell_list = process_cell_block(mc_in.cell_block)
     
     mc_comments = get_full_line_comments(ifile)
-
+    
+    mc_in.mode = read_mode_card(mc_in.data_block)
+    mc_in.tal_num_list = get_tally_numbers(mc_in.data_block)
     mc_in.mat_num_list = get_material_numbers(mc_in.data_block)
 
     return mc_in
