@@ -3,6 +3,7 @@ MCNP input file reader
 """
 import argparse
 import neut_utilities as ut
+import pandas as pd
 
 
 class mcnp_input():
@@ -46,6 +47,15 @@ class mcnp_cell():
         print_list.append("Cell imp n:", self.imp_n)
         
         return "\n".join(print_list)
+ 
+ 
+class mcnp_material():
+    """ class representing a MCNP materials definition """
+    def __init__(self):
+        self.number = None
+        self.is_by_weight = True
+        self.num_nuclides = 0
+        self.composition = None
 
 
 def long_line_index(lines):

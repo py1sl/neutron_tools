@@ -39,8 +39,52 @@ class cell_card_tests(unittest.TestCase):
         self.assertEqual(cell.density, -2.3)
         self.assertEqual(cell.imp_n, 1.0)
     """
-
-
+    
+class filter_tests(unittest.TestCase):
+    """ tests for retrieving certain data objects """
+    
+    def test_get_cell(self):
+        
+        # check empty list
+        self.assertEqual(mcnp_input_reader.get_cell(1,[]), None)
+        
+        # check working
+        cell_1 = mcnp_input_reader.mcnp_cell()
+        cell_1.number = 1
+        cell_2 = mcnp_input_reader.mcnp_cell()
+        cell_2.number = 2
+        final_cell = mcnp_input_reader.get_cell(1,[cell_1, cell_2])
+        self.assertEqual(final_cell, cell_1)
+        
+        # check cell number not present
+        final_cell = mcnp_input_reader.get_cell(10,[cell_1, cell_2])
+        self.assertEqual(final_cell, None)
+        
+        
+    def test_get_cells_with_mat(self):
+        # check empty list
+        self.assertEqual(mcnp_input_reader.cells_with_mat(1,[]), [])
+        
+        # set up test_list
+        cell_1 = mcnp_input_reader.mcnp_cell()
+        cell_1.number = 1
+        cell_1.mat = 1
+        cell_2 = mcnp_input_reader.mcnp_cell()
+        cell_2.number = 2
+        cell_2.mat = 1
+        cell_3 = mcnp_input_reader.mcnp_cell()
+        cell_3.number = 3
+        cell_3.mat = 2
+        
+        cell_list = [cell_1, cell_2, cell_3]
+        # check working
+        self.assertEqual(len(mcnp_input_reader.cells_with_mat(1, cell_list)), 2)
+        self.assertEqual(len(mcnp_input_reader.cells_with_mat(2, cell_list)), 1)
+        
+        # check mat num not present
+        self.assertEqual(mcnp_input_reader.cells_with_mat(10, cell_list), [])
+        
+        
 class surface_card_tests(unittest.TestCase):
     """ test for reading the surfaces part of input file"""
 
