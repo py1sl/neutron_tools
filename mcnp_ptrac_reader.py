@@ -25,7 +25,7 @@ class event():
         self.x = 0
         self.y = 0
         self.z = 0
-        self.type = ""
+        self.event_type = ""
         self.u = 0
         self.v = 0
         self.w = 0
@@ -46,7 +46,7 @@ class event():
             same = False
         elif self.z != other.z:
             same = False
-        elif self.type != other.type:
+        elif self.event_type != other.event_type:
             same = False
         elif self.u != other.u:
             same = False
@@ -98,7 +98,7 @@ def process_event(event_data):
 
     event_data = [float(i) for i in event_data]
     cur_event = event()
-    cur_event.type = event_data[0]
+    cur_event.event_type = event_data[0]
     if len(event_data) == 16:
         cur_event.cell = event_data[2]
         cur_event.x = event_data[7]
@@ -156,7 +156,7 @@ def process_tracks(tracks):
         line = line.split(" ")
 
         # check if a new history
-        if len(line) == 2 or len(line) == 3:
+        if len(line) == 2 or len(line) == 3 or len(line) == 4:
             if cur_history:
                 histories.append(cur_history)
             cur_history = history()
