@@ -56,6 +56,33 @@ class mcnp_material():
         self.is_by_weight = True
         self.num_nuclides = 0
         self.composition = None
+        
+        
+class mcnp_tally():
+    """MCNP tally input """
+    def __init__(self):
+        self.number = None
+        self.tal_type = None
+        self.data = None
+        self.has_ebins = False
+        self.has_tbins = False
+        self.has_fm = False
+        self.has_sd_card = False
+        self.has_fc_comment = False
+    
+    def __str__(self):
+        print_list = []
+        print_list.append("Tally number: ", self.number)
+        print_list.append("Tally card:", self.data)
+        
+        if self.has_ebins:
+            print_list.append("Has energy bins")
+        if self.has_tbins:
+            print_list.append("Has time bins")
+        if self.has_fm:
+            print_list.append("Is modified by a flux modifed card")
+                
+        return "\n".join(print_list)
 
 
 def long_line_index(lines):
@@ -154,7 +181,7 @@ def check_GQ(surface):
 
 
 def find_blank_lines(lines):
-    """ find the location and count of balnk lines in the file """
+    """ find the location and count of blank lines in the file """
     count = 0
     blank_dict = {}
 
@@ -258,6 +285,64 @@ def cells_with_mat(mat_num, cell_list):
         if mat_num == cell.mat:
             cells.append(cell)
     return cells
+    
+    
+def cells_with_surface(surf_num, cell_list):
+    """ get all cells that contain surface """
+    cells = []
+    for cell in cell_list:
+        if surf_num in cell.surfaces:
+            cells.append(cell)            
+    return cells
+    
+    
+def get_mat(mat_num, mat_list):    
+    """ retrieve a particular material number  """
+    for mat in mat_list:
+        if mat.number == mat_num:
+            return mat
+    
+    return None
+    
+    
+def check_valid_mat_num(mat_num):
+    """ checks a material number is valid in MCNP"""
+    if mat_num > 99999:
+        return False
+    else:
+        return True
+
+
+def check_valid_surf_num(surf_num):
+    """ checks surface number is a valid MCNP surface number """
+        if surf_num > 99999:
+        return False
+    else:
+        return True
+
+
+def check_valid_cell_num(cell_num):
+    """ checks surface number is a valid MCNP surface number """
+        if cell_num > 99999:
+        return False
+    else:
+        return True
+
+
+def check_cell_mat_exists(cell, mat_list):
+    """ checks the material listed in a cell has a material """
+    if get_mat(cell.mat, mat_list) == None:
+        return False
+    else:
+        return True
+    
+    
+def check_cell_exists(cell_num, cell_list):
+    """ checks a cell object exists for that cell number"""
+    if get_cell(cell_num, cell_list) == None:
+        return False
+    else:
+        return True
     
     
 def read_material(mat_num, lines):
