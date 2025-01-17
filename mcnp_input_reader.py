@@ -315,7 +315,7 @@ def check_valid_mat_num(mat_num):
 
 def check_valid_surf_num(surf_num):
     """ checks surface number is a valid MCNP surface number """
-        if surf_num > 99999:
+    if surf_num > 99999:
         return False
     else:
         return True
@@ -323,7 +323,7 @@ def check_valid_surf_num(surf_num):
 
 def check_valid_cell_num(cell_num):
     """ checks surface number is a valid MCNP surface number """
-        if cell_num > 99999:
+    if cell_num > 99999:
         return False
     else:
         return True

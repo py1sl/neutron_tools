@@ -39,7 +39,35 @@ class cell_card_tests(unittest.TestCase):
         self.assertEqual(cell.density, -2.3)
         self.assertEqual(cell.imp_n, 1.0)
     """
-    
+
+
+class input_validation_tests(unittest.TestCase):
+    """ test for some of the card validation tests """
+    def test_check_mat_num(self):
+        self.assertTrue(mcnp_input_reader.check_valid_mat_num(1))
+        self.assertFalse(mcnp_input_reader.check_valid_mat_num(1000000))
+        
+    def test_check_surf_num(self):
+        self.assertTrue(mcnp_input_reader.check_valid_surf_num(1))
+        self.assertFalse(mcnp_input_reader.check_valid_surf_num(1000000))
+        
+    def test_check_cell_num(self):
+        self.assertTrue(mcnp_input_reader.check_valid_cell_num(1))
+        self.assertFalse(mcnp_input_reader.check_valid_cell_num(1000000))
+        
+        
+    def test_mode_valid(self):
+        """ """
+        check = mcnp_input_reader.check_mode_valid(["p", "n"])
+        self.assertTrue(check)  # check lower case
+
+        check = mcnp_input_reader.check_mode_valid(["n", "P"])
+        self.assertTrue(check)  # check upper case and order
+
+        check = mcnp_input_reader.check_mode_valid(["p", "n", "r"])
+        self.assertFalse(check)  # check false
+
+
 class filter_tests(unittest.TestCase):
     """ tests for retrieving certain data objects """
     
@@ -59,7 +87,6 @@ class filter_tests(unittest.TestCase):
         # check cell number not present
         final_cell = mcnp_input_reader.get_cell(10,[cell_1, cell_2])
         self.assertEqual(final_cell, None)
-        
         
     def test_get_cells_with_mat(self):
         # check empty list
@@ -83,6 +110,39 @@ class filter_tests(unittest.TestCase):
         
         # check mat num not present
         self.assertEqual(mcnp_input_reader.cells_with_mat(10, cell_list), [])
+    
+    def test_get_cells_with_surf(self):
+        # check empty list
+        self.assertEqual(mcnp_input_reader.cells_with_mat(1,[]), [])
+        
+        # set up test_list
+        cell_1 = mcnp_input_reader.mcnp_cell()
+        cell_1.number = 1
+        cell_1.surfaces = [1, 2, 3]
+        cell_2 = mcnp_input_reader.mcnp_cell()
+        cell_2.number = 2
+        cell_2.surfaces = [1, 4, 5]
+        cell_3 = mcnp_input_reader.mcnp_cell()
+        cell_3.number = 3
+        cell_3.surfaces = [2]
+        
+        cell_list = [cell_1, cell_2, cell_3]
+        # check working
+        self.assertEqual(len(mcnp_input_reader.cells_with_surface(1, cell_list)), 2)
+        self.assertEqual(len(mcnp_input_reader.cells_with_surface(3, cell_list)), 1)
+        self.assertEqual(len(mcnp_input_reader.cells_with_surface(2, cell_list)), 2)
+        
+        # check mat num not present
+        self.assertEqual(mcnp_input_reader.cells_with_surface(10, cell_list), [])
+        
+    def test_cell_exists(self):
+        # check working
+        cell_1 = mcnp_input_reader.mcnp_cell()
+        cell_1.number = 1
+        cell_2 = mcnp_input_reader.mcnp_cell()
+        cell_2.number = 2
+        self.assertTrue(mcnp_input_reader.check_cell_exists(1, [cell_1, cell_2]))
+        self.assertFalse(mcnp_input_reader.check_cell_exists(10, [cell_1, cell_2]))
         
         
 class surface_card_tests(unittest.TestCase):
@@ -142,7 +202,7 @@ class data_card_tests(unittest.TestCase):
         self.assertEqual(mnums[1], 10)   # test for upper case m
         self.assertEqual(len(mnums), 2)  # check nothing else added
         
-    def test_get_material(self):
+    def test_read_material(self):
         lines = ["m1 $ a material", "      1000.21c 1", 
                  "m2 $ next mat", "      1001.21c 1"]
         
@@ -187,19 +247,8 @@ class data_card_tests(unittest.TestCase):
                                                  "m34 32000"])
         self.assertIsNone(mode)  # test other lines starting with m
 
-    def test_mode_valid(self):
-        """ """
-        check = mcnp_input_reader.check_mode_valid(["p", "n"])
-        self.assertTrue(check)  # check lower case
 
-        check = mcnp_input_reader.check_mode_valid(["n", "P"])
-        self.assertTrue(check)  # check upper case and order
-
-        check = mcnp_input_reader.check_mode_valid(["p", "n", "r"])
-        self.assertFalse(check)  # check false
-
-
-class misc_tests(unittest.TestCase):
+class line_tests(unittest.TestCase):
     """ test for reading the misc part of input file"""
 
     def test_full_line_comment(self):
