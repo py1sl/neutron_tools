@@ -16,20 +16,6 @@ def write_lines(path, lines):
             f.write(f"{line}\n")
 
 
-def write_points_file(path, x, y, z):
-    """ writes a visit compatible points file, from 3 lists
-        each one a list of co-ords for a dimension
-    """
-    out_data = []
-    out_data.append("x y z temp")
-    for i, px in enumerate(x):
-        py = y[i]
-        pz = z[i]
-        out_data.append(str(px) + " " + str(py) + " " + str(pz) + " 1")
-
-    write_lines(path, out_data)
-
-
 def get_lines(path):
     """ reads file at path and returns a list with 1 entry per line """
     with open(path) as f:

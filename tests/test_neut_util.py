@@ -33,26 +33,6 @@ class writelines_test_case(unittest.TestCase):
         mock_file().write.assert_not_called()
 
 
-class writepoints_test_case(unittest.TestCase):
-    """ tests write_points function"""
-
-    def test_write_points(self):
-        open_mock = mock_open()
-        with patch("neut_utilities.open", open_mock, create=True):
-            ut.write_points_file("output.txt", [1, 2], [3, 4], [5, 6])
-
-        open_mock.assert_called_with("output.txt", "w")
-        open_mock.return_value.write.assert_any_call("1 3 5 1\n")
-
-    def test_write_points_error(self):
-        open_mock = mock_open()
-        with patch("neut_utilities.open", open_mock, create=True):
-            with self.assertRaises(IndexError):
-                ut.write_points_file("output.txt", [1, 2], [3, 4], [5])
-
-        open_mock.assert_not_called()
-
-
 class string_cleaner_test_case(unittest.TestCase):
     """ tests string_cleaner function"""
 
