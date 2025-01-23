@@ -35,6 +35,7 @@ class mcnp_cell():
         self.geom = ""
         self.surfaces = []
         self.param_list = []
+        self.cell_comment = []
         
     def __str__(self):
         print_list = []
@@ -222,6 +223,11 @@ def process_geom(geom, cell):
     cell.geom = geom
 
     for part in geom:
+        if "$" in part:
+            part = part.split("$")
+            cell.cell_comment.append(part[-1])
+            part = part[0]
+            print(part)
         part = part.strip("()-")
         if "imp" in part.lower():
             cell = process_imp(part, cell)
@@ -230,7 +236,7 @@ def process_geom(geom, cell):
             for s in part:
                 surfaces.append(float(s))
         else:
-            print(" part not recogninsed")
+            print(f"{part} part not recogninsed")
 
     cell.surfaces = surfaces
 

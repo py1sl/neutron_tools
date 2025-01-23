@@ -63,24 +63,31 @@ def read_config(config_fp):
     return inputs
 
 
-def get_cells_mcnp(mcnp_output, particle="neutron", tallies=None):
+def get_cells_mcnp(mcnp_output, particle="neutrons", tallies=None):
     """ reads from mcnp output and gets cell numbers from tallies"""
     cell_list = []
     for tal in mcnp_output.tally_data:
-        if tal.tally_type == 4 and tal.particle == particle:
+        if tal.tally_type == '4' and tal.particle == particle:
             if tallies != None:
                 if tal.number in tallies:
                     cell_list = cell_list + tal.cells
             else:
                 cell_list = cell_list + tal.cells
-       
+    
+    # convert to ints
+    cell_list = [int(i) for i in cell_list]
     return cell_list
     
     
-def get_cell_data(mc_input, cell_list):
+def get_cell_data(mc_input, tally_cell_list):
     """ get the cll material, mass and volume data"""
-    for cell in cell_list:
-     cell_data =1    
+    cell_data = []
+    for cell_num in tally_cell_list:
+     if mir.check_cell_exists(cell_num, mc_input.cell_list):
+         cell = mir.get_cell(cell_num, mc_input.cell_list)
+         cell_data.append(cell)
+     else:
+         raise ValueError(f"Cell: {cell_num} not found in input")         
     
     return cell_data
 
@@ -178,22 +185,22 @@ def read_data_from_mcnp_output(inputs):
     if not Path(inputs.mc_output).exists():
         raise FileNotFoundError(f"MCNP output file {inputs.mc_output} not found")
         
-     mc_output = mor.read_output_file(inputs.mc_output)
-        if mc_output.fatal == True:
-            raise ValueError('MCNP output contains a fatal error')
+    mc_output = mor.read_output_file(inputs.mc_output)
+    if mc_output.fatal == True:
+        raise ValueError('MCNP output contains a fatal error')
             
-        cells = get_cells_mcnp(mc_output)
+    cells = get_cells_mcnp(mc_output)
         
-        return cells
+    return cells
         
         
-def read_data_from_mcnp_input(inputs, cell_list):
+def read_data_from_mcnp_input(inputs, tally_cell_list):
     """ reads the data from an mcnp input file """
     if not Path(inputs.mc_input).exists():
         raise FileNotFoundError(f"MCNP input file {inputs.mc_input} not found")
         
-    mc_input = mir.read_input_file(inputs.mc_input)
-    cell_data = get_cell_data(mc_input, cells_list)
+    mc_input = mir.read_mcnp_input(inputs.mc_input)
+    cell_data = get_cell_data(mc_input, tally_cell_list)
      
     return cell_data
  
@@ -206,12 +213,14 @@ def main(config_fp):
     # read mc output
     if inputs.mc_code.upper() == "MCNP":
         cells = read_data_from_mcnp_output(inputs)
+        print(cells)
     else:
         raise NotImplementedError()
         
     # read mc input
     if inputs.mc_code.upper() == "MCNP":
        cell_data = read_data_from_mcnp_input(inputs, cells)
+       print(cell_data)
     else:
         raise NotImplementedError()
     
