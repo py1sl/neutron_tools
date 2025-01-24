@@ -227,7 +227,8 @@ def process_geom(geom, cell):
             part = part.split("$")
             cell.cell_comment.append(part[-1])
             part = part[0]
-            print(part)
+        if len(part) == 0:
+            continue
         part = part.strip("()-")
         if "imp" in part.lower():
             cell = process_imp(part, cell)

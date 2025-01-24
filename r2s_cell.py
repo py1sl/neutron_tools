@@ -1,6 +1,6 @@
 import json
 import argparse
-import pandas
+import pandas as pd
 import os
 import shutil
 from pathlib import Path
@@ -66,17 +66,20 @@ def read_config(config_fp):
 def get_cells_mcnp(mcnp_output, particle="neutrons", tallies=None):
     """ reads from mcnp output and gets cell numbers from tallies"""
     cell_list = []
+    tally_data = []
     for tal in mcnp_output.tally_data:
         if tal.tally_type == '4' and tal.particle == particle:
             if tallies != None:
                 if tal.number in tallies:
                     cell_list = cell_list + tal.cells
+                    tally_data.append(tal)
             else:
                 cell_list = cell_list + tal.cells
+                tally_data.append(tal)
     
     # convert to ints
     cell_list = [int(i) for i in cell_list]
-    return cell_list
+    return cell_list, tally_data
     
     
 def get_cell_data(mc_input, tally_cell_list):
@@ -89,7 +92,17 @@ def get_cell_data(mc_input, tally_cell_list):
      else:
          raise ValueError(f"Cell: {cell_num} not found in input")         
     
-    return cell_data
+    header = ["number", "material", "density"]
+    cell_df = None
+    for i, cell in enumerate(cell_data):
+        cell_series = {"number":cell.number, "material":cell.mat, "density":cell.density}
+        cell_series = pd.DataFrame(cell_series, columns=header, index=[i])
+        if isinstance(cell_df, pd.DataFrame) :
+            cell_df = pd.concat([cell_df, cell_series])
+        else:
+            cell_df = cell_series
+    
+    return cell_df
 
 
 def write_collapse(path):
@@ -189,9 +202,9 @@ def read_data_from_mcnp_output(inputs):
     if mc_output.fatal == True:
         raise ValueError('MCNP output contains a fatal error')
             
-    cells = get_cells_mcnp(mc_output)
+    cells, tally_data = get_cells_mcnp(mc_output)
         
-    return cells
+    return cells, tally_data
         
         
 def read_data_from_mcnp_input(inputs, tally_cell_list):
@@ -212,7 +225,7 @@ def main(config_fp):
 
     # read mc output
     if inputs.mc_code.upper() == "MCNP":
-        cells = read_data_from_mcnp_output(inputs)
+        cells, tally_data = read_data_from_mcnp_output(inputs)
         print(cells)
     else:
         raise NotImplementedError()
