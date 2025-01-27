@@ -105,17 +105,30 @@ def get_cell_data(mc_input, tally_cell_list):
     return cell_df
 
 
-def write_collapse(path):
+def write_collapse(path, groups_count):
     """ writes the collapse stage fispact input file"""
-    lines = []
-    ut.write_lines()
+    lines = ["<< -----collapse cross section data----- >>",
+             "CLOBBER"
+             "GETXS 1 " + str(groups_count),
+             "FISPACT",
+             "* COLLAPSE",  
+             "END",
+             "* END OF RUN"]
+    ut.write_lines(path, lines)
     return 0
 
 
 def write_array(path):
     """ writes the array stage fispact input file"""
-    lines = []
-    ut.write_lines()
+    lines = ["<< -----condense decay data----- >>",
+             "CLOBBER",
+             "SPEK",
+             "GETDECAY 1",
+             "FISPACT",
+             "* CONDENSE", 
+             "END",
+             "* END OF RUN"]
+    ut.write_lines(path, lines)
     return 0    
 
 
