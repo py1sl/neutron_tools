@@ -149,10 +149,11 @@ def copy_files_file(inputs, path):
 
 def write_fluxes(path):
     """ write the fluxes file for the current cell"""
+    ut.write_lines(path, lines)
     return 0
 
 
-def check_files_file():
+def check_files_file(files_file):
     """ check the files file matches the data library with the current particle and group structure"""
     if not Path(files_file).exists():
         raise FileNotFoundError(f" Files file {files_file} not found")
@@ -227,8 +228,15 @@ def read_data_from_mcnp_input(inputs, tally_cell_list):
         
     mc_input = mir.read_mcnp_input(inputs.mc_input)
     cell_data = get_cell_data(mc_input, tally_cell_list)
+    
+    material_data = []
+    
+    for mat_num in set(cell_data["material"]):
+
+        mat = mir.read_material_lines(mat_num, mc_input.data_block)
+        material_data.append(mat)
      
-    return cell_data
+    return cell_data, material_data
  
  
 def main(config_fp):
@@ -245,7 +253,7 @@ def main(config_fp):
         
     # read mc input
     if inputs.mc_code.upper() == "MCNP":
-       cell_data = read_data_from_mcnp_input(inputs, cells)
+       cell_data, material_data = read_data_from_mcnp_input(inputs, cells)
        print(cell_data)
     else:
         raise NotImplementedError()

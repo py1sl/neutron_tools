@@ -8,11 +8,11 @@ import pandas as pd
 
 class mcnp_input():
     """ """
-    
+
     def __init__(self):
         self.cell_list = None
         self.mat_num_list = None
-        self.mat_list = None
+        self.mat_list = []
         self.tal_num_list = None
         self.surface_list = None
         self.surface_block = None
@@ -21,8 +21,10 @@ class mcnp_input():
         self.comments = None
         self.file_path = None
         self.mode = None
-        
-        
+        self.is_sdef = True
+        self.is_kcode = False
+
+
 class mcnp_cell():
     """ """
 
@@ -36,7 +38,7 @@ class mcnp_cell():
         self.surfaces = []
         self.param_list = []
         self.cell_comment = []
-        
+
     def __str__(self):
         print_list = []
         print_list.append("Cell number: ", self.number)
@@ -46,10 +48,10 @@ class mcnp_cell():
         print_list.append("Cell surfaces: ", self.surfaces)
         print_list.append("Cell imp p:", self.imp_p)
         print_list.append("Cell imp n:", self.imp_n)
-        
+
         return "\n".join(print_list)
- 
- 
+
+
 class mcnp_material():
     """ class representing a MCNP materials definition """
     def __init__(self):
@@ -57,8 +59,9 @@ class mcnp_material():
         self.is_by_weight = True
         self.num_nuclides = 0
         self.composition = None
-        
-        
+        self.keywords = None
+
+
 class mcnp_tally():
     """MCNP tally input """
     def __init__(self):
@@ -70,19 +73,19 @@ class mcnp_tally():
         self.has_fm = False
         self.has_sd_card = False
         self.has_fc_comment = False
-    
+
     def __str__(self):
         print_list = []
         print_list.append("Tally number: ", self.number)
         print_list.append("Tally card:", self.data)
-        
+
         if self.has_ebins:
             print_list.append("Has energy bins")
         if self.has_tbins:
             print_list.append("Has time bins")
         if self.has_fm:
             print_list.append("Is modified by a flux modifed card")
-                
+
         return "\n".join(print_list)
 
 
@@ -110,7 +113,7 @@ def read_mode_card(lines):
 
 def check_mode_valid(mode):
     """ checks the particles on a mode card are valid particles identifiers """
-    particle_list = ["n", "p", "h", "e"]
+    particle_list = ["n", "p", "h", "e", "|", "q", "u", "v", "!"]
     for particle in mode:
         if particle.lower() not in particle_list:
             return False
@@ -153,7 +156,18 @@ def get_tally_numbers(lines):
 
 def check_surface_type_validity(surface):
     """ check surface is a valid mcnp type"""
-    return True
+    surface_types = ("p", "px", "py", "pz", "cx", "cy", "cz",
+                     "s", "so", "c/x", "c/y", "c/z", "gq", "sq",
+                     "sx", "sy", "sz", "kx", "ky", "kz", "k/x",
+                     "k/y", "k/z", "tx", "ty", "tz")
+    macro_types = ("rpp", "rcc", "box", "sph", "wed", "rec", "ell",
+                   "hex", "arb", "trc", "rhp")
+    if surface in surface_types:
+        return True
+    elif surface in macro_types:
+        return True
+        
+    return False
 
 
 def check_plane(surface):
@@ -292,29 +306,29 @@ def cells_with_mat(mat_num, cell_list):
         if mat_num == cell.mat:
             cells.append(cell)
     return cells
-    
-    
+
+
 def cells_with_surface(surf_num, cell_list):
     """ get all cells that contain surface """
     cells = []
     for cell in cell_list:
         if surf_num in cell.surfaces:
-            cells.append(cell)            
+            cells.append(cell)
     return cells
-    
-    
-def get_mat(mat_num, mat_list):    
+
+
+def get_mat(mat_num, mat_list):
     """ retrieve a particular material number  """
     for mat in mat_list:
         if mat.number == mat_num:
             return mat
-    
+
     return None
-    
-    
+
+
 def check_valid_mat_num(mat_num):
     """ checks a material number is valid in MCNP"""
-    if mat_num > 99999:
+    if mat_num > 99999999:
         return False
     else:
         return True
@@ -322,7 +336,7 @@ def check_valid_mat_num(mat_num):
 
 def check_valid_surf_num(surf_num):
     """ checks surface number is a valid MCNP surface number """
-    if surf_num > 99999:
+    if surf_num > 99999999:
         return False
     else:
         return True
@@ -330,7 +344,7 @@ def check_valid_surf_num(surf_num):
 
 def check_valid_cell_num(cell_num):
     """ checks surface number is a valid MCNP surface number """
-    if cell_num > 99999:
+    if cell_num > 99999999:
         return False
     else:
         return True
@@ -342,37 +356,107 @@ def check_cell_mat_exists(cell, mat_list):
         return False
     else:
         return True
-    
-    
+
+
 def check_cell_exists(cell_num, cell_list):
     """ checks a cell object exists for that cell number"""
     if get_cell(cell_num, cell_list) == None:
         return False
     else:
         return True
-    
-    
-def read_material(mat_num, lines):
-    """ """
-    material = []
+
+
+def remove_inline_comment(line):
+    """ in line comments are  every thing after a $ """
+    line = line.split("$")[0]
+    return line
+
+
+def read_material_lines(mat_num, lines):
+    """ extracts the block of lines used for a given material """
+    material_lines = []
     in_mat = False
+
     for line in lines:
+        line = line.lower()
+
         # check if line is a continuation of material
-        if in_mat and line.startswith("    "):
-            material.append(line)
-        # find end of material 
-        elif in_mat and not line.startswith("    "):
-            in_mat = False
+        if in_mat:
+            if line.startswith("    "):
+                line = remove_inline_comment(line)
+                material_lines.append(line)
+            # check for full line comments
+            elif line.startswith("c "):
+                continue
+            # find end of material
+            elif line and not line.startswith("    "):
+                break
         # find material lines
-        if len(line) > 1 and line[0].lower() == "m" and line[1].isdigit():
-            line = ut.string_cleaner(line)
-            mnum = line.split(" ")[0]
-            mnum = mnum[1:]
+        if len(line) > 1 and line[0] == "m" and line[1].isdigit():
+            mnum = line.split(" ")[0][1:]
             if mnum == str(mat_num):
                 in_mat = True
-                material.append(line)
-    
+                line = remove_inline_comment(line)
+                material_lines.append(line)
+
+    material = " ".join(material_lines)
+    material = ut.string_cleaner(material)
+    material = process_material_line(material, mat_num)
+
     return material
+
+
+def process_material_keyword(entry, mat):
+    """ process a material keyword """
+    entry = entry.split("=")
+    key = entry[0]
+
+    # deal with multiple value keywords - the reflectivity ones
+    if len(entry) == 2:
+        value = entry[-1]
+    else:
+        value = entry[1:]
+
+    if mat.keywords:
+        mat.keywords[key] = value
+    else:
+        mat.keywords = {key, value}
+
+    return mat
+
+
+def process_material_line(mat_line, mat_num):
+    """ """
+    mat = mcnp_material()
+    mat.number = mat_num
+
+    # split and ignore the mat number part
+    mat_line = mat_line.split(" ")[1:]
+
+    # search for key words
+    keyword_entries = [entry for entry in mat_line if isinstance(entry, str) and "=" in entry]
+    if len(keyword_entries) > 0:
+        for entry in keyword_entries:
+            mat = process_material_keyword(entry, mat)
+
+    # remove keyword entries from mat_line
+    filtered_data = [entry for entry in mat_line if not (isinstance(entry, str) and "=" in entry)]
+    # convert to a material dict with zaid - fraction pairs
+    material_dict = {filtered_data[i]: float(filtered_data[i + 1]) for i in range(0, len(filtered_data), 2)}
+
+    mat.composition = material_dict
+
+    return mat
+
+
+def check_valid_mat_keyword(mat):
+    """ checks that any keywords found for the material are valid inputs """
+    valid_keywords = ("plib", "hlib", "gas", "estep", "hstep",
+                      "nlib", "pnlib", "elib", "alib", "slib",
+                      "tlib", "dlib", "cond", "refi", "refc", "refs")
+    for key in mat.keywords.keys():
+        if key not in valid_keywords:
+            raise ValueError(f'{key} input not recognised as valid keyword for a material')
 
 
 def read_mcnp_input(fpath):
@@ -381,23 +465,28 @@ def read_mcnp_input(fpath):
     """
 
     ifile = ut.get_lines(fpath)
-    
+
     mc_in = mcnp_input()
     mc_in.file_path = fpath
     mc_in.cell_block, mc_in.surface_block, mc_in.data_block = split_blocs(ifile)
     mc_in.cell_list = process_cell_block(mc_in.cell_block)
-    
+
     mc_comments = get_full_line_comments(ifile)
-    
+
     mc_in.mode = read_mode_card(mc_in.data_block)
     mc_in.tal_num_list = get_tally_numbers(mc_in.data_block)
     mc_in.mat_num_list = get_material_numbers(mc_in.data_block)
+
+    for mat_num in mc_in.mat_num_list:
+        mat = read_material_lines(mat_num, mc_in.data_block)
+        mc_in.mat_list.append(mat)
+
 
     return mc_in
 
 
 def vised_compatible(fname):
-    """ makes a mcnp file work with vised mcnpx version """
+    """ makes a modern mcnp file work with vised mcnpx version """
     ut.text_replace(fname, "mphys", "c mphys")
 
 

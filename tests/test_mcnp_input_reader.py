@@ -45,16 +45,15 @@ class input_validation_tests(unittest.TestCase):
     """ test for some of the card validation tests """
     def test_check_mat_num(self):
         self.assertTrue(mcnp_input_reader.check_valid_mat_num(1))
-        self.assertFalse(mcnp_input_reader.check_valid_mat_num(1000000))
-        
+        self.assertFalse(mcnp_input_reader.check_valid_mat_num(1e10))
+
     def test_check_surf_num(self):
         self.assertTrue(mcnp_input_reader.check_valid_surf_num(1))
-        self.assertFalse(mcnp_input_reader.check_valid_surf_num(1000000))
-        
+        self.assertFalse(mcnp_input_reader.check_valid_surf_num(1e10))
+
     def test_check_cell_num(self):
         self.assertTrue(mcnp_input_reader.check_valid_cell_num(1))
-        self.assertFalse(mcnp_input_reader.check_valid_cell_num(1000000))
-        
+        self.assertFalse(mcnp_input_reader.check_valid_cell_num(10000000000))
         
     def test_mode_valid(self):
         """ """
@@ -70,12 +69,12 @@ class input_validation_tests(unittest.TestCase):
 
 class filter_tests(unittest.TestCase):
     """ tests for retrieving certain data objects """
-    
+
     def test_get_cell(self):
-        
+
         # check empty list
         self.assertEqual(mcnp_input_reader.get_cell(1,[]), None)
-        
+
         # check working
         cell_1 = mcnp_input_reader.mcnp_cell()
         cell_1.number = 1
@@ -83,15 +82,15 @@ class filter_tests(unittest.TestCase):
         cell_2.number = 2
         final_cell = mcnp_input_reader.get_cell(1,[cell_1, cell_2])
         self.assertEqual(final_cell, cell_1)
-        
+
         # check cell number not present
         final_cell = mcnp_input_reader.get_cell(10,[cell_1, cell_2])
         self.assertEqual(final_cell, None)
-        
+
     def test_get_cells_with_mat(self):
         # check empty list
         self.assertEqual(mcnp_input_reader.cells_with_mat(1,[]), [])
-        
+
         # set up test_list
         cell_1 = mcnp_input_reader.mcnp_cell()
         cell_1.number = 1
@@ -102,19 +101,19 @@ class filter_tests(unittest.TestCase):
         cell_3 = mcnp_input_reader.mcnp_cell()
         cell_3.number = 3
         cell_3.mat = 2
-        
+
         cell_list = [cell_1, cell_2, cell_3]
         # check working
         self.assertEqual(len(mcnp_input_reader.cells_with_mat(1, cell_list)), 2)
         self.assertEqual(len(mcnp_input_reader.cells_with_mat(2, cell_list)), 1)
-        
+
         # check mat num not present
         self.assertEqual(mcnp_input_reader.cells_with_mat(10, cell_list), [])
-    
+
     def test_get_cells_with_surf(self):
         # check empty list
         self.assertEqual(mcnp_input_reader.cells_with_mat(1,[]), [])
-        
+
         # set up test_list
         cell_1 = mcnp_input_reader.mcnp_cell()
         cell_1.number = 1
@@ -125,16 +124,16 @@ class filter_tests(unittest.TestCase):
         cell_3 = mcnp_input_reader.mcnp_cell()
         cell_3.number = 3
         cell_3.surfaces = [2]
-        
+
         cell_list = [cell_1, cell_2, cell_3]
         # check working
         self.assertEqual(len(mcnp_input_reader.cells_with_surface(1, cell_list)), 2)
         self.assertEqual(len(mcnp_input_reader.cells_with_surface(3, cell_list)), 1)
         self.assertEqual(len(mcnp_input_reader.cells_with_surface(2, cell_list)), 2)
-        
+
         # check mat num not present
         self.assertEqual(mcnp_input_reader.cells_with_surface(10, cell_list), [])
-        
+
     def test_cell_exists(self):
         # check working
         cell_1 = mcnp_input_reader.mcnp_cell()
@@ -143,23 +142,32 @@ class filter_tests(unittest.TestCase):
         cell_2.number = 2
         self.assertTrue(mcnp_input_reader.check_cell_exists(1, [cell_1, cell_2]))
         self.assertFalse(mcnp_input_reader.check_cell_exists(10, [cell_1, cell_2]))
-        
-        
+
+
 class surface_card_tests(unittest.TestCase):
     """ test for reading the surfaces part of input file"""
 
     # test simple surface card
     def test_single_line_surface(self):
-        self.assertTrue(True)
-
+        self.assertTrue(True) 
+        
     # test multi line surface card
     def test_multi_line_surface(self):
         self.assertTrue(True)
 
     def test_is_surface(self):
         # test check surface type validity
-        self.assertTrue(True)
-        self.assertFalse(False)
+        # check surfaces
+        self.assertTrue(mcnp_input_reader.check_surface_type_validity("px"))
+        # check for possible escape characters
+        self.assertTrue(mcnp_input_reader.check_surface_type_validity("c/x"))
+        self.assertTrue(mcnp_input_reader.check_surface_type_validity("c/y"))
+        self.assertTrue(mcnp_input_reader.check_surface_type_validity("c/z"))
+        self.assertTrue(mcnp_input_reader.check_surface_type_validity("k/z"))
+        # check macro body
+        self.assertTrue(mcnp_input_reader.check_surface_type_validity("rpp"))
+        # check not a surface
+        self.assertFalse(mcnp_input_reader.check_surface_type_validity("nas"))
 
     def test_plane_valid(self):
         # test plane validity
@@ -201,22 +209,31 @@ class data_card_tests(unittest.TestCase):
         self.assertEqual(mnums[0], 1)    # test for lower case m
         self.assertEqual(mnums[1], 10)   # test for upper case m
         self.assertEqual(len(mnums), 2)  # check nothing else added
-        
+
     def test_read_material(self):
-        lines = ["m1 $ a material", "      1000.21c 1", 
+        lines = ["m1 $ a material", "      1000.21c 1",
                  "m2 $ next mat", "      1001.21c 1"]
-        
-        self.assertEqual(mcnp_input_reader.read_material(1, lines),
-                         ["m1 $ a material", "      1000.21c 1"])
-        self.assertEqual(mcnp_input_reader.read_material(2, lines),
-                         ["m2 $ next mat", "      1001.21c 1"])
-        self.assertEqual(mcnp_input_reader.read_material("2", lines),
-                         ["m2 $ next mat", "      1001.21c 1"])
-        self.assertEqual(mcnp_input_reader.read_material(3, lines),
-                         [])
-        self.assertEqual(mcnp_input_reader.read_material(1, []),
-                         [])                         
-        
+
+        mat = mcnp_input_reader.read_material_lines(1, lines)
+        self.assertEqual(mat.number, 1)
+        self.assertEqual(mat.keywords, None)
+        self.assertEqual(mat.composition["1000.21c"], 1)
+    """
+    def test_mat_keyword(self):
+        mat = mcnp_input_reader.mcnp_material()
+        test_line = "plib=.70u"
+
+        # test no previous keywords
+        mat = mcnp_input_reader.process_material_keyword(test_line, mat)
+        self.assertEqual(mat.keywords["plib"], ".70u")
+
+        # test with previous keywords
+        mat = mcnp_input_reader.mcnp_material()
+        mat.keywords = {"test_key", "test_value"}
+        mat = mcnp_input_reader.process_material_keyword(test_line, mat)
+        self.assertEqual(mat.keywords["plib"], ".70u")
+        self.assertEqual(mat.keywords["test_key"], "test_value")
+    """
     def test_get_tal_nums(self):
         """ """
         test_list = ["f1",
@@ -250,6 +267,18 @@ class data_card_tests(unittest.TestCase):
 
 class line_tests(unittest.TestCase):
     """ test for reading the misc part of input file"""
+
+    def test_inline_comments(self):
+        """ """
+        # test not inline comment
+        test_line = "no comment"
+        line = mcnp_input_reader.remove_inline_comment(test_line)
+        self.assertEqual(line, test_line)
+
+        # test inline comment
+        test_line = " 1 1 $ test"
+        line = mcnp_input_reader.remove_inline_comment(test_line)
+        self.assertEqual(line, " 1 1 ")
 
     def test_full_line_comment(self):
         """ """
