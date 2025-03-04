@@ -9,8 +9,8 @@ class json_read_test_case(unittest.TestCase):
     def test_read(self):
         inputs = r2s_cell.read_config("test_output/r2s_1.json")
         self.assertEqual(inputs.mc_code, "mcnp")
-        self.assertEqual(inputs.mc_input, "r2s_1.i")
-        self.assertEqual(inputs.mc_output, "r2s_1.io")
+        self.assertEqual(inputs.mc_input, "test_output/r2s_1.i")
+        self.assertEqual(inputs.mc_output, "test_output/r2s_1.io")
         self.assertEqual(inputs.mc_gamma_input, "r2s_1g.i")
         self.assertEqual(inputs.files_file, "files")
         self.assertEqual(inputs.fispact_template, "fis_main.i")
@@ -29,7 +29,11 @@ class cell_data_test_case(unittest.TestCase):
     """ tests related to getting data about the cells, """
     
     def test_get_cells_mcnp(self):
-        self.assertEqual(1,1)
+        inputs = r2s_cell.read_config("test_output/r2s_1.json")
+        cells, tally_data = r2s_cell.read_data_from_mcnp_output(inputs)
+        
+        self.assertEqual(len(cells), 6)
+        
         
     def test_missing_mcnp_output(self):
         inputs = r2s_cell.read_config("test_output/r2s_1.json")
@@ -51,6 +55,12 @@ class cell_data_test_case(unittest.TestCase):
         
         
     def test_get_cell_data(self):
+        inputs = r2s_cell.read_config("test_output/r2s_1.json")
+        cells, tally_data = r2s_cell.read_data_from_mcnp_output(inputs)
+        
+        
+        cell_data, mat_data =  r2s_cell.read_data_from_mcnp_input(inputs, cells)
+        
         self.assertEqual(1,1)
   
   

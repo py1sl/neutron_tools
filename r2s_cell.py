@@ -132,10 +132,10 @@ def write_array(path):
     return 0    
 
 
-def write_fispact(path):
+def write_fispact(inputs, cell_data, path):
     """ writes the main fispact runner """
     lines = []
-    ut.write_lines()
+    ut.write_lines(path, lines)
     return 0
     
     
@@ -272,7 +272,7 @@ if __name__ == "__main__":
     desc_txt1 = "Cell based 2 step activation script"
     desc_txt2 = " using fispact"
     parser = argparse.ArgumentParser(description=desc_txt1 + desc_txt2)
-    parser.add_argument("input", help="path to the input file")
+    parser.add_argument("input", help="path to the json input file")
 
     args = parser.parse_args()
     
