@@ -149,6 +149,7 @@ def copy_files_file(inputs, path):
 
 def write_fluxes(cell_data, path):
     """ write the fluxes file for the current cell"""
+    lines = []
     ut.write_lines(path, lines)
     return 0
 
