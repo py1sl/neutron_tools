@@ -420,7 +420,7 @@ def process_material_keyword(entry, mat):
     if mat.keywords:
         mat.keywords[key] = value
     else:
-        mat.keywords = {key, value}
+        mat.keywords = {key: value}
 
     return mat
 
