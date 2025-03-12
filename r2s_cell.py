@@ -147,7 +147,7 @@ def copy_files_file(inputs, path):
     return 0
 
 
-def write_fluxes(path):
+def write_fluxes(cell_data, path):
     """ write the fluxes file for the current cell"""
     ut.write_lines(path, lines)
     return 0
@@ -174,10 +174,10 @@ def cleanup_fispact_run(path):
     """ remove the fispact files after the run """
     return 0
 
-
+   
 def run_fispact(fispath, path):
     """ run the three fispact runs for a cell """
-    # move into folder
+    # change directory into folder
     # run collapse
     # check collapse run
     # run array
@@ -191,18 +191,21 @@ def run_fispact(fispath, path):
     return 0
     
     
-def fispact_setup(cell, inputs):
+def fispact_setup(path, inputs, cell_data):
     """ set up the different the parts of the fispact runs for a cell """
-    path = "cell"+str(cell)
     isExist = os.path.exists(path)
     if not isExist:
        # Create a new directory because it does not exist
        os.makedirs(path)
     
-    write_collapse(path)    
-    write_array(path)
-    write_fispact(path)
+    # TODO: need to get the groups number for the collapse
+    write_collapse(path+"/collapse.i")    
+    write_array(path+"/array.i")
+    
+    write_fispact(inputs, cell_data, path+"/"+path+".i")
     copy_files_file(inputs, path)
+    check_files_file(path+"/FILES")
+    write_fluxes(cell_data, path+"/fluxes")
     
     return 0
 
@@ -260,9 +263,15 @@ def main(config_fp):
     
     
     # generate fispact inputs
+    # TODO: loop over the cell_data object
+    for cell in cells:
+        path = "cell"+str(cell)
+        fispact_setup(path, inputs, cell_data)
     
-    # run fispact
-    
+        # run fispact
+        fispath = inputs.fispact_path
+        run_fispact(fispath, path)
+        
     # read fispact outputs
     
     # generate new mc gamma source
