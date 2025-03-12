@@ -1,0 +1,12 @@
+{
+    "mc_input":"r2s_2.i",
+    "mc_output":"r2s_2.io",
+    "mc_gamma_input":"r2s_2g.i",
+    "mc_code":"mcnp",
+    "files_file":"files",
+    "fispact_template":"fis_main.i",
+    "fispact_path":"fispact",
+    "cooling_step":1,
+    "error_key":1
+    
+    }    

@@ -27,4 +27,5 @@ It should be noted that these are now mostly for historic useage as UKAEA have r
  - neut_utilities :- simple functions used by multiple modules
  - neut_constants :- set of useful constants and unit conversions
  - geom_utils :- set of geometry functions, distance between planes, area, volumes, intersections etc
+ - r2s :- cell based two step activation tool, currently set for using mcnp and fispact
 

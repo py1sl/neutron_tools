@@ -107,8 +107,14 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
                     y_vals = np.asarray(d.result)/bw
                     splot = plt.step(np.asarray(d.eng),  y_vals)
         elif d.tally_type == '2':
-            y_vals = np.asarray(d.result)/bw
-            splot = plt.step(np.asarray(d.eng),  y_vals)
+            
+            if len(d.surfaces)>1:
+                for surf in d.result:
+                    y_vals = np.asarray(surf)/bw
+                    splot = plt.step(np.asarray(d.eng),  y_vals)
+            else:
+                y_vals = np.asarray(d.result)/bw
+                splot = plt.step(np.asarray(d.eng),  y_vals)
         elif d.tally_type == '4' and len(d.cells) > 1:
 
             for cell in d.result:
@@ -188,14 +194,15 @@ def plot_en_time(data, fname):
     masked_vals = masked_vals[:-1, :-1]
     # np.ma.masked_where(data.result[1] < 1e-50, data.result[1])
 
+    """
     plt.pcolormesh(masked_vals.T,
                    norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()),
                    cmap="PuBu_r")
     """
-    plt.pcolormesh(data.times[:-3], data.eng, masked_vals.T,
+    plt.pcolormesh(data.times, data.eng, masked_vals.T,
                    norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()),
                    cmap="PuBu_r")
-    """
+    
     plt.colorbar()
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
