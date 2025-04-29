@@ -65,7 +65,8 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
         if not hasattr(d, 'eng'):
             raise ValueError("Invalid MCNP tally does not have energy bins.")
 
-        plt.step(np.asarray(d.eng), np.asarray(d.result[0]))
+        for obj_id, results in d.result.items():
+            splot = plt.step(np.asarray(d.eng),  results["result"], label=obj_id)    
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
 
@@ -88,15 +89,13 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
         if d.tally_type == '1':
             plt.ylabel("current n/MeV/" + sp)
             if len(d.surfaces) > 1:
-                for surf in d.result:
-                    if len(d.ang_bins) > 1:
-                        print("not implemented yet - plotting spectra, angle and multiple surfaces")
-                        raise NotImplementedError
+                if len(d.ang_bins) > 1:
+                    print("not implemented yet - plotting spectra, angle and multiple surfaces")
+                    raise NotImplementedError
+                for surf, data in d.result.items():
+                    y_vals = data["result"]/bw
+                    splot = plt.step(np.asarray(d.eng),  y_vals, label=surf)
 
-                    else:
-                        y_vals = np.asarray(surf)/bw
-                        splot = plt.step(np.asarray(d.eng),  y_vals)
-                        legend = d.surfaces
             else:
                 if len(d.ang_bins) > 1:
                     for ang in d.result:
@@ -104,28 +103,23 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
                         splot = plt.step(np.asarray(d.eng),  y_vals)
                         legend = d.ang_bins
                 else:
-                    y_vals = np.asarray(d.result)/bw
-                    splot = plt.step(np.asarray(d.eng),  y_vals)
+                    for surf, data in d.result.items():
+                        y_vals = data["result"]/bw
+                        splot = plt.step(np.asarray(d.eng),  y_vals, label=surf)
+                    plt.legend()
+
         elif d.tally_type == '2':
+            for surf, data in d.result.items():
+                y_vals = data["result"]/bw
+                splot = plt.step(np.asarray(d.eng),  y_vals, label=surf)
+            plt.legend()
+
+        elif d.tally_type == '4':
+            for cell, data in d.result.items():
+                y_vals = data["result"]/bw
+                splot = plt.step(np.asarray(d.eng),  y_vals, label=cell) 
+            plt.legend()
             
-            if len(d.surfaces)>1:
-                for surf in d.result:
-                    y_vals = np.asarray(surf)/bw
-                    splot = plt.step(np.asarray(d.eng),  y_vals)
-            else:
-                y_vals = np.asarray(d.result)/bw
-                splot = plt.step(np.asarray(d.eng),  y_vals)
-        elif d.tally_type == '4' and len(d.cells) > 1:
-
-            for cell in d.result:
-                y_vals = np.asarray(cell) / bw
-                splot = plt.step(np.asarray(d.eng), y_vals)
-            legend = d.cells
-        elif d.tally_type == '4' and len(d.cells) == 1:
-            for cell in d.result:
-                y_vals = np.asarray(cell) / bw
-                splot = plt.step(np.asarray(d.eng), y_vals)
-
         else:
             y_vals = np.asarray(d.result) / bw
             splot = plt.step(np.asarray(d.eng), y_vals)
@@ -202,7 +196,7 @@ def plot_en_time(data, fname):
     plt.pcolormesh(data.times, data.eng, masked_vals.T,
                    norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()),
                    cmap="PuBu_r")
-    
+
     plt.colorbar()
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)

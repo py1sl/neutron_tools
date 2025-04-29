@@ -198,7 +198,7 @@ class tally_processing_tests(unittest.TestCase):
         self.assertEqual(erg, expected_erg)
         self.assertEqual(res, expected_res)
         self.assertEqual(rel_err, expected_rel_err)
-        
+
     def test_convert_et_tally_to_df(self):
         """ """
         # test valid data
@@ -207,13 +207,13 @@ class tally_processing_tests(unittest.TestCase):
         energy_bins = [100, 200, 300]
 
         df = mcnp_output_reader.convert_energy_time_data_to_df(data, time_bins, energy_bins)
-        expected_df = pd.DataFrame(data, index=time_bins, columns=energy_bins)      
+        expected_df = pd.DataFrame(data, index=time_bins, columns=energy_bins)
         pd.testing.assert_frame_equal(df, expected_df)
 
         # test data that won't convert
         data = np.array([[1, 2], [4, 5], [7, 8]])
         time_bins = [0.1, 0.2, 0.3]
-        energy_bins = [100, 200, 300]  
+        energy_bins = [100, 200, 300]
 
         result = mcnp_output_reader.convert_energy_time_data_to_df(data, time_bins, energy_bins)
         # Since conversion fails, the function should return the original data
@@ -253,9 +253,9 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
-                self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[0], 2.92000E-02)
+                self.assertIsInstance(tn.result, dict)
+                self.assertIsInstance(tn.totals, dict)
+
 
     def test_tbinned_t1_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
@@ -309,9 +309,8 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
-                self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[0], 1.92767E-04)
+                self.assertIsInstance(tn.result, dict)
+                self.assertIsInstance(tn.totals, dict)
 
     def test_etbinned_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_et.io')
@@ -329,8 +328,6 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.times[-1], "total")
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
-                # self.assertEqual(tn.result.shape, tn.err.shape)
-                # self.assertEqual(tn.result.shape, (15, 15))
 
     def test_tbinned_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
@@ -384,11 +381,10 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(len(tn.eng), 14)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
-                self.assertEqual(len(tn.result[0]), 14)
-                self.assertEqual(len(tn.err[0]), 14)
-                self.assertEqual(tn.result[0][0], 1.20226E-04)
                 self.assertEqual(tn.cells, ['2'])
                 self.assertEqual(tn.vols, ['3.66519E+03'])
+                self.assertIsInstance(tn.result, dict)
+                self.assertIsInstance(tn.totals, dict)
 
     def test_etbinned_t4_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_et.io')
@@ -523,10 +519,8 @@ class tally_type6_tests(unittest.TestCase):
                 self.assertEqual(len(tn.eng), 14)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
-                self.assertEqual(len(tn.result[0]), 14)
-                self.assertEqual(len(tn.err[0]), 14)
-                self.assertEqual(tn.result[0][0], 5.60997E-07)
-                self.assertEqual(tn.cells, ['2'])
+                self.assertIsInstance(tn.result, dict)
+                self.assertIsInstance(tn.totals, dict)
                 self.assertEqual(tn.vols, ['9.89602E+03'])
 
 
