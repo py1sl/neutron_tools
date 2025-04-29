@@ -294,6 +294,7 @@ class line_tests(unittest.TestCase):
 
     def test_long_line(self):
         """ """
+        
         test_list = ["c cell cards",
                      "C surface ecards",
                      "c234",
@@ -308,6 +309,19 @@ class line_tests(unittest.TestCase):
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
         self.assertEqual(ll_index, None)     # if no long lines, return none
+        
+        test_list = ["c cell cards",
+                     "C surface"+ 90*"f" ,
+                     "c234"]
+        ll_index = mcnp_input_reader.long_line_index(test_list)
+        self.assertEqual(ll_index, None)     # test checking long comment lines, return none
+        
+        test_list = ["c cell cards",
+                     "       $ surface"+ 100*"f" ,
+                     "c234"]
+        ll_index = mcnp_input_reader.long_line_index(test_list)
+        self.assertEqual(ll_index, None)     # test checking long inline comment, return none
+        
 
 
 if __name__ == '__main__':
