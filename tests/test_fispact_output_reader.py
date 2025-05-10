@@ -18,6 +18,14 @@ class version_test_case(unittest.TestCase):
         lines = ut.get_lines(path)
         version = fo.isFisII(lines)
         self.assertEqual(version, True)
+        
+class read_mass_tests(unittest.TestCase):
+    """ tests for the read mass function """
+    
+    def test_mass_read(self):
+        test_lines = ["", "test", "0 Mass of material input =  1.0000E+00 kg. "]
+        mass = fo.read_mass(test_lines)
+        self.assertEqual(mass, 1)
 
 
 class read_fis_out_test_case(unittest.TestCase):
@@ -36,6 +44,8 @@ class read_fis_out_test_case(unittest.TestCase):
         self.assertEqual(output.num_cool_step, 0)
         self.assertEqual(output.num_irrad_step, 3)
         self.assertEqual(len(output.timestep_data), 9)
+        self.assertEqual(output.mass_kg, 1)
+        self.assertEqual(output.mass_g, 1000)
 
         # individual timestep checks
         ts1 = output.timestep_data[0]

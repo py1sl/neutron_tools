@@ -1,8 +1,10 @@
 import logging
 import matplotlib
+import os
 from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import neut_utilities as ut
 import neut_constants
 matplotlib.use('agg')
@@ -92,12 +94,96 @@ def check_time_units(t_units):
     return t_units
 
 
+def read_OOS(oos_path="data/t1.txt"):
+    """ read the external data file with a tab seperated list of nuclides and the
+        out of scope value for that nuclide
+        returns a pandas dataframe with the data
+    """
+    base = os.path.dirname(__file__)  # path to core.py
+    path = os.path.join(base, oos_path)
+    OOS_df = pd.read_csv(path, sep='\t')
+
+    return OOS_df
+
+
+def check_nuclide_oos(nuclide, nuc_act, oos_data, mass=1000 ):
+    """ checks if a nuclide is in the OOS data and compares if the activity is above that value
+        returns true if activity is lower than the OOS value
+        returns false if above the OOS value
+    """
+    oos_values = oos_data[oos_data["Nuclide"]==nuclide]["OOS Level"].values
+    if oos_values.size > 0:
+        oos_value = oos_values[0]
+
+    else:
+        oos_values = oos_data[oos_data["Nuclide"]=='Other']["OOS Level"].values
+        oos_value = oos_values[0]
+
+    # now do the comparison
+    if nuc_act/mass > oos_value:
+        return False
+    else:
+        return True
+
+
+def check_inventory_oos(inv, oos_path="data/t1.txt"):
+    """ checks all nuclides in an inventory
+        returns true if all nuclides are below the OOS value
+        returns false if any nuclide is above the OOS value
+    """
+    oos_data = read_OOS(oos_path)
+    inv = remove_stable(inv)
+
+    oos_result = inv.apply(lambda row: check_nuclide_oos(row['nuclide'], row['act'], oos_data), axis=1)
+
+    # Check if any of the result values are False
+    if not oos_result.all():
+
+        # Get the index of the first False value - for future output options
+        first_false_index = oos_result.idxmin()
+
+        return False
+    else:
+        return True
+    
+    
+def get_not_oos_nuclides(inv, oos_path="data/t1.txt"):
+    """ """
+    oos_data = read_OOS(oos_path)
+    inv = remove_stable(inv)
+
+    inv["oos_result"] = inv.apply(lambda row: check_nuclide_oos(row['nuclide'], row['act'], oos_data), axis=1)
+    inv = inv[inv["oos_result"]==False]
+    return inv
+    
+
+
+def find_when_oos(ts_data, oos_path="data/t1.txt"):
+    """ checks all times steps to find first one which is OOS
+        returns the time step number
+    """
+    for ts in ts_data:
+
+        oos_result = check_inventory_oos(ts.inventory)
+        if oos_result:
+            return ts.step_num
+ 
+ 
+def cooling_ts_data(fout):
+    """ """
+    ts_data = fout.timestep_data[fout.cooling_step_index:]
+    return ts_data
+
+
 def plot_summary(sum_dat, column="act", offset=0, fname=None,
-                 vlines=None, hlines=None, x_units="time_hours", y_units=None):
+                 vlines=None, hlines=None, x_units="time_hours", y_units=None, cooling=False):
     """ plots any of the columns from the data frame as a function of time
     (included: activity, dose rate, heat output, ingestion dose, inhalation dose,
     tritium activity)"""
 
+    if cooling:
+        sum_dat = sum_dat[sum_dat["is_cooling"]]
+    
     data = sum_dat[column]
     x_units = check_time_units(x_units)
     time_vals = sum_dat[x_units]
@@ -134,7 +220,7 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
     plt.ylabel(y_label)
     plt.yscale("log")
 
-    # set to x axis to log if longer than 10 hours
+    # set to x axis to log if longer than 10 time val units
     if max(time_vals) > 10:
         plt.xscale("log")
 

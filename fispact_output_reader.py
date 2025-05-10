@@ -21,6 +21,7 @@ import argparse
 import neut_utilities as ut
 import numpy as np
 import pandas as pd
+import re
 
 
 class FispactOutput():
@@ -31,6 +32,7 @@ class FispactOutput():
         self.file_name = ""
         self.sumdat = []
         self.timestep_data = []
+        self.cooling_step_index = 0
         self.num_cool_step = 0   # number of steps after zero keyword
         self.num_irrad_step = 0  # number of steps with flux > 0
         self.version = ""
@@ -39,6 +41,8 @@ class FispactOutput():
         self.tot_irrad_time = 0.0
         self.tot_fluence = 0.0
         self.ave_flux = 0.0
+        self.mass_kg = 0.0
+        self.mass_g = 0.0
         self.time_days = []
 
 
@@ -91,11 +95,13 @@ def read_fis_out(path):
     fo.version = check_fisp_version(lines)
     fo.isFisII = isFisII(lines)
     fo.sumdat = read_summary_data(lines)
-
+    fo.cooling_step_index = find_first_cooling_index(fo.sumdat)
     fo.ave_flux = read_parameter(lines, "Mean flux")
     fo.tot_irrad_time = read_parameter(lines, "Total irradiation time")
     fo.tot_fluence = read_parameter(lines, "Total fluence")
     fo.num_irrad_step = read_parameter(lines, "Number of on-times")
+    fo.mass_kg = read_mass(lines)
+    fo.mass_g = fo.mass_kg * 1000
 
     if fo.isFisII:
         search_string = "fispact run time"
@@ -473,6 +479,28 @@ def parse_inventory(data):
 
     return inv
 
+
+def read_mass(lines):
+    """ find and read in the mass line """
+    mass_pattern = re.compile(r"^0\s+Mass of material input\s*=\s*([0-9.Ee+-]+)\s*kg\.")
+    for line in lines:
+        line = line.strip()
+        match = mass_pattern.match(line)
+        if match:
+            return float(match.group(1))
+    return 0.0
+    
+    
+def find_first_cooling_index(sumdat):
+    """ finds the first index  """
+    result = sumdat[sumdat["is_cooling"] == True]
+    if not result.empty:
+        index = result.index[0]
+    else:
+        index = None
+    
+    return index
+    
 
 def read_parameter(data, sub):
     """ finds and cleans integral values in each timestep"""
