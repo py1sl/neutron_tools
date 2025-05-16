@@ -174,32 +174,79 @@ def plot_run_comp(data, err, fname, title, xlab="Run #",
     ntlogger.info("produced figure: %s", fname)
 
 
-def plot_en_time(data, fname):
-    """ plotting energy time data"""
-    plt.clf()
-    if data.times is None:
-        ntlogger.info("Error - no time bins")
-    if data.eng is None:
-        ntlogger.info("Error - no energy bins")
-    plt.xlabel("time")
-    plt.ylabel("energy")
+def plot_ET_heatmap(energy_arr, time_arr, ET_results, fname):
+    """ plot an energy time heat map from a tally with energy and time bins """
 
-    masked_vals = np.asarray(data.result)
-    masked_vals = masked_vals[:-1, :-1]
-    # np.ma.masked_where(data.result[1] < 1e-50, data.result[1])
+    # set up to do log ignoring o bins
+    ET_results_safe = np.where(ET_results > 0, ET_results, np.nan)  # Or set a small floor like 1e-10
+    log_values = np.log10(ET_results_safe)
 
-    """
-    plt.pcolormesh(masked_vals.T,
-                   norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()),
-                   cmap="PuBu_r")
-    """
-    plt.pcolormesh(data.times, data.eng, masked_vals.T,
-                   norm=colors.LogNorm(vmin=1e-50, vmax=masked_vals.max()),
-                   cmap="PuBu_r")
-
-    plt.colorbar()
+    # convert shakes to microS
+    time_arr = time_arr / 100
+    
+    # Plot heatmap
+    plt.figure(figsize=(12, 6))
+    pcm = plt.pcolormesh(time_arr, energy_arr, log_values[:-1,:-2], shading='auto', cmap='viridis')
+    cbar = plt.colorbar(pcm, label='log10(flux)')
+    plt.xscale('linear')
+    plt.yscale('log')
+    plt.xlabel(r'Time ($\mu$S)')
+    plt.ylabel('Energy (MeV)')
+    plt.title('Energy Over Time')
+    plt.tight_layout()
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
+
+
+def time_slice(target_time, energy_arr, time_arr, ET_results, fname):
+    """ Extract and plot an energy spectrum at a given time from a 
+        tally with energy and time bins 
+    """
+    # Find index of closest time
+    time_index = np.argmin(np.abs(time_arr - target_time))
+    flux_slice = ET_results[:, time_index]
+
+    # Plot
+    plt.figure(figsize=(8, 5))
+    plt.plot(energy_arr, flux_slice, marker='o')
+    plt.xscale('log')
+    plt.xlabel('Energy (MeV)')
+    plt.ylabel('Flux ')
+    plt.title(f'Flux vs Energy at time = {time_arr[time_index]:.2e}')
+    plt.tight_layout()
+    plt.savefig(fname)
+    ntlogger.info("produced figure: %s", fname)
+
+
+def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_time=None, max_time=None):
+    """ Extract and plot a time distributions for a given energy from a
+        tally with energy and time bins
+    """
+    # Find index of closest energy and get that slice
+    erg_index = np.argmin(np.abs(energy_arr - target_energy))
+    flux_slice = ET_results[erg_index, :]
+
+    # sort out sensible times
+    time_arr = time_arr / 100
+
+    if not min_time:
+        min_time = np.min(time_arr)
+    if not max_time:
+        max_time = np.max(time_arr)
+ 
+    # Plot
+    plt.figure(figsize=(8, 5))
+    plt.plot(time_arr, flux_slice[:-1], marker='o')
+    plt.xscale('log')
+    plt.xlabel(r'Time ($\mu$S)')
+    plt.ylabel('Flux ')
+    
+    plt.xlim(min_time, max_time)
+    plt.title(f'Flux vs time at energy = {energy_arr[erg_index]:.2e} MeV')
+    plt.tight_layout()
+    plt.savefig(fname)
+    ntlogger.info("produced figure: %s", fname)
+
 
 
 def html_output(mc_object, fname):

@@ -475,57 +475,59 @@ def convert_energy_time_data_to_df(data, time_bins, energy_bins):
         return data
 
 
-def process_e_t_userbin(data):
-    """ processes energy time bins in a tally """
-    time_bins = eng_time_get_time_bins(data)
-    erg_bins = eng_time_get_eng_bins(data)
-    res_list = []
-    err_list = []
+def process_e_t_userbin(lines):
+    """read and process a tally output with energy and time bins """
+    times = []
+    energies = []
+    values = []
+    uncerts = []
 
-    # create data arrays
-    res_data = np.zeros((len(time_bins), len(erg_bins)))
-    err_data = np.zeros((len(time_bins), len(erg_bins)))
-    # now try get the data
-    tcol = 0
-    erow = 0
-    len_tcol = 0
-    in_data = False
-    for j, line in enumerate(data):
-        if in_data:
-            if "total" in line:
-                in_data = False
+    current_times = []
+    current_block_values = []
+    current_block_uncert = []
+    reading_data = False
 
-            line = " ".join(line.split())
-            line = line.split(" ")[1:]
-            tvals = line[::2]
-            ervals = line[1::2]
-            len_tcol = 0
-            for i, val in enumerate(tvals):
-                res_data[tcol + len_tcol, erow] = val
-                err_data[tcol + len_tcol, erow] = ervals[i]
-                len_tcol = len_tcol + 1
-            erow = erow + 1
+    for line in lines:
+        line = line.strip()
+        if line.startswith('time:'):
+            # Extract times from line
+            current_times = [float(x) for x in re.findall(r'[\d.E+-]+', line)]
+            times.extend(current_times)
+            reading_data = True
+        elif reading_data:
+            if line.startswith('total') or line == '':
+                if current_block_values:
+                    values.append(np.array(current_block_values))
+                    uncerts.append(np.array(current_block_uncert))
+                    current_block_values = []
+                    current_block_uncert = []
+                reading_data = False
+            elif not line.startswith('energy'):
+                # Parse energy and values (value, uncertainty pairs)
+                parts = re.findall(r'[\d.E+-]+', line)
+                if not parts:
+                    continue
+                energy = float(parts[0])
+                energies.append(energy)
+                data_pairs = list(map(float, parts[1:]))
+                row_vals = data_pairs[::2]  # Take only values, 
+                current_block_values.append(row_vals)
+                row_uncert = data_pairs[1::2]
+                current_block_uncert.append(row_uncert)
 
-        elif not in_data:
-            if "energy" in line:
-                in_data = True
-                erow = 0
-                tcol = tcol + len_tcol
+    # Combine all blocks
+    values = np.hstack(values)
+    uncerts = np.hstack(uncerts)
+    energies = sorted(set(energies))
+    times = sorted(set(times))
 
-                if tcol == len(time_bins):
-                    # convert to data frame
-                    res_df = convert_energy_time_data_to_df(res_data, time_bins, erg_bins)
-                    err_df = convert_energy_time_data_to_df(err_data, time_bins, erg_bins)
-                    res_list.append(res_df)
-                    err_list.append(err_df)
+    # Convert to numpy arrays
+    energy_arr = np.array(energies)
+    time_arr = np.array(times)
+    value_matrix = np.array(values)
+    uncerts_matrix = np.array(uncerts)
 
-                    # reset data
-                    res_data = np.zeros((len(time_bins), len(erg_bins)))
-                    err_data = np.zeros((len(time_bins), len(erg_bins)))
-                    tcol = 0
-
-
-    return time_bins, erg_bins, res_list, err_list
+    return time_arr, energy_arr, value_matrix, uncerts_matrix
 
 
 def find_term_line(lines):
