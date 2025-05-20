@@ -94,7 +94,12 @@ def long_line_index(lines):
     long_lines = []
     for i, line in enumerate(lines):
         if len(line) > 79:
-            long_lines.append(i)
+            if line.lower().startswith("c "):
+                continue
+            elif " $ " in line:
+                continue
+            else:
+                long_lines.append(i)
     if len(long_lines) == 0:
         return None
     else:
