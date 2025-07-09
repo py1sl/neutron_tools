@@ -1,6 +1,6 @@
 """ """
 import matplotlib
-import matplotlib.colors as colors
+# import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
 # import pandas as pd
@@ -21,7 +21,7 @@ def calc_err_abs(results, errors):
     """ calculates absolute errors"""
     # check same length
     if len(results) != len(errors):
-        raise ValueError(f"The length of results and errors must be the same")
+        raise ValueError(f"The length of results ({len(results)}) and errors ({len(errors)}) must be the same")
 
     # calculate absolute error for all results
     abs_err = [res*float(err) for res, err in zip(results, errors)]
@@ -188,8 +188,8 @@ def plot_ET_heatmap(energy_arr, time_arr, ET_results, fname):
 
     # Plot heatmap
     plt.figure(figsize=(12, 6))
-    pcm = plt.pcolormesh(time_arr, energy_arr, log_values[:-1,:-2], shading='auto', cmap='viridis')
-    cbar = plt.colorbar(pcm, label='log10(flux)')
+    pcm = plt.pcolormesh(time_arr, energy_arr, log_values[:-1, :-2], shading='auto', cmap='viridis')
+    plt.colorbar(pcm, label='log10(flux)')
     plt.xscale('linear')
     plt.yscale('log')
     plt.xlabel(r'Time ($\mu$S)')

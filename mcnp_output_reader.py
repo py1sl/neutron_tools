@@ -887,7 +887,7 @@ def read_type_surface(tally_data, lines):
             ntlogger.debug("time bins only")
             end_line_id = ut.find_ind(lines, "total") + 2
             lines = lines[first_surface_line_id + 1:end_line_id]
-            tally_data.times, tally_data.result, tally_data.err= process_time_bin_only(lines)
+            tally_data.times, tally_data.result, tally_data.err = process_time_bin_only(lines)
 
     elif len(tally_data.surfaces) > 1:
         for s in tally_data.surfaces:
@@ -994,7 +994,6 @@ def read_type_cell(tally_data, lines):
             tally_data.result = data_dict
             tally_data.totals = total_dict
             tally_data.eng = data_dict[current_cell]["energy"].tolist()
-
 
         # time bins
         elif "time" in lines[cell_res_start + 1]:

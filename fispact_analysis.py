@@ -106,17 +106,17 @@ def read_OOS(oos_path="data/t1.txt"):
     return OOS_df
 
 
-def check_nuclide_oos(nuclide, nuc_act, oos_data, mass=1000 ):
+def check_nuclide_oos(nuclide, nuc_act, oos_data, mass=1000):
     """ checks if a nuclide is in the OOS data and compares if the activity is above that value
         returns true if activity is lower than the OOS value
         returns false if above the OOS value
     """
-    oos_values = oos_data[oos_data["Nuclide"]==nuclide]["OOS Level"].values
+    oos_values = oos_data[oos_data["Nuclide"] == nuclide]["OOS Level"].values
     if oos_values.size > 0:
         oos_value = oos_values[0]
 
     else:
-        oos_values = oos_data[oos_data["Nuclide"]=='Other']["OOS Level"].values
+        oos_values = oos_data[oos_data["Nuclide"] == 'Other']["OOS Level"].values
         oos_value = oos_values[0]
 
     # now do the comparison
@@ -153,9 +153,8 @@ def get_not_oos_nuclides(inv, oos_path="data/t1.txt"):
     inv = remove_stable(inv)
 
     inv["oos_result"] = inv.apply(lambda row: check_nuclide_oos(row['nuclide'], row['act'], oos_data), axis=1)
-    inv = inv[inv["oos_result"]==False]
+    inv = inv[inv["oos_result"] == False]
     return inv
-
 
 
 def find_when_oos(ts_data, oos_path="data/t1.txt"):

@@ -118,7 +118,7 @@ def shake_to_ms(val):
 
 def barn_to_cm2(val):
     """ converts barns to cm2 """
-    return val/ 1e24
+    return val / 1e24
 
 
 def cm2_to_barn(val):

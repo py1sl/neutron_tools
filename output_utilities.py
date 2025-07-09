@@ -15,7 +15,6 @@ def output_points(x_vals, y_vals, z_vals, data_val=None, outpath="lost"):
     if data_val is not None and len(data_val) != len(x_vals):
         raise ValueError("data_val must have the same length as x_vals, y_vals, and z_vals.")
 
-
     out_list = []
     out_list.append("x y z temp")
 
@@ -26,7 +25,7 @@ def output_points(x_vals, y_vals, z_vals, data_val=None, outpath="lost"):
                             " " +
                             str(y_vals[i]) +
                             " " +
-                            str(z_vals[i]) + " "+
+                            str(z_vals[i]) + " " +
                             str(data_val[i]))
             i = i + 1
     else:

@@ -86,18 +86,18 @@ def get_cell_data(mc_input, tally_cell_list):
     """ get the cll material, mass and volume data"""
     cell_data = []
     for cell_num in tally_cell_list:
-     if mir.check_cell_exists(cell_num, mc_input.cell_list):
-         cell = mir.get_cell(cell_num, mc_input.cell_list)
-         cell_data.append(cell)
-     else:
-         raise ValueError(f"Cell: {cell_num} not found in input")
+        if mir.check_cell_exists(cell_num, mc_input.cell_list):
+            cell = mir.get_cell(cell_num, mc_input.cell_list)
+            cell_data.append(cell)
+        else:
+            raise ValueError(f"Cell: {cell_num} not found in input")
 
     header = ["number", "material", "density"]
     cell_df = None
     for i, cell in enumerate(cell_data):
-        cell_series = {"number":cell.number, "material":cell.mat, "density":cell.density}
+        cell_series = {"number": cell.number, "material": cell.mat, "density": cell.density}
         cell_series = pd.DataFrame(cell_series, columns=header, index=[i])
-        if isinstance(cell_df, pd.DataFrame) :
+        if isinstance(cell_df, pd.DataFrame):
             cell_df = pd.concat([cell_df, cell_series])
         else:
             cell_df = cell_series
@@ -196,8 +196,8 @@ def fispact_setup(path, inputs, cell_data):
     """ set up the different the parts of the fispact runs for a cell """
     isExist = os.path.exists(path)
     if not isExist:
-       # Create a new directory because it does not exist
-       os.makedirs(path)
+        # Create a new directory because it does not exist
+        os.makedirs(path)
 
     # TODO: need to get the groups number for the collapse
     write_collapse(path+"/collapse.i")
@@ -217,7 +217,7 @@ def read_data_from_mcnp_output(inputs):
         raise FileNotFoundError(f"MCNP output file {inputs.mc_output} not found")
 
     mc_output = mor.read_output_file(inputs.mc_output)
-    if mc_output.fatal == True:
+    if mc_output.fatal is True:
         raise ValueError('MCNP output contains a fatal error')
 
     cells, tally_data = get_cells_mcnp(mc_output)
@@ -257,11 +257,10 @@ def main(config_fp):
 
     # read mc input
     if inputs.mc_code.upper() == "MCNP":
-       cell_data, material_data = read_data_from_mcnp_input(inputs, cells)
-       print(cell_data)
+        cell_data, material_data = read_data_from_mcnp_input(inputs, cells)
+        print(cell_data)
     else:
         raise NotImplementedError()
-
 
     # generate fispact inputs
     # TODO: loop over the cell_data object
