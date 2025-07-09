@@ -111,6 +111,11 @@ def second_to_shake(val):
     return val * 1e8
 
 
+def shake_to_ms(val):
+    """ converts time in shake to millisecond """
+    return val / 100
+
+
 def barn_to_cm2(val):
     """ converts barns to cm2 """
     return val/ 1e24

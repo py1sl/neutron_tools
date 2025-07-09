@@ -145,8 +145,8 @@ def check_inventory_oos(inv, oos_path="data/t1.txt"):
         return False
     else:
         return True
-    
-    
+
+
 def get_not_oos_nuclides(inv, oos_path="data/t1.txt"):
     """ """
     oos_data = read_OOS(oos_path)
@@ -155,7 +155,7 @@ def get_not_oos_nuclides(inv, oos_path="data/t1.txt"):
     inv["oos_result"] = inv.apply(lambda row: check_nuclide_oos(row['nuclide'], row['act'], oos_data), axis=1)
     inv = inv[inv["oos_result"]==False]
     return inv
-    
+
 
 
 def find_when_oos(ts_data, oos_path="data/t1.txt"):
@@ -167,8 +167,8 @@ def find_when_oos(ts_data, oos_path="data/t1.txt"):
         oos_result = check_inventory_oos(ts.inventory)
         if oos_result:
             return ts.step_num
- 
- 
+
+
 def cooling_ts_data(fout):
     """ """
     ts_data = fout.timestep_data[fout.cooling_step_index:]
@@ -183,7 +183,7 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
 
     if cooling:
         sum_dat = sum_dat[sum_dat["is_cooling"]]
-    
+
     data = sum_dat[column]
     x_units = check_time_units(x_units)
     time_vals = sum_dat[x_units]

@@ -7,6 +7,7 @@ import numpy as np
 import logging as ntlogger
 
 import neut_utilities as ut
+import neut_constants
 matplotlib.use('agg')
 
 
@@ -66,14 +67,14 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
             raise ValueError("Invalid MCNP tally does not have energy bins.")
 
         for obj_id, results in d.result.items():
-            splot = plt.step(np.asarray(d.eng),  results["result"], label=obj_id)    
+            splot = plt.step(np.asarray(d.eng),  results["result"], label=obj_id)
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
 
 
 def plot_spectra(data, fname, title, sp="proton", err=False,
                  xlow=None, legend=None):
-    """ plots spectr afrom MCNP tally data object, dividing by bin width """
+    """ plots spectra from MCNP tally data object, dividing by bin width """
     if not isinstance(data, list):
         data = [data]
 
@@ -117,9 +118,9 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
         elif d.tally_type == '4':
             for cell, data in d.result.items():
                 y_vals = data["result"]/bw
-                splot = plt.step(np.asarray(d.eng),  y_vals, label=cell) 
+                splot = plt.step(np.asarray(d.eng),  y_vals, label=cell)
             plt.legend()
-            
+
         else:
             y_vals = np.asarray(d.result) / bw
             splot = plt.step(np.asarray(d.eng), y_vals)
@@ -133,7 +134,8 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
 
     if xlow is None:
         non_zero_loc = ut.find_first_non_zero(y_vals)
-        plt.xlim(xmin=d.eng[non_zero_loc])
+        if non_zero_loc:
+            plt.xlim(xmin=d.eng[non_zero_loc])
     else:
         plt.xlim(xmin=xlow)
 
@@ -178,12 +180,12 @@ def plot_ET_heatmap(energy_arr, time_arr, ET_results, fname):
     """ plot an energy time heat map from a tally with energy and time bins """
 
     # set up to do log ignoring o bins
-    ET_results_safe = np.where(ET_results > 0, ET_results, np.nan)  # Or set a small floor like 1e-10
+    ET_results_safe = np.where(ET_results > 0, ET_results, np.nan)
     log_values = np.log10(ET_results_safe)
 
     # convert shakes to microS
-    time_arr = time_arr / 100
-    
+    time_arr = neut_constants.shake_to_ms(time_arr)
+
     # Plot heatmap
     plt.figure(figsize=(12, 6))
     pcm = plt.pcolormesh(time_arr, energy_arr, log_values[:-1,:-2], shading='auto', cmap='viridis')
@@ -199,8 +201,8 @@ def plot_ET_heatmap(energy_arr, time_arr, ET_results, fname):
 
 
 def time_slice(target_time, energy_arr, time_arr, ET_results, fname):
-    """ Extract and plot an energy spectrum at a given time from a 
-        tally with energy and time bins 
+    """ Extract and plot an energy spectrum at a given time from a
+        tally with energy and time bins
     """
     # Find index of closest time
     time_index = np.argmin(np.abs(time_arr - target_time))
@@ -226,27 +228,26 @@ def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_tim
     erg_index = np.argmin(np.abs(energy_arr - target_energy))
     flux_slice = ET_results[erg_index, :]
 
-    # sort out sensible times
-    time_arr = time_arr / 100
+    # convert shakes to microS
+    time_arr = neut_constants.shake_to_ms(time_arr)
 
     if not min_time:
         min_time = np.min(time_arr)
     if not max_time:
         max_time = np.max(time_arr)
- 
+
     # Plot
     plt.figure(figsize=(8, 5))
     plt.plot(time_arr, flux_slice[:-1], marker='o')
     plt.xscale('log')
     plt.xlabel(r'Time ($\mu$S)')
     plt.ylabel('Flux ')
-    
+
     plt.xlim(min_time, max_time)
     plt.title(f'Flux vs time at energy = {energy_arr[erg_index]:.2e} MeV')
     plt.tight_layout()
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
-
 
 
 def html_output(mc_object, fname):

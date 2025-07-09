@@ -510,7 +510,7 @@ def process_e_t_userbin(lines):
                 energy = float(parts[0])
                 energies.append(energy)
                 data_pairs = list(map(float, parts[1:]))
-                row_vals = data_pairs[::2]  # Take only values, 
+                row_vals = data_pairs[::2]  # Take only values,
                 current_block_values.append(row_vals)
                 row_uncert = data_pairs[1::2]
                 current_block_uncert.append(row_uncert)
@@ -979,7 +979,7 @@ def read_type_cell(tally_data, lines):
                             "total_rel_err": total_rel_err
                         }
                     continue
-                    
+
                 # Match data lines (starting with a number and having 3 parts)
                 parts = line.split()
                 if len(parts) == 3 and re.match(r"^\d", parts[0]):
@@ -990,12 +990,12 @@ def read_type_cell(tally_data, lines):
             # Convert lists to DataFrames
             for cell in data_dict:
                 data_dict[cell] = pd.DataFrame(data_dict[cell], columns=["energy", "result", "rel_err"])
-            
+
             tally_data.result = data_dict
             tally_data.totals = total_dict
-            tally_data.eng = data_dict[current_cell]["energy"].tolist()    
-                
-            
+            tally_data.eng = data_dict[current_cell]["energy"].tolist()
+
+
         # time bins
         elif "time" in lines[cell_res_start + 1]:
             end_line_id = ut.find_line(" ===", lines, 4)
