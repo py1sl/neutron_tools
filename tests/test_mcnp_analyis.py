@@ -19,7 +19,7 @@ class normalise_test_case(unittest.TestCase):
         self.assertAlmostEqual(result[3], 0.4, 7)
 
         # empty list
-        self.assertEqual(ma.normalise([],1), [])
+        self.assertEqual(ma.normalise([], 1), [])
 
         # non numeric
         with self.assertRaises(ValueError):

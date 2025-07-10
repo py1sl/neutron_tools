@@ -256,7 +256,6 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertIsInstance(tn.result, dict)
                 self.assertIsInstance(tn.totals, dict)
 
-
     def test_tbinned_t1_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
         single = mcnp_output_reader.read_output_file(path)
