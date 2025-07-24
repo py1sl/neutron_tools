@@ -1,0 +1,34 @@
+c test input to generate output for MCNP output reader
+1 0 -1 imp:p=1 
+2 1 -2.7 1 -2 imp:p=1
+3 1 -2.7 -3 2 imp:p=1
+4 1 -2.7 -4 3 imp:p=1
+5 1 -2.7 -5 4 imp:p=1
+6 1 -2.7 -6 5 imp:p=1 
+99 0 6 imp:p=0
+
+c 
+1 so 5
+2 so 10
+3 so 20
+4 so 30
+5 so 40
+6 so 50
+
+c
+mode p
+nps 1e6 
+m1 13027.24c 1  $ Al27
+sdef erg=1.332 par=p 
+f1:p 1 2 3 4 5 6
+t1 0 1 2 3 4 5 6 7 8 9 10 50 100 
+f2:p 1 2 3 4 5 6 
+t2 0 1 2 3 4 5 6 7 8 9 10 50 100 
+f4:p 2 3 4 5 6 
+t4 0 1 2 3 4 5 6 7 8 9 10 50 100 
+f5:p 15 0 0 1 
+t5 0 1 2 3 4 5 6 7 8 9 10 50 100 
+f6:p 2 3 4 5 6 
+t6 0 1 2 3 4 5 6 7 8 9 10 50 100 
+f8:p 2 3 4 5 6 
+

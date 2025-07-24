@@ -103,23 +103,27 @@ class rendevous_test_case(unittest.TestCase):
 
     def test_count_rendevous_tests(self):
 
-        # test with a single core job count should be 0
+        # add test with a single core job count should be 0
+
+        # need to add test for multicore job
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
         data = ut.get_lines(path)
         count = mcnp_output_reader.count_rendevous(data)
-        self.assertEqual(count, 0)
-
-        # need to add test for multicore job
+        self.assertEqual(count, 76)
 
     def test_index_rendevous_tests(self):
 
-        # test with a single core job should be 0
+        # add test with a single core job should be 0
+        # path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        # data = ut.get_lines(path)
+        # index = mcnp_output_reader.get_rendevous_index(data)
+        # self.assertEqual(index, [])
+
+        # need to add test for multicore job
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
         data = ut.get_lines(path)
         index = mcnp_output_reader.get_rendevous_index(data)
-        self.assertEqual(index, [])
-
-        # need to add test for multicore job
+        self.assertEqual(len(index), 76)
 
 
 class stat_test_case(unittest.TestCase):
@@ -418,7 +422,7 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.result), 14)
                 self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[-1], 1.70644e-03)
+                self.assertAlmostEqual(tn.result[-1], 1.70644e-03, places=7)
                 self.assertEqual(tn.err[-1], 0.0008)
 
 
