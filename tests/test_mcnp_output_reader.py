@@ -355,6 +355,7 @@ class tally_type4_tests(unittest.TestCase):
     """ tests for type 4 tally """
 
     def test_single_value_t4_tally(self):
+        """ test case - f4 tally with a single cell and single flux """
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
@@ -371,8 +372,9 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.err[0], 0.0006)
                 self.assertEqual(tn.cells, ['2'])
                 self.assertEqual(tn.vols, ['3.66519E+03'])
-                
+
     def test_multiple_value_t4_tally(self):
+        """ test case - f4 tally with a multiple cells and single flux value for each cell """
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple.io')
         multiple = mcnp_output_reader.read_output_file(path)
         for tn in multiple.tally_data:
@@ -392,9 +394,9 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.err[0], 0.0006)
                 self.assertEqual(tn.result[-1], 3.60573E-06)
                 self.assertEqual(tn.err[-1], 0.0043)
-                
 
     def test_ebined_t4_tally(self):
+        """ test case - f4 tally with a single cell with energy bins """
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
@@ -410,8 +412,9 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.vols, ['3.66519E+03'])
                 self.assertIsInstance(tn.result, dict)
                 self.assertIsInstance(tn.totals, dict)
-                
+
     def test_multiple_value_ebined_t4_tally(self):
+        """ test case - f4 tally with a multiple cells each with energy bins """
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_erg.io')
         multiple = mcnp_output_reader.read_output_file(path)
         for tn in multiple.tally_data:
@@ -427,8 +430,13 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(len(tn.vols), len(tn.cells))
                 self.assertEqual(len(tn.vols), 5)
                 self.assertEqual(len(tn.result), len(tn.vols))
+                self.assertIsInstance(tn.result, dict)
+                self.assertIsInstance(tn.totals, dict)
+                self.assertEqual(list(tn.totals.keys()), [int(s) for s in tn.cells])
+                self.assertEqual(list(tn.result.keys()), [int(s) for s in tn.cells])
 
     def test_etbinned_t4_tally(self):
+        """ test case - f4 tally with a single cell with energy and time bins """
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_et.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
@@ -436,15 +444,18 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.tally_type, '4')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
-                # self.assertNotEqual(tn.eng, None)
                 self.assertEqual(len(tn.eng), 14)
                 self.assertEqual(tn.eng[-1], 1.5)
-                # self.assertNotEqual(tn.times, None)
                 self.assertEqual(len(tn.times), 14)
                 self.assertEqual(tn.times[-1], 1000)
-                self.assertEqual(tn.user_bins, None)                
-                
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(len(tn.cells), 1)
+                self.assertEqual(len(tn.vols), len(tn.cells))
+                self.assertEqual(len(tn.result), len(tn.cells))
+                self.assertEqual(len(tn.result), len(tn.err))
+
     def test_multiple_value_etbinned_t4_tally(self):
+        """ test case - f4 tally with multiple cells with energy and time bins """
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_et.io')
         multiple = mcnp_output_reader.read_output_file(path)
         for tn in multiple.tally_data:
@@ -457,8 +468,11 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(len(tn.vols), len(tn.cells))
                 self.assertEqual(len(tn.vols), 5)
                 self.assertEqual(len(tn.vols), len(tn.result))
+                self.assertEqual(len(tn.result), len(tn.cells))
+                self.assertEqual(len(tn.result), len(tn.err))
 
     def test_tbinned_t4_tally(self):
+        """ test case - f4 tally with a single cell with times bins """
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
         single = mcnp_output_reader.read_output_file(path)
         for tn in single.tally_data:
@@ -471,14 +485,16 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(len(tn.times), 14)
                 self.assertEqual(tn.times[-1], "total")
                 self.assertEqual(tn.user_bins, None)
+                self.assertEqual(len(tn.vols), len(tn.cells))
                 self.assertEqual(len(tn.result[0]), 14)
                 self.assertEqual(len(tn.err[0]), 14)
                 self.assertEqual(len(tn.cells), len(tn.result))
                 self.assertEqual(len(tn.cells), len(tn.err))
                 self.assertAlmostEqual(tn.result[0][-1], 1.70644e-03, places=7)
                 self.assertEqual(tn.err[0][-1], 0.0008)
-    
+
     def test_multiple_value_tbinned_t4_tally(self):
+        """ test case - f4 tally with multiple cells with time bins """
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_t.io')
         multiple = mcnp_output_reader.read_output_file(path)
         for tn in multiple.tally_data:

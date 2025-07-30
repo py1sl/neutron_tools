@@ -510,7 +510,7 @@ def process_e_t_userbin(lines):
                 energy = float(parts[0])
                 energies.append(energy)
                 data_pairs = list(map(float, parts[1:]))
-                row_vals = data_pairs[::2]  
+                row_vals = data_pairs[::2]
                 current_block_values.append(row_vals)
                 row_uncert = data_pairs[1::2]
                 current_block_uncert.append(row_uncert)
@@ -866,13 +866,13 @@ def read_type_surface(tally_data, lines):
                 # needs more work here
                     tb, eb, res, err = process_e_t_userbin(
                         lines[first_surface_line_id + 1:end_line_id])
-                    
+
                     res_list.append(res)
                     err_list.append(err)
                 tally_data.times = tb
                 tally_data.eng = eb
                 tally_data.result = res_list
-                tally_data.err = err_list  
+                tally_data.err = err_list
             else:
                 tb, eb, res, err = process_e_t_userbin(
                     lines[first_surface_line_id + 1:end_line_id])
@@ -932,7 +932,7 @@ def get_cell_data(lines, line_id):
     """ for cell tally retrieves the cell numbers and volumes """
     cells = []
     vols = []
-    
+
     # extract the values of cell number and volumes
     while True:
         line_id = line_id + 1
@@ -952,19 +952,19 @@ def get_cell_data(lines, line_id):
                 vols.append(vol)
 
     return cells, vols, line_id
-    
-    
+
+
 def read_energy_bin_only_cell_tally(lines):
     """ """
     data_dict = defaultdict(list)
     total_dict = {}
     current_cell = None
-    
+
     for line in lines:
         line = line.strip()
         cell_match = re.match(r"cell\s+(\d+)", line)
         if cell_match:
-            current_cell = int(cell_match.group(1))            
+            current_cell = int(cell_match.group(1))
         if not current_cell:
             continue
         # Handle the "total" line
@@ -978,7 +978,7 @@ def read_energy_bin_only_cell_tally(lines):
                     "total_rel_err": total_rel_err
                 }
             continue
-    
+
         # Match data lines (starting with a number and having 3 columns -energy, result and rel err)
         parts = line.split()
         if len(parts) == 3 and re.match(r"^\d", parts[0]):
@@ -989,10 +989,10 @@ def read_energy_bin_only_cell_tally(lines):
     # Convert lists to DataFrames
     for cell in data_dict:
         data_dict[cell] = pd.DataFrame(data_dict[cell], columns=["energy", "result", "rel_err"])
-            
+
     return data_dict, total_dict
 
-    
+
 def read_type_cell(tally_data, lines):
     """ process type 4 or type 6 tally output data """
     ntlogger.debug("Volume tally")
@@ -1002,29 +1002,29 @@ def read_type_cell(tally_data, lines):
         line_id = ut.find_line("           volumes ", lines, 19)
     elif tally_data.tally_type == "6":
         line_id = ut.find_line("           masses ", lines, 18)
-    
+
     # find cells
     # find volumes/ masses
     tally_data.cells, tally_data.vols, line_id = get_cell_data(lines, line_id)
-    
+
     lines = lines[line_id:]
     cell_res_start = ut.find_ind(lines, " " + tally_data.cells[0] + " ")
     tally_read = False
-    
+
     # only energy binned data
     if "energy" in lines[cell_res_start + 1]:
         ntlogger.debug("noticed energy")
-        tally_data.result, tally_data.totals = read_energy_bin_only_cell_tally(lines) 
+        tally_data.result, tally_data.totals = read_energy_bin_only_cell_tally(lines)
         first_key = next(iter(tally_data.result))
         tally_data.eng = tally_data.result[first_key]["energy"].tolist()
         tally_read = True
-    
-    
+
+
     # loop for each cell
     for cell in tally_data.cells:
         results = []
         errs = []
-        
+
         cell_res_start = ut.find_ind(lines, " " + cell + " ")
 
         # time bins
@@ -1040,16 +1040,16 @@ def read_type_cell(tally_data, lines):
             else:
                 # just time bins
                 ntlogger.debug("time bins only")
-                
+
                 end_line_id = ut.find_ind(lines, "total") + 2
                 cell_block = lines[cell_res_start + 1:end_line_id]
                 tally_data.times, results, errs = process_time_bin_only(cell_block)
                 tally_data.result.append(results)
                 tally_data.err.append(errs)
-                
+
                 lines = lines[end_line_id:]
 
-        elif tally_read == False:
+        elif tally_read is False:
             # single value per cell data
             data_line = lines[cell_res_start + 1]
             data_line = " ".join(data_line.split())
