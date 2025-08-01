@@ -294,10 +294,29 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
+                self.assertEqual(len(tn.surfaces), 1)
+                self.assertEqual(len(tn.surfaces), len(tn.areas))
                 self.assertEqual(len(tn.result), 1)
                 self.assertEqual(len(tn.err), 1)
                 self.assertEqual(tn.result[0], 4.31795E-03)
                 self.assertEqual(tn.err[0], 0.0015)
+                
+    def test_multiple_value_t2_tally(self):
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple.io')
+        single = mcnp_output_reader.read_output_file(path)
+        for tn in single.tally_data:
+            if tn.number == 2:
+                self.assertEqual(tn.tally_type, '2')
+                self.assertEqual(tn.particle, "photons")
+                self.assertEqual(tn.nps, 1000000)
+                self.assertEqual(tn.eng, None)
+                self.assertEqual(tn.times, None)
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(tn.ang_bins, None)
+                self.assertEqual(len(tn.surfaces), 6)
+                self.assertEqual(len(tn.surfaces), len(tn.areas))
+                self.assertEqual(len(tn.result), len(tn.surfaces))
+                self.assertEqual(len(tn.err), len(tn.surfaces))
 
     def test_ebined_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
@@ -314,6 +333,28 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.ang_bins, None)
                 self.assertIsInstance(tn.result, dict)
                 self.assertIsInstance(tn.totals, dict)
+                self.assertEqual(len(tn.surfaces), 1)
+                self.assertEqual(len(tn.surfaces), len(tn.areas))
+                self.assertEqual(len(tn.result), len(tn.surfaces))
+               
+    def test_multiple_ebined_t2_tally(self):
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_erg.io')
+        single = mcnp_output_reader.read_output_file(path)
+        for tn in single.tally_data:
+            if tn.number == 2:
+                self.assertEqual(tn.tally_type, '2')
+                self.assertEqual(tn.particle, "photons")
+                self.assertEqual(tn.nps, 1000000)
+                self.assertNotEqual(tn.eng, None)
+                self.assertEqual(len(tn.eng), 14)
+                self.assertEqual(tn.times, None)
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(tn.ang_bins, None)
+                self.assertIsInstance(tn.result, dict)
+                self.assertIsInstance(tn.totals, dict)
+                self.assertEqual(len(tn.surfaces), 6)
+                self.assertEqual(len(tn.surfaces), len(tn.areas))
+                self.assertEqual(len(tn.result), len(tn.surfaces))
 
     def test_etbinned_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_et.io')
@@ -323,14 +364,32 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.tally_type, '2')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
-                # self.assertNotEqual(tn.eng, None)
                 self.assertEqual(len(tn.eng), 14)
                 self.assertEqual(tn.eng[-1], 1.5)
-                # self.assertNotEqual(tn.times, None)
                 self.assertEqual(len(tn.times), 14)
                 self.assertEqual(tn.times[-1], 1000)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
+                self.assertEqual(len(tn.surfaces), 1)
+                self.assertEqual(len(tn.surfaces), len(tn.areas))
+                
+    def test_multiple_etbinned_t2_tally(self):
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_et.io')
+        single = mcnp_output_reader.read_output_file(path)
+        for tn in single.tally_data:
+            if tn.number == 2:
+                self.assertEqual(tn.tally_type, '2')
+                self.assertEqual(tn.particle, "photons")
+                self.assertEqual(tn.nps, 1000000)
+                self.assertEqual(len(tn.eng), 14)
+                self.assertEqual(tn.eng[-1], 1.5)
+                self.assertEqual(len(tn.times), 13)
+                self.assertEqual(tn.times[-1], 100)
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(tn.ang_bins, None)
+                self.assertEqual(len(tn.surfaces), 6)
+                self.assertEqual(len(tn.surfaces), len(tn.areas))
+                self.assertEqual(len(tn.result), len(tn.surfaces))
 
     def test_tbinned_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
@@ -349,6 +408,28 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(len(tn.err), 14)
                 self.assertEqual(tn.result[-1], 2.69842E-04)
                 self.assertEqual(tn.err[-1], 0.0054)
+                self.assertEqual(len(tn.surfaces), 1)
+                self.assertEqual(len(tn.surfaces), len(tn.areas))
+                
+    def test_multiple_tbinned_t2_tally(self):
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_t.io')
+        single = mcnp_output_reader.read_output_file(path)
+        for tn in single.tally_data:
+            if tn.number == 2:
+                self.assertEqual(tn.tally_type, '2')
+                self.assertEqual(tn.particle, "photons")
+                self.assertEqual(tn.nps, 1000000)
+                self.assertEqual(tn.eng, None)
+                self.assertNotEqual(tn.times, None)
+                self.assertEqual(len(tn.times), 14)
+                self.assertEqual(tn.times[-1], "total")
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(len(tn.result), 6)
+                self.assertEqual(len(tn.err), 6)
+                self.assertEqual(len(tn.surfaces), 6)
+                self.assertEqual(len(tn.surfaces), len(tn.areas))
+                self.assertEqual(len(tn.result), len(tn.surfaces))
+                self.assertEqual(len(tn.result), len(tn.err))
 
 
 class tally_type4_tests(unittest.TestCase):
