@@ -96,7 +96,7 @@ def long_line_index(lines):
         if len(line) > 79:
             if line.lower().startswith("c "):
                 continue
-            elif " $ " in line:
+            elif " $" in line:
                 continue
             else:
                 long_lines.append(i)

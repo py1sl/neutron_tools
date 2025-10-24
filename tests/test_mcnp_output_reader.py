@@ -300,7 +300,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(len(tn.err), 1)
                 self.assertEqual(tn.result[0], 4.31795E-03)
                 self.assertEqual(tn.err[0], 0.0015)
-                
+
     def test_multiple_value_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple.io')
         single = mcnp_output_reader.read_output_file(path)
@@ -336,7 +336,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(len(tn.surfaces), 1)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
                 self.assertEqual(len(tn.result), len(tn.surfaces))
-               
+
     def test_multiple_ebined_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_erg.io')
         single = mcnp_output_reader.read_output_file(path)
@@ -372,7 +372,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.ang_bins, None)
                 self.assertEqual(len(tn.surfaces), 1)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
-                
+
     def test_multiple_etbinned_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_et.io')
         single = mcnp_output_reader.read_output_file(path)
@@ -390,7 +390,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(len(tn.surfaces), 6)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
                 self.assertEqual(len(tn.result), len(tn.surfaces))
-
+               
     def test_tbinned_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
         single = mcnp_output_reader.read_output_file(path)
@@ -410,7 +410,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.err[-1], 0.0054)
                 self.assertEqual(len(tn.surfaces), 1)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
-                
+
     def test_multiple_tbinned_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_t.io')
         single = mcnp_output_reader.read_output_file(path)
@@ -655,7 +655,31 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.misses["underflow in transmission"], 39376)
                 self.assertEqual(tn.misses["hit a zero-importance cell"], 0)
                 self.assertEqual(tn.misses["energy cutoff"], 0)
+                
+    def test_etbined_t5_tally(self):
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_et.io')
+        single = mcnp_output_reader.read_output_file(path)
+        for tn in single.tally_data:
+            if tn.number == 5:
+                self.assertEqual(tn.tally_type, '5')
+                self.assertEqual(tn.particle, "photons")
+                self.assertEqual(tn.nps, 1000000)
+                # self.assertNotEqual(tn.eng, None)
+                self.assertEqual(len(tn.eng), 14)
+                self.assertEqual(len(tn.times), 14)
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(len(tn.result), 14)
+                self.assertEqual(len(tn.err), 14)
+                self.assertEqual(tn.x, 15)
+                self.assertEqual(tn.y, 0.00)
+                self.assertEqual(tn.z, 0.00)
+                df = pd.DataFrame(tn.result[:,:-1], index=tn.eng, columns=tn.times)
+                df['Total'] = df.sum(axis=1)
+                total_row = df.sum(numeric_only=True)
+                total_row.name = 'Total'  # Optional row label
 
+                df = pd.concat([df, pd.DataFrame([total_row])])
+                df.to_csv("output.csv")              
 
 class tally_type6_tests(unittest.TestCase):
     """ tests for type 6 tally """

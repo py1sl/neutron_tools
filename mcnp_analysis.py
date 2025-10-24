@@ -220,7 +220,7 @@ def time_slice(target_time, energy_arr, time_arr, ET_results, fname):
     ntlogger.info("produced figure: %s", fname)
 
 
-def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_time=None, max_time=None):
+def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_time=None, max_time=None, wl=True, window=50):
     """ Extract and plot a time distributions for a given energy from a
         tally with energy and time bins
     """
@@ -231,10 +231,14 @@ def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_tim
     # convert shakes to microS
     time_arr = neut_constants.shake_to_ms(time_arr)
 
+    # focus on the peak
+    # if no other instructions given
+    peak_index = np.argmax(flux_slice)
+    
     if not min_time:
-        min_time = np.min(time_arr)
+        min_time = max(0, peak_index - window)        
     if not max_time:
-        max_time = np.max(time_arr)
+        max_time = min(len(flux_slice), peak_index + window)
 
     # Plot
     plt.figure(figsize=(8, 5))
@@ -244,7 +248,11 @@ def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_tim
     plt.ylabel('Flux ')
 
     plt.xlim(min_time, max_time)
-    plt.title(f'Flux vs time at energy = {energy_arr[erg_index]:.2e} MeV')
+    if wl:
+        wave_length = np.sqrt(81.81 / (energy_arr[erg_index])/1e9)
+        plt.title(f'Flux vs time at wavelength = {round(wave_length)} A')
+    else:    
+        plt.title(f'Flux vs time at energy = {energy_arr[erg_index]:.2e} MeV')
     plt.tight_layout()
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)

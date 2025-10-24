@@ -800,11 +800,11 @@ def process_energy_binned_surface_tally(lines):
             result = float(parts[1])
             rel_err = float(parts[2])
             data_dict[current_surface].append([energy, result, rel_err])
-            
+
     # Convert lists to DataFrames
     for surface in data_dict:
         data_dict[surface] = pd.DataFrame(data_dict[surface], columns=["energy", "result", "rel_err"])
-        
+
     return data_dict, total_dict
 
 
@@ -875,7 +875,7 @@ def read_type_surface(tally_data, lines):
                     # print(f"end surf id: {end_surface_block_line_id}")
                     tb, eb, res, err = process_e_t_userbin(
                         lines[first_surface_line_id + 1:end_surface_block_line_id])
-                    
+
                     first_surface_line_id = end_surface_block_line_id
 
                     res_list.append(res)
@@ -1106,6 +1106,10 @@ def read_type_5(tally_data, lines):
 
     elif "time" in res_line:
         ntlogger.debug("found time")
+        end_line_id = ut.find_line(" det", lines[loc_line_id+1:], 4)
+        tally_data.times, tally_data.eng, tally_data.result, tally_data.err = process_e_t_userbin(
+                    lines[loc_line_id+1:loc_line_id+1+end_line_id])
+        
         # TODO: sort out f5 time dep tally
 
     elif "user bin" in res_line:
