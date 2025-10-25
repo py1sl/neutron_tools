@@ -851,7 +851,9 @@ def read_type_surface(tally_data, lines):
         ntlogger.debug("angle bins")
 
         if lines[first_surface_line_id + 2] == "      energy   ":
-            tally_data.result, tally_data.err, tally_data.ang_bins = process_energy_angle_tally(tally_data, lines, first_surface_line_id)
+            tally_data.result, tally_data.err, tally_data.ang_bins = process_energy_angle_tally(tally_data, 
+                                                                                                lines, 
+                                                                                                first_surface_line_id)
         else:
             ntlogger.debug("angle bins only")
 
@@ -868,7 +870,8 @@ def read_type_surface(tally_data, lines):
                 # needs more work here change - try except to use the fact that it will be the last surface block, check via enumerate(tally_data.surfaces)
                     # print(f"Surface: {sur}")
                     try:
-                        end_surface_block_line_id = ut.find_line(" surface ", lines[first_surface_line_id + 1:], 9)+ first_surface_line_id + 1
+                        end_surface_block_line_id = ut.find_line(" surface ", lines[
+                                                    first_surface_line_id + 1:], 9) + first_surface_line_id + 1
                     except:
                         end_surface_block_line_id = -1
                     # print(f"first surf id: {first_surface_line_id}")
@@ -1032,7 +1035,6 @@ def read_type_cell(tally_data, lines):
         tally_data.eng = tally_data.result[first_key]["energy"].tolist()
         tally_read = True
 
-
     # loop for each cell
     for cell in tally_data.cells:
         results = []
@@ -1109,7 +1111,7 @@ def read_type_5(tally_data, lines):
         end_line_id = ut.find_line(" det", lines[loc_line_id+1:], 4)
         tally_data.times, tally_data.eng, tally_data.result, tally_data.err = process_e_t_userbin(
                     lines[loc_line_id+1:loc_line_id+1+end_line_id])
-        
+
         # TODO: sort out f5 time dep tally
 
     elif "user bin" in res_line:

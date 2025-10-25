@@ -234,9 +234,9 @@ def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_tim
     # focus on the peak
     # if no other instructions given
     peak_index = np.argmax(flux_slice)
-    
+
     if not min_time:
-        min_time = max(0, peak_index - window)        
+        min_time = max(0, peak_index - window)
     if not max_time:
         max_time = min(len(flux_slice), peak_index + window)
 
@@ -251,7 +251,7 @@ def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_tim
     if wl:
         wave_length = np.sqrt(81.81 / (energy_arr[erg_index])/1e9)
         plt.title(f'Flux vs time at wavelength = {round(wave_length)} A')
-    else:    
+    else:
         plt.title(f'Flux vs time at energy = {energy_arr[erg_index]:.2e} MeV')
     plt.tight_layout()
     plt.savefig(fname)
