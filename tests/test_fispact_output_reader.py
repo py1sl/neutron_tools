@@ -18,10 +18,11 @@ class version_test_case(unittest.TestCase):
         lines = ut.get_lines(path)
         version = fo.isFisII(lines)
         self.assertEqual(version, True)
-        
+
+
 class read_mass_tests(unittest.TestCase):
     """ tests for the read mass function """
-    
+
     def test_mass_read(self):
         test_lines = ["", "test", "0 Mass of material input =  1.0000E+00 kg. "]
         mass = fo.read_mass(test_lines)

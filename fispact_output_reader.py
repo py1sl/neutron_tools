@@ -489,8 +489,8 @@ def read_mass(lines):
         if match:
             return float(match.group(1))
     return 0.0
-    
-    
+
+
 def find_first_cooling_index(sumdat):
     """ finds the first index  """
     result = sumdat[sumdat["is_cooling"] == True]
@@ -498,9 +498,9 @@ def find_first_cooling_index(sumdat):
         index = result.index[0]
     else:
         index = None
-    
+
     return index
-    
+
 
 def read_parameter(data, sub):
     """ finds and cleans integral values in each timestep"""

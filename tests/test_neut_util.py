@@ -1,4 +1,5 @@
 import unittest
+import tempfile
 from unittest.mock import patch, mock_open
 import neut_utilities as ut
 import os
@@ -8,9 +9,16 @@ class getlines_test_case(unittest.TestCase):
     """ tests get_lines function"""
 
     def test_get_lines(self):
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
-        data = ut.get_lines(path)
-        self.assertEqual(len(data), 700)
+        sample_lines = ["Line 1\n", "line 2\n", "line 3\n"]
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
+            temp_file.writelines(sample_lines)
+            temp_file_path = temp_file.name
+        
+        try:
+            lines = ut.get_lines(temp_file_path)
+            self.assertEqual(len(lines), 3)
+        finally:
+            os.remove(temp_file_path)
 
 
 class writelines_test_case(unittest.TestCase):

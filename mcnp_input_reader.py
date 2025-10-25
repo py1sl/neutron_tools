@@ -94,7 +94,12 @@ def long_line_index(lines):
     long_lines = []
     for i, line in enumerate(lines):
         if len(line) > 79:
-            long_lines.append(i)
+            if line.lower().startswith("c "):
+                continue
+            elif " $" in line:
+                continue
+            else:
+                long_lines.append(i)
     if len(long_lines) == 0:
         return None
     else:
@@ -166,7 +171,7 @@ def check_surface_type_validity(surface):
         return True
     elif surface in macro_types:
         return True
-        
+
     return False
 
 
@@ -352,7 +357,7 @@ def check_valid_cell_num(cell_num):
 
 def check_cell_mat_exists(cell, mat_list):
     """ checks the material listed in a cell has a material """
-    if get_mat(cell.mat, mat_list) == None:
+    if get_mat(cell.mat, mat_list) is None:
         return False
     else:
         return True
@@ -360,7 +365,7 @@ def check_cell_mat_exists(cell, mat_list):
 
 def check_cell_exists(cell_num, cell_list):
     """ checks a cell object exists for that cell number"""
-    if get_cell(cell_num, cell_list) == None:
+    if get_cell(cell_num, cell_list) is None:
         return False
     else:
         return True
@@ -480,7 +485,6 @@ def read_mcnp_input(fpath):
     for mat_num in mc_in.mat_num_list:
         mat = read_material_lines(mat_num, mc_in.data_block)
         mc_in.mat_list.append(mat)
-
 
     return mc_in
 

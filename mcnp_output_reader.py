@@ -465,7 +465,7 @@ def process_energy_lines(erg_lines):
 
 
 def convert_energy_time_data_to_df(data, time_bins, energy_bins):
-    """ """
+    """ converts the energy time results into a dataframe """
     try:
         df = pd.DataFrame(data, index=time_bins, columns=energy_bins)
         return df
@@ -475,57 +475,58 @@ def convert_energy_time_data_to_df(data, time_bins, energy_bins):
         return data
 
 
-def process_e_t_userbin(data):
-    """ processes energy time bins in a tally """
-    time_bins = eng_time_get_time_bins(data)
-    erg_bins = eng_time_get_eng_bins(data)
-    res_list = []
-    err_list = []
+def process_e_t_userbin(lines):
+    """read and process a tally output with energy and time bins """
+    times = []
+    energies = []
+    values = []
+    uncerts = []
+    current_times = []
+    current_block_values = []
+    current_block_uncert = []
+    reading_data = False
 
-    # create data arrays
-    res_data = np.zeros((len(time_bins), len(erg_bins)))
-    err_data = np.zeros((len(time_bins), len(erg_bins)))
-    # now try get the data
-    tcol = 0
-    erow = 0
-    len_tcol = 0
-    in_data = False
-    for j, line in enumerate(data):
-        if in_data:
-            if "total" in line:
-                in_data = False
+    for line in lines:
+        line = line.strip()
+        if line.startswith('time:'):
+            # Extract times from line
+            current_times = [float(x) for x in re.findall(r'[\d.E+-]+', line)]
+            times.extend(current_times)
+            reading_data = True
+        elif reading_data:
+            if line.startswith('total') or line == '':
+                if current_block_values:
+                    values.append(np.array(current_block_values))
+                    uncerts.append(np.array(current_block_uncert))
+                    current_block_values = []
+                    current_block_uncert = []
+                reading_data = False
+            elif not line.startswith('energy'):
+                # Parse energy and values (value, uncertainty pairs)
+                parts = re.findall(r'[\d.E+-]+', line)
+                if not parts:
+                    continue
+                energy = float(parts[0])
+                energies.append(energy)
+                data_pairs = list(map(float, parts[1:]))
+                row_vals = data_pairs[::2]
+                current_block_values.append(row_vals)
+                row_uncert = data_pairs[1::2]
+                current_block_uncert.append(row_uncert)
 
-            line = " ".join(line.split())
-            line = line.split(" ")[1:]
-            tvals = line[::2]
-            ervals = line[1::2]
-            len_tcol = 0
-            for i, val in enumerate(tvals):
-                res_data[tcol + len_tcol, erow] = val
-                err_data[tcol + len_tcol, erow] = ervals[i]
-                len_tcol = len_tcol + 1
-            erow = erow + 1
+    # Combine all blocks
+    values = np.hstack(values)
+    uncerts = np.hstack(uncerts)
+    energies = sorted(set(energies))
+    times = sorted(set(times))
 
-        elif not in_data:
-            if "energy" in line:
-                in_data = True
-                erow = 0
-                tcol = tcol + len_tcol
+    # Convert to numpy arrays
+    energy_arr = np.array(energies)
+    time_arr = np.array(times)
+    value_matrix = np.array(values)
+    uncerts_matrix = np.array(uncerts)
 
-                if tcol == len(time_bins):
-                    # convert to data frame
-                    res_df = convert_energy_time_data_to_df(res_data, time_bins, erg_bins)
-                    err_df = convert_energy_time_data_to_df(err_data, time_bins, erg_bins)
-                    res_list.append(res_df)
-                    err_list.append(err_df)
-
-                    # reset data
-                    res_data = np.zeros((len(time_bins), len(erg_bins)))
-                    err_data = np.zeros((len(time_bins), len(erg_bins)))
-                    tcol = 0
-
-
-    return time_bins, erg_bins, res_list, err_list
+    return time_arr, energy_arr, value_matrix, uncerts_matrix
 
 
 def find_term_line(lines):
@@ -643,8 +644,8 @@ def read_tally(lines, tnum, rnum=-1):
 
     # get statistical test outcomes
     # first check not all zeros
-    if np.array(tally_data.result).any():
-        tally_data.stat_tests = read_stat_tests(lines)
+    # if np.array(tally_data.result).any():
+    #    tally_data.stat_tests = read_stat_tests(lines)
 
     return tally_data
 
@@ -762,6 +763,51 @@ def process_energy_angle_tally(tally_data, lines, first_surface_line_id):
     return res_df, rel_err_df, angles_bins
 
 
+def process_energy_binned_surface_tally(lines):
+    """ process a surface tally with energy bins """
+    data_dict = defaultdict(list)
+    total_dict = {}
+
+    current_surface = None
+    for line in lines:
+        line = line.strip()
+
+        # Detect new surface block
+        surface_match = re.match(r"surface\s+(\d+)", line)
+        if surface_match:
+            current_surface = int(surface_match.group(1))
+            continue
+
+        if not current_surface:
+            continue  # Skip until a surface block is found
+
+        # Handle the "total" line
+        if line.lower().startswith("total"):
+            parts = line.lower().replace("total", "").split()
+            if len(parts) == 2:
+                total_result = float(parts[0])
+                total_rel_err = float(parts[1])
+                total_dict[current_surface] = {
+                    "total_result": total_result,
+                    "total_rel_err": total_rel_err
+                }
+            continue
+
+        # Match data lines (starting with a number and having 3 parts)
+        parts = line.split()
+        if len(parts) == 3 and re.match(r"^\d", parts[0]):
+            energy = float(parts[0])
+            result = float(parts[1])
+            rel_err = float(parts[2])
+            data_dict[current_surface].append([energy, result, rel_err])
+
+    # Convert lists to DataFrames
+    for surface in data_dict:
+        data_dict[surface] = pd.DataFrame(data_dict[surface], columns=["energy", "result", "rel_err"])
+
+    return data_dict, total_dict
+
+
 def read_type_surface(tally_data, lines):
     """ process type 1 or type 2 tally output data"""
     ntlogger.debug("Surface Tally")
@@ -793,77 +839,65 @@ def read_type_surface(tally_data, lines):
     surface_line_id = first_surface_line_id
     res_df = []
     rel_err_df = []
-    data_dict = defaultdict(list)
-    total_dict = {}
 
     if "energy" in lines[first_surface_line_id + 1]:
         ntlogger.debug("energy bins only")
 
-        current_surface = None
-        for line in lines:
-            line = line.strip()
-
-            # Detect new surface block
-            surface_match = re.match(r"surface\s+(\d+)", line)
-            if surface_match:
-                current_surface = int(surface_match.group(1))
-                continue
-
-            if not current_surface:
-                continue  # Skip until a surface block is found
-
-            # Handle the "total" line
-            if line.lower().startswith("total"):
-                parts = line.lower().replace("total", "").split()
-                if len(parts) == 2:
-                    total_result = float(parts[0])
-                    total_rel_err = float(parts[1])
-                    total_dict[current_surface] = {
-                        "total_result": total_result,
-                        "total_rel_err": total_rel_err
-                    }
-                continue
-
-            # Match data lines (starting with a number and having 3 parts)
-            parts = line.split()
-            if len(parts) == 3 and re.match(r"^\d", parts[0]):
-                energy = float(parts[0])
-                result = float(parts[1])
-                rel_err = float(parts[2])
-                data_dict[current_surface].append([energy, result, rel_err])
-
-        # Convert lists to DataFrames
-        for surface in data_dict:
-            data_dict[surface] = pd.DataFrame(data_dict[surface], columns=["energy", "result", "rel_err"])
-
-        tally_data.result = data_dict
-        tally_data.totals = total_dict
-        tally_data.eng = data_dict[current_surface]["energy"].tolist()
+        tally_data.result, tally_data.totals = process_energy_binned_surface_tally(lines)
+        first_key = next(iter(tally_data.result))
+        tally_data.eng = tally_data.result[first_key]["energy"].tolist()
 
     elif "angle" in lines[first_surface_line_id + 1]:
         ntlogger.debug("angle bins")
 
         if lines[first_surface_line_id + 2] == "      energy   ":
-            res_df, rel_err_df, angles_bins = process_energy_angle_tally(tally_data, lines, first_surface_line_id)
-
-            tally_data.result = res_df
-            tally_data.err = rel_err_df
-            tally_data.ang_bins = angles_bins
-
+            tally_data.result, tally_data.err, tally_data.ang_bins = process_energy_angle_tally(tally_data,
+                                                                                                lines,
+                                                                                                first_surface_line_id)
         else:
             ntlogger.debug("angle bins only")
+
     elif "time" in lines[first_surface_line_id + 1]:
         end_line_id = ut.find_line(" ===", lines, 4)
+        lines = lines[:end_line_id]
         # check if energy bins as well as time
         if "energy" in lines[first_surface_line_id + 2]:
             ntlogger.debug("energy & time bins")
-            tb, eb, res, err = process_e_t_userbin(
-                lines[first_surface_line_id + 1:end_line_id])
-            tally_data.times = tb
-            tally_data.eng = eb
-            tally_data.result = res
-            tally_data.err = err
+            if len(tally_data.surfaces) > 1:
+                res_list = []
+                err_list = []
+                for sur in tally_data.surfaces:
+                    # needs more work here change - try except to use the fact that it will be the last surface block,
+                    # check via enumerate(tally_data.surfaces)
+                    # print(f"Surface: {sur}")
+                    try:
+                        end_surface_block_line_id = ut.find_line(" surface ", lines[
+                                                    first_surface_line_id + 1:], 9) + first_surface_line_id + 1
+                    except:
+                        end_surface_block_line_id = -1
+                    # print(f"first surf id: {first_surface_line_id}")
+                    # print(f"end surf id: {end_surface_block_line_id}")
+                    tb, eb, res, err = process_e_t_userbin(
+                        lines[first_surface_line_id + 1:end_surface_block_line_id])
+
+                    first_surface_line_id = end_surface_block_line_id
+
+                    res_list.append(res)
+                    err_list.append(err)
+                tally_data.times = tb
+                tally_data.eng = eb
+                tally_data.result = res_list
+                tally_data.err = err_list
+            else:
+                # energy and time bins only one surface
+                tb, eb, res, err = process_e_t_userbin(
+                    lines[first_surface_line_id + 1:end_line_id])
+                tally_data.times = tb
+                tally_data.eng = eb
+                tally_data.result = res
+                tally_data.err = err
         elif len(tally_data.surfaces) > 1:
+            # times bins multiple surfaces
             ntlogger.debug("time bins and multiple surfaces")
             res_data = []
             err_data = []
@@ -881,11 +915,11 @@ def read_type_surface(tally_data, lines):
             tally_data.err = err_data
 
         else:
-            # just time bins
-            ntlogger.debug("time bins only")
+            # time bins - only one surface
+            ntlogger.debug("time bins only, only one surface")
             end_line_id = ut.find_ind(lines, "total") + 2
             lines = lines[first_surface_line_id + 1:end_line_id]
-            tally_data.times, tally_data.result, tally_data.err= process_time_bin_only(lines)
+            tally_data.times, tally_data.result, tally_data.err = process_time_bin_only(lines)
 
     elif len(tally_data.surfaces) > 1:
         for s in tally_data.surfaces:
@@ -911,19 +945,10 @@ def read_type_surface(tally_data, lines):
     return tally_data
 
 
-def read_type_cell(tally_data, lines):
-    """ process type 4 or type 6 tally output data """
-    ntlogger.debug("Volume tally")
-    tally_data.vols = []
-    tally_data.cells = []
-    # find cells
-    # find volumes/ masses
-
-    # find line that the volumes or masses start at
-    if tally_data.tally_type == "4":
-        line_id = ut.find_line("           volumes ", lines, 19)
-    elif tally_data.tally_type == "6":
-        line_id = ut.find_line("           masses ", lines, 18)
+def get_cell_data(lines, line_id):
+    """ for cell tally retrieves the cell numbers and volumes """
+    cells = []
+    vols = []
 
     # extract the values of cell number and volumes
     while True:
@@ -936,85 +961,111 @@ def read_type_cell(tally_data, lines):
             cell_line = cell_line.split(":")[1]
             cell_line = cell_line.split(" ")[1:]
             for cell in cell_line:
-                tally_data.cells.append(cell)
+                cells.append(cell)
         else:
             vol_line = " ".join(line.split())
             vol_line = vol_line.split(" ")
             for vol in vol_line:
-                tally_data.vols.append(vol)
+                vols.append(vol)
+
+    return cells, vols, line_id
+
+
+def read_energy_bin_only_cell_tally(lines):
+    """ """
+    data_dict = defaultdict(list)
+    total_dict = {}
+    current_cell = None
+
+    for line in lines:
+        line = line.strip()
+        cell_match = re.match(r"cell\s+(\d+)", line)
+        if cell_match:
+            current_cell = int(cell_match.group(1))
+        if not current_cell:
+            continue
+        # Handle the "total" line
+        if line.lower().startswith("total"):
+            parts = line.lower().replace("total", "").split()
+            if len(parts) == 2:
+                total_result = float(parts[0])
+                total_rel_err = float(parts[1])
+                total_dict[current_cell] = {
+                    "total_result": total_result,
+                    "total_rel_err": total_rel_err
+                }
+            continue
+
+        # Match data lines (starting with a number and having 3 columns -energy, result and rel err)
+        parts = line.split()
+        if len(parts) == 3 and re.match(r"^\d", parts[0]):
+            energy = float(parts[0])
+            result = float(parts[1])
+            rel_err = float(parts[2])
+            data_dict[current_cell].append([energy, result, rel_err])
+    # Convert lists to DataFrames
+    for cell in data_dict:
+        data_dict[cell] = pd.DataFrame(data_dict[cell], columns=["energy", "result", "rel_err"])
+
+    return data_dict, total_dict
+
+
+def read_type_cell(tally_data, lines):
+    """ process type 4 or type 6 tally output data """
+    ntlogger.debug("Volume tally")
+
+    # find line that the volumes or masses start at
+    if tally_data.tally_type == "4":
+        line_id = ut.find_line("           volumes ", lines, 19)
+    elif tally_data.tally_type == "6":
+        line_id = ut.find_line("           masses ", lines, 18)
+
+    # find cells
+    # find volumes/ masses
+    tally_data.cells, tally_data.vols, line_id = get_cell_data(lines, line_id)
 
     lines = lines[line_id:]
+    cell_res_start = ut.find_ind(lines, " " + tally_data.cells[0] + " ")
+    tally_read = False
+
+    # only energy binned data
+    if "energy" in lines[cell_res_start + 1]:
+        ntlogger.debug("noticed energy")
+        tally_data.result, tally_data.totals = read_energy_bin_only_cell_tally(lines)
+        first_key = next(iter(tally_data.result))
+        tally_data.eng = tally_data.result[first_key]["energy"].tolist()
+        tally_read = True
+
     # loop for each cell
     for cell in tally_data.cells:
-        if cell == "a":
-            break
-
         results = []
         errs = []
-        data_dict = defaultdict(list)
-        total_dict = {}
+
         cell_res_start = ut.find_ind(lines, " " + cell + " ")
 
-        # energy binned data
-        if "energy" in lines[cell_res_start + 1]:
-            ntlogger.debug("noticed energy")
-            current_cell = None
-            for line in lines:
-                line = line.strip()
-                cell_match = re.match(r"cell\s+(\d+)", line)
-                if cell_match:
-                    current_cell = int(cell_match.group(1))
-                if not current_cell:
-                    continue
-                # Handle the "total" line
-                if line.lower().startswith("total"):
-                    parts = line.lower().replace("total", "").split()
-                    if len(parts) == 2:
-                        total_result = float(parts[0])
-                        total_rel_err = float(parts[1])
-                        total_dict[current_cell] = {
-                            "total_result": total_result,
-                            "total_rel_err": total_rel_err
-                        }
-                    continue
-                    
-                # Match data lines (starting with a number and having 3 parts)
-                parts = line.split()
-                if len(parts) == 3 and re.match(r"^\d", parts[0]):
-                    energy = float(parts[0])
-                    result = float(parts[1])
-                    rel_err = float(parts[2])
-                    data_dict[current_cell].append([energy, result, rel_err])
-            # Convert lists to DataFrames
-            for cell in data_dict:
-                data_dict[cell] = pd.DataFrame(data_dict[cell], columns=["energy", "result", "rel_err"])
-            
-            tally_data.result = data_dict
-            tally_data.totals = total_dict
-            tally_data.eng = data_dict[current_cell]["energy"].tolist()    
-                
-            
         # time bins
-        elif "time" in lines[cell_res_start + 1]:
+        if "time" in lines[cell_res_start + 1]:
             end_line_id = ut.find_line(" ===", lines, 4)
             # check if energy bins as well as time
             if "energy" in lines[cell_res_start + 2]:
                 ntlogger.debug("energy & time bins")
-                tb, eb, res, err = process_e_t_userbin(
+                tally_data.times, tally_data.eng, res, err = process_e_t_userbin(
                     lines[cell_res_start + 1:end_line_id])
-                tally_data.times = tb
-                tally_data.eng = eb
-                tally_data.result = res
-                tally_data.err = err
+                tally_data.result.append(res)
+                tally_data.err.append(err)
             else:
                 # just time bins
                 ntlogger.debug("time bins only")
+
                 end_line_id = ut.find_ind(lines, "total") + 2
-                lines = lines[cell_res_start + 1:end_line_id]
+                cell_block = lines[cell_res_start + 1:end_line_id]
+                tally_data.times, results, errs = process_time_bin_only(cell_block)
+                tally_data.result.append(results)
+                tally_data.err.append(errs)
 
-                tally_data.times, tally_data.result, tally_data.err = process_time_bin_only(lines)
+                lines = lines[end_line_id:]
 
-        else:
+        elif tally_read is False:
             # single value per cell data
             data_line = lines[cell_res_start + 1]
             data_line = " ".join(data_line.split())
@@ -1058,6 +1109,10 @@ def read_type_5(tally_data, lines):
 
     elif "time" in res_line:
         ntlogger.debug("found time")
+        end_line_id = ut.find_line(" det", lines[loc_line_id+1:], 4)
+        tally_data.times, tally_data.eng, tally_data.result, tally_data.err = process_e_t_userbin(
+                    lines[loc_line_id+1:loc_line_id+1+end_line_id])
+
         # TODO: sort out f5 time dep tally
 
     elif "user bin" in res_line:

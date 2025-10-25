@@ -54,7 +54,7 @@ class input_validation_tests(unittest.TestCase):
     def test_check_cell_num(self):
         self.assertTrue(mcnp_input_reader.check_valid_cell_num(1))
         self.assertFalse(mcnp_input_reader.check_valid_cell_num(10000000000))
-        
+
     def test_mode_valid(self):
         """ """
         check = mcnp_input_reader.check_mode_valid(["p", "n"])
@@ -73,23 +73,23 @@ class filter_tests(unittest.TestCase):
     def test_get_cell(self):
 
         # check empty list
-        self.assertEqual(mcnp_input_reader.get_cell(1,[]), None)
+        self.assertEqual(mcnp_input_reader.get_cell(1, []), None)
 
         # check working
         cell_1 = mcnp_input_reader.mcnp_cell()
         cell_1.number = 1
         cell_2 = mcnp_input_reader.mcnp_cell()
         cell_2.number = 2
-        final_cell = mcnp_input_reader.get_cell(1,[cell_1, cell_2])
+        final_cell = mcnp_input_reader.get_cell(1, [cell_1, cell_2])
         self.assertEqual(final_cell, cell_1)
 
         # check cell number not present
-        final_cell = mcnp_input_reader.get_cell(10,[cell_1, cell_2])
+        final_cell = mcnp_input_reader.get_cell(10, [cell_1, cell_2])
         self.assertEqual(final_cell, None)
 
     def test_get_cells_with_mat(self):
         # check empty list
-        self.assertEqual(mcnp_input_reader.cells_with_mat(1,[]), [])
+        self.assertEqual(mcnp_input_reader.cells_with_mat(1, []), [])
 
         # set up test_list
         cell_1 = mcnp_input_reader.mcnp_cell()
@@ -112,7 +112,7 @@ class filter_tests(unittest.TestCase):
 
     def test_get_cells_with_surf(self):
         # check empty list
-        self.assertEqual(mcnp_input_reader.cells_with_mat(1,[]), [])
+        self.assertEqual(mcnp_input_reader.cells_with_mat(1, []), [])
 
         # set up test_list
         cell_1 = mcnp_input_reader.mcnp_cell()
@@ -149,8 +149,8 @@ class surface_card_tests(unittest.TestCase):
 
     # test simple surface card
     def test_single_line_surface(self):
-        self.assertTrue(True) 
-        
+        self.assertTrue(True)
+
     # test multi line surface card
     def test_multi_line_surface(self):
         self.assertTrue(True)
@@ -294,7 +294,7 @@ class line_tests(unittest.TestCase):
 
     def test_long_line(self):
         """ """
-        
+
         test_list = ["c cell cards",
                      "C surface ecards",
                      "c234",
@@ -309,19 +309,18 @@ class line_tests(unittest.TestCase):
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
         self.assertEqual(ll_index, None)     # if no long lines, return none
-        
+
         test_list = ["c cell cards",
-                     "C surface"+ 90*"f" ,
+                     "C surface" + 90 * "f",
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
         self.assertEqual(ll_index, None)     # test checking long comment lines, return none
-        
+
         test_list = ["c cell cards",
-                     "       $ surface"+ 100*"f" ,
+                     "       $ surface" + 100 * "f",
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
         self.assertEqual(ll_index, None)     # test checking long inline comment, return none
-        
 
 
 if __name__ == '__main__':
