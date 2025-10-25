@@ -851,8 +851,8 @@ def read_type_surface(tally_data, lines):
         ntlogger.debug("angle bins")
 
         if lines[first_surface_line_id + 2] == "      energy   ":
-            tally_data.result, tally_data.err, tally_data.ang_bins = process_energy_angle_tally(tally_data, 
-                                                                                                lines, 
+            tally_data.result, tally_data.err, tally_data.ang_bins = process_energy_angle_tally(tally_data,
+                                                                                                lines,
                                                                                                 first_surface_line_id)
         else:
             ntlogger.debug("angle bins only")
@@ -867,7 +867,8 @@ def read_type_surface(tally_data, lines):
                 res_list = []
                 err_list = []
                 for sur in tally_data.surfaces:
-                # needs more work here change - try except to use the fact that it will be the last surface block, check via enumerate(tally_data.surfaces)
+                    # needs more work here change - try except to use the fact that it will be the last surface block,
+                    # check via enumerate(tally_data.surfaces)
                     # print(f"Surface: {sur}")
                     try:
                         end_surface_block_line_id = ut.find_line(" surface ", lines[
