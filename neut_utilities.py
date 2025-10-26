@@ -1,5 +1,6 @@
 """utility functions for use by neutron tools"""
 import logging
+import numpy as np
 
 
 def setup_ntlogger():
@@ -57,18 +58,22 @@ def find_ind(data, sub):
 
 def find_first_non_zero(val_list):
     """ finds the first non zero value in a list and returns its position """
-    for i, val in enumerate(val_list):
-        if val != 0:
-            return i
-    return None
+    arr = np.asarray(val_list)
+    nonzero_indices = np.nonzero(arr)[0]
+    if nonzero_indices.size > 0:
+        return int(nonzero_indices[0])
+    else:
+        return None
 
 
 def find_first_zero(val_list):
     """ finds the first zero value in a list and returns its position """
-    for i, val in enumerate(val_list):
-        if val == 0:
-            return i
-    return None
+    arr = np.asarray(val_list)
+    zero_indices = np.where(arr == 0)[0]
+    if zero_indices.size > 0:
+        return int(zero_indices[0])
+    else:
+        return None
 
 
 def get_list_dimensions(lst):

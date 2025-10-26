@@ -15,8 +15,8 @@ def get_group_pos(groups, energy):
         input is the group energy boundaries and the energy
         output is the position in the list of the bin in whihc that energy sits
     """
+    groups = np.asarray(groups, dtype=float)
     energy = float(energy)
-    i = 0
     n = len(groups)
 
     # check for energy above the highest group
@@ -27,13 +27,13 @@ def get_group_pos(groups, energy):
         return n - 2
 
     # find bin for energies in the group structure range
-    while i < n - 1:
-        if energy <= groups[i] and energy > groups[i+1]:
-            return i
-        i += 1
+    idx = np.where((groups[:-1] >= energy) & (energy > groups[1:]))[0]
 
+    if idx.size > 0:
+        return int(idx[0])
     # just in case it does not fit in the above categories
-    return -1
+    else:
+        return -1
 
 
 def get_group_struct(gs):

@@ -3,6 +3,7 @@ from unittest.mock import patch, mock_open, call
 import mcnp_analysis as ma
 import mcnp_output_reader as mor
 import os
+import numpy as np
 
 
 class normalise_test_case(unittest.TestCase):
@@ -10,16 +11,16 @@ class normalise_test_case(unittest.TestCase):
 
     def test_norm_nice_data(self):
         data = [1, 2, 3, 4]
-        self.assertEqual(ma.normalise(data, 10), [10, 20, 30, 40])
-        self.assertEqual(ma.normalise(data, 1), data)
+        np.testing.assert_array_equal(ma.normalise(data, 10), np.array([10, 20, 30, 40]))
+        np.testing.assert_array_equal(ma.normalise(data, 1), np.array(data))
+        
         result = ma.normalise(data, 0.1)
-        self.assertAlmostEqual(result[0], 0.1, 7)
-        self.assertAlmostEqual(result[1], 0.2, 7)
-        self.assertAlmostEqual(result[2], 0.3, 7)
-        self.assertAlmostEqual(result[3], 0.4, 7)
+        np.testing.assert_allclose(result, [0.1, 0.2, 0.3, 0.4], rtol=1e-7)        
 
         # empty list
-        self.assertEqual(ma.normalise([], 1), [])
+        result = ma.normalise([], 1)
+        self.assertIsInstance(result, np.ndarray)
+        self.assertEqual(result.size, 0)
 
         # non numeric
         with self.assertRaises(ValueError):

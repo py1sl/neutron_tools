@@ -493,7 +493,7 @@ def read_mass(lines):
 
 def find_first_cooling_index(sumdat):
     """ finds the first index  """
-    result = sumdat[sumdat["is_cooling"] == True]
+    result = sumdat[sumdat["is_cooling"]]
     if not result.empty:
         index = result.index[0]
     else:

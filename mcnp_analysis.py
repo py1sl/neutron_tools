@@ -13,7 +13,9 @@ matplotlib.use('agg')
 
 def normalise(data, norm_val):
     """convert raw data to normalised data"""
-    norm = [float(i)*float(norm_val) for i in data]
+    data = np.asarray(data, dtype=float)
+    norm_val = float(norm_val)
+    norm = data * norm_val
     return norm
 
 
