@@ -69,7 +69,7 @@ def find_first_non_zero(val_list):
 def find_first_zero(val_list):
     """ finds the first zero value in a list and returns its position """
     arr = np.asarray(val_list)
-    zero_indices = np.where(arr==0)[0]
+    zero_indices = np.where(arr == 0)[0]
     if zero_indices.size > 0:
         return int(zero_indices[0])
     else:
