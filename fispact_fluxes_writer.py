@@ -27,8 +27,8 @@ def get_group_pos(groups, energy):
         return n - 2
 
     # find bin for energies in the group structure range
-    idx = np.where((groups[:-1]>=energy) & (energy>groups[1:]))[0]
-    
+    idx = np.where((groups[:-1] >= energy) & (energy > groups[1:]))[0]
+
     if idx.size > 0:
         return int(idx[0])
     # just in case it does not fit in the above categories

@@ -153,7 +153,7 @@ def get_not_oos_nuclides(inv, oos_path="data/t1.txt"):
     inv = remove_stable(inv)
 
     inv["oos_result"] = inv.apply(lambda row: check_nuclide_oos(row['nuclide'], row['act'], oos_data), axis=1)
-    inv = inv[inv["oos_result"] == False]
+    inv = inv[~inv["oos_result"]]
     return inv
 
 
