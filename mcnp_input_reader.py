@@ -90,7 +90,9 @@ class mcnp_tally():
 
 
 def long_line_index(lines):
-    """ find index of lines longer than 80 characters"""
+    """ find index of lines longer than 80 characters
+        ignores full comment lines and inline comment lines
+    """
     long_lines = []
     for i, line in enumerate(lines):
         if len(line) > 79:
@@ -110,7 +112,7 @@ def read_mode_card(lines):
     """ finds the mode card and returns the particle identifiers"""
     mode = None
     for line in lines:
-        if line[0:4].lower() == "mode":
+        if line.lower().startswith("mode "):
             line = ut.string_cleaner(line)
             mode = line.split(" ")[1:]
     return mode
@@ -206,7 +208,7 @@ def find_blank_lines(lines):
     blank_dict = {}
 
     for i, line in enumerate(lines):
-        if line == "":
+        if line.strip() == "":
             count = count + 1
             blank_dict[count] = i
 
