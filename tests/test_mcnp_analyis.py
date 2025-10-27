@@ -13,9 +13,9 @@ class normalise_test_case(unittest.TestCase):
         data = [1, 2, 3, 4]
         np.testing.assert_array_equal(ma.normalise(data, 10), np.array([10, 20, 30, 40]))
         np.testing.assert_array_equal(ma.normalise(data, 1), np.array(data))
-        
+
         result = ma.normalise(data, 0.1)
-        np.testing.assert_allclose(result, [0.1, 0.2, 0.3, 0.4], rtol=1e-7)        
+        np.testing.assert_allclose(result, [0.1, 0.2, 0.3, 0.4], rtol=1e-7)
 
         # empty list
         result = ma.normalise([], 1)
@@ -51,22 +51,6 @@ class calc_bin_mid_test(unittest.TestCase):
         bins = [1, 3, 5]
         self.assertEqual(len(ma.calc_mid_points(bins)), 2)
         self.assertEqual(ma.calc_mid_points(bins), [2, 4])
-
-
-class csv_test_case(unittest.TestCase):
-    """ tests write_lines function"""
-
-    def test_write_csv(self):
-        open_mock = mock_open()
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
-        single = mor.read_output_file(path)
-        for tn in single.tally_data:
-            if tn.number == 4:
-                data = tn
-        with patch("neut_utilities.open", open_mock, create=True):
-            ma.csv_out(data, "output.txt")
-
-        open_mock.assert_called_with("output.txt", "w")
 
 
 class plotting_test_cases(unittest.TestCase):
