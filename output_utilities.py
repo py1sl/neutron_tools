@@ -114,7 +114,7 @@ def html_output(mc_object, fname):
                     "_" + str(tdat.cells[0]) + ".png"
                 title = tdat.particle + \
                     " Spectra for cell " + str(tdat.cells[0])
-                plot_spectra(tdat, pname, title, sp="neutron")
+                # plot_spectra(tdat, pname, title, sp="neutron")
 
                 hlines.append(
                     "<img src=" +
