@@ -60,6 +60,15 @@ class mcnp_material():
         self.num_nuclides = 0
         self.composition = None
         self.keywords = None
+        
+    def __str__(self):
+        print_list = []
+        print_list.append("Material number: ", self.number)
+        print_list.append("Number of Nuclides: ", self.num_nuclides)
+        print_list.append("Composition: ", self.composition)
+        print_list.append("Keywords: ", self.keywords)
+        
+        return "\n".join(print_list)
 
 
 class mcnp_tally():
@@ -119,7 +128,9 @@ def read_mode_card(lines):
 
 
 def check_mode_valid(mode):
-    """ checks the particles on a mode card are valid particles identifiers """
+    """ checks the particles on a mode card are valid particles identifiers 
+    """
+    # todo : particle list should live somewhere else
     particle_list = ["n", "p", "h", "e", "|", "q", "u", "v", "!"]
     for particle in mode:
         if particle.lower() not in particle_list:
@@ -131,7 +142,7 @@ def get_full_line_comments(lines):
     """  extracts all full line comments """
     comments = {}
     for i, line in enumerate(lines):
-        if len(line) > 1 and line[0].lower() == "c" and line[1] == " ":
+        if line.lower().startswith("c "):
             comments[i] = line
     return comments
 
@@ -333,28 +344,24 @@ def get_mat(mat_num, mat_list):
     return None
 
 
+def check_valid_number(num, max_num=99999999):
+    """  check if a number is less than the max_number """
+    return num <= max_num
+
+
 def check_valid_mat_num(mat_num):
     """ checks a material number is valid in MCNP"""
-    if mat_num > 99999999:
-        return False
-    else:
-        return True
-
+    return check_valid_number(mat_num)
+    
 
 def check_valid_surf_num(surf_num):
     """ checks surface number is a valid MCNP surface number """
-    if surf_num > 99999999:
-        return False
-    else:
-        return True
+    return check_valid_number(surf_num)
 
 
 def check_valid_cell_num(cell_num):
     """ checks surface number is a valid MCNP surface number """
-    if cell_num > 99999999:
-        return False
-    else:
-        return True
+    return check_valid_number(cell_num)
 
 
 def check_cell_mat_exists(cell, mat_list):
