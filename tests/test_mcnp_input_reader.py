@@ -9,7 +9,7 @@ class cell_card_tests(unittest.TestCase):
         # for mcnp input reader tests
         # test simple 1 line cell with material
         bloc = ["1 2 -2.3 (-1) imp:n=2"]
-        cell = mcnp_input_reader.process_cell_block(bloc)[0]
+        cell = mcnp_input_reader.process_cell_block(bloc)[1]
 
         self.assertEqual(cell.number, 1)
         self.assertEqual(cell.mat, 2)
@@ -21,7 +21,7 @@ class cell_card_tests(unittest.TestCase):
     def test_1_line_void_cell(self):
         # test simple 1 line void cell
         bloc = ["1 0 (-1:23) (3 4 -5) imp:n=2"]
-        cell = mcnp_input_reader.process_cell_block(bloc)[0]
+        cell = mcnp_input_reader.process_cell_block(bloc)[1]
 
         self.assertEqual(cell.number, 1)
         self.assertEqual(cell.imp_n, 2)
@@ -73,23 +73,26 @@ class filter_tests(unittest.TestCase):
     def test_get_cell(self):
 
         # check empty list
-        self.assertEqual(mcnp_input_reader.get_cell(1, []), None)
+        self.assertEqual(mcnp_input_reader.get_cell(1, {}), None)
 
         # check working
         cell_1 = mcnp_input_reader.mcnp_cell()
         cell_1.number = 1
         cell_2 = mcnp_input_reader.mcnp_cell()
         cell_2.number = 2
-        final_cell = mcnp_input_reader.get_cell(1, [cell_1, cell_2])
+        cells = {}
+        cells[cell_1.number] = cell_1
+        cells[cell_2.number] = cell_2
+        final_cell = mcnp_input_reader.get_cell(1, cells)
         self.assertEqual(final_cell, cell_1)
 
         # check cell number not present
-        final_cell = mcnp_input_reader.get_cell(10, [cell_1, cell_2])
+        final_cell = mcnp_input_reader.get_cell(10, cells)
         self.assertEqual(final_cell, None)
 
     def test_get_cells_with_mat(self):
         # check empty list
-        self.assertEqual(mcnp_input_reader.cells_with_mat(1, []), [])
+        self.assertEqual(mcnp_input_reader.cells_with_mat(1, {}), [])
 
         # set up test_list
         cell_1 = mcnp_input_reader.mcnp_cell()
@@ -102,17 +105,20 @@ class filter_tests(unittest.TestCase):
         cell_3.number = 3
         cell_3.mat = 2
 
-        cell_list = [cell_1, cell_2, cell_3]
+        cells = {}
+        cells[cell_1.number] = cell_1
+        cells[cell_2.number] = cell_2
+        cells[cell_3.number] = cell_3
         # check working
-        self.assertEqual(len(mcnp_input_reader.cells_with_mat(1, cell_list)), 2)
-        self.assertEqual(len(mcnp_input_reader.cells_with_mat(2, cell_list)), 1)
+        self.assertEqual(len(mcnp_input_reader.cells_with_mat(1, cells)), 2)
+        self.assertEqual(len(mcnp_input_reader.cells_with_mat(2, cells)), 1)
 
         # check mat num not present
-        self.assertEqual(mcnp_input_reader.cells_with_mat(10, cell_list), [])
+        self.assertEqual(mcnp_input_reader.cells_with_mat(10, cells), [])
 
     def test_get_cells_with_surf(self):
         # check empty list
-        self.assertEqual(mcnp_input_reader.cells_with_mat(1, []), [])
+        self.assertEqual(mcnp_input_reader.cells_with_mat(1, {}), [])
 
         # set up test_list
         cell_1 = mcnp_input_reader.mcnp_cell()
@@ -125,14 +131,15 @@ class filter_tests(unittest.TestCase):
         cell_3.number = 3
         cell_3.surfaces = [2]
 
-        cell_list = [cell_1, cell_2, cell_3]
+        cells = {}
+        cells[cell_1.number] = cell_1
+        cells[cell_2.number] = cell_2
+        cells[cell_3.number] = cell_3
         # check working
-        self.assertEqual(len(mcnp_input_reader.cells_with_surface(1, cell_list)), 2)
-        self.assertEqual(len(mcnp_input_reader.cells_with_surface(3, cell_list)), 1)
-        self.assertEqual(len(mcnp_input_reader.cells_with_surface(2, cell_list)), 2)
-
-        # check mat num not present
-        self.assertEqual(mcnp_input_reader.cells_with_surface(10, cell_list), [])
+        self.assertEqual(len(mcnp_input_reader.cells_with_surface(1, cells)), 2)
+        self.assertEqual(len(mcnp_input_reader.cells_with_surface(3, cells)), 1)
+        self.assertEqual(len(mcnp_input_reader.cells_with_surface(2, cells)), 2)       # check mat num not present
+        self.assertEqual(mcnp_input_reader.cells_with_surface(10, cells), [])
 
     def test_cell_exists(self):
         # check working
@@ -140,8 +147,11 @@ class filter_tests(unittest.TestCase):
         cell_1.number = 1
         cell_2 = mcnp_input_reader.mcnp_cell()
         cell_2.number = 2
-        self.assertTrue(mcnp_input_reader.check_cell_exists(1, [cell_1, cell_2]))
-        self.assertFalse(mcnp_input_reader.check_cell_exists(10, [cell_1, cell_2]))
+        cells = {}
+        cells[cell_1.number] = cell_1
+        cells[cell_2.number] = cell_2
+        self.assertTrue(mcnp_input_reader.check_cell_exists(1, cells))
+        self.assertFalse(mcnp_input_reader.check_cell_exists(10, cells))
 
 
 class surface_card_tests(unittest.TestCase):

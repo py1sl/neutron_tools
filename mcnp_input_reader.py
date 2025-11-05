@@ -10,7 +10,7 @@ class mcnp_input():
     """ """
 
     def __init__(self):
-        self.cell_list = None
+        self.cells = None
         self.mat_num_list = None
         self.mat_list = []
         self.tal_num_list = None
@@ -23,6 +23,21 @@ class mcnp_input():
         self.mode = None
         self.is_sdef = True
         self.is_kcode = False
+
+    def __str__(self):
+        print_list = []
+        print_list.append("File: ", self.file_path)
+        print_list.append("Mode: ", self.mode)
+
+        if self.is_sdef:
+            print_list.append("Fixed source calculation")
+        elif self.is_kcode:
+            print_list.append("Kcode calculation")
+        else:
+            print_list.append("Unknown calculation type")
+
+
+        return "\n".join(print_list)
 
 
 class mcnp_cell():
@@ -60,14 +75,14 @@ class mcnp_material():
         self.num_nuclides = 0
         self.composition = None
         self.keywords = None
-        
+
     def __str__(self):
         print_list = []
         print_list.append("Material number: ", self.number)
         print_list.append("Number of Nuclides: ", self.num_nuclides)
         print_list.append("Composition: ", self.composition)
         print_list.append("Keywords: ", self.keywords)
-        
+
         return "\n".join(print_list)
 
 
@@ -128,7 +143,7 @@ def read_mode_card(lines):
 
 
 def check_mode_valid(mode):
-    """ checks the particles on a mode card are valid particles identifiers 
+    """ checks the particles on a mode card are valid particles identifiers
     """
     # todo : particle list should live somewhere else
     particle_list = ["n", "p", "h", "e", "|", "q", "u", "v", "!"]
@@ -278,14 +293,14 @@ def process_geom(geom, cell):
 
 def process_cell_block(bloc):
     """ split cell block into cell objects """
-    cell_list = []
+    cell_dict = {}
     cell = None
     geom = []
     for line in bloc:
         if line[0].isdigit():
             if cell is not None:
                 cell = process_geom(geom, cell)
-                cell_list.append(cell)
+                cell_dict[cell.number] = cell
                 geom = []
 
             cell = mcnp_cell()
@@ -303,36 +318,24 @@ def process_cell_block(bloc):
 
     # add last cell
     cell = process_geom(geom, cell)
-    cell_list.append(cell)
+    cell_dict[cell.number] = cell
 
-    return cell_list
+    return cell_dict
 
 
-def get_cell(cell_num, cell_list):
+def get_cell(cell_num, cells):
     """ get cell from cell list """
-    for cell in cell_list:
-        if cell_num == cell.number:
-            return cell
-
-    return None
+    return cells.get(cell_num)
 
 
-def cells_with_mat(mat_num, cell_list):
+def cells_with_mat(mat_num, cells):
     """ get all cells with mat """
-    cells = []
-    for cell in cell_list:
-        if mat_num == cell.mat:
-            cells.append(cell)
-    return cells
+    return [cell for cell in cells.values() if cell.mat == mat_num]
 
 
-def cells_with_surface(surf_num, cell_list):
-    """ get all cells that contain surface """
-    cells = []
-    for cell in cell_list:
-        if surf_num in cell.surfaces:
-            cells.append(cell)
-    return cells
+def cells_with_surface(surf_num, cells):
+    """ get all cells that contain surface with id surf_num """
+    return [cell for cell in cells.values() if surf_num in cell.surfaces]
 
 
 def get_mat(mat_num, mat_list):
@@ -352,7 +355,7 @@ def check_valid_number(num, max_num=99999999):
 def check_valid_mat_num(mat_num):
     """ checks a material number is valid in MCNP"""
     return check_valid_number(mat_num)
-    
+
 
 def check_valid_surf_num(surf_num):
     """ checks surface number is a valid MCNP surface number """
@@ -372,9 +375,9 @@ def check_cell_mat_exists(cell, mat_list):
         return True
 
 
-def check_cell_exists(cell_num, cell_list):
+def check_cell_exists(cell_num, cells):
     """ checks a cell object exists for that cell number"""
-    if get_cell(cell_num, cell_list) is None:
+    if get_cell(cell_num, cells) is None:
         return False
     else:
         return True
@@ -456,9 +459,7 @@ def process_material_line(mat_line, mat_num):
     # remove keyword entries from mat_line
     filtered_data = [entry for entry in mat_line if not (isinstance(entry, str) and "=" in entry)]
     # convert to a material dict with zaid - fraction pairs
-    material_dict = {filtered_data[i]: float(filtered_data[i + 1]) for i in range(0, len(filtered_data), 2)}
-
-    mat.composition = material_dict
+    mat.composition = {filtered_data[i]: float(filtered_data[i + 1]) for i in range(0, len(filtered_data), 2)}
 
     return mat
 
@@ -473,6 +474,19 @@ def check_valid_mat_keyword(mat):
             raise ValueError(f'{key} input not recognised as valid keyword for a material')
 
 
+def process_data_block(mc_in):
+    """ """
+    mc_in.mode = read_mode_card(mc_in.data_block)
+    mc_in.tal_num_list = get_tally_numbers(mc_in.data_block)
+    mc_in.mat_num_list = get_material_numbers(mc_in.data_block)
+
+    for mat_num in mc_in.mat_num_list:
+        mat = read_material_lines(mat_num, mc_in.data_block)
+        mc_in.mat_list.append(mat)
+
+    return mc_in
+    
+    
 def read_mcnp_input(fpath):
     """ reads the mcnp input file,
         main entry point for this module
@@ -483,18 +497,11 @@ def read_mcnp_input(fpath):
     mc_in = mcnp_input()
     mc_in.file_path = fpath
     mc_in.cell_block, mc_in.surface_block, mc_in.data_block = split_blocs(ifile)
-    mc_in.cell_list = process_cell_block(mc_in.cell_block)
+    mc_in.cells = process_cell_block(mc_in.cell_block)
 
     mc_comments = get_full_line_comments(ifile)
-
-    mc_in.mode = read_mode_card(mc_in.data_block)
-    mc_in.tal_num_list = get_tally_numbers(mc_in.data_block)
-    mc_in.mat_num_list = get_material_numbers(mc_in.data_block)
-
-    for mat_num in mc_in.mat_num_list:
-        mat = read_material_lines(mat_num, mc_in.data_block)
-        mc_in.mat_list.append(mat)
-
+    mc_in = process_data_block(mc_in)
+    
     return mc_in
 
 
