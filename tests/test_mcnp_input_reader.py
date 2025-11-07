@@ -44,26 +44,26 @@ class cell_card_tests(unittest.TestCase):
 class input_validation_tests(unittest.TestCase):
     """ test for some of the card validation tests """
     def test_check_mat_num(self):
-        self.assertTrue(mcnp_input_reader.check_valid_mat_num(1))
-        self.assertFalse(mcnp_input_reader.check_valid_mat_num(1e10))
+        self.assertTrue(mcnp_input_reader.is_valid_mat_num(1))
+        self.assertFalse(mcnp_input_reader.is_valid_mat_num(1e10))
 
     def test_check_surf_num(self):
-        self.assertTrue(mcnp_input_reader.check_valid_surf_num(1))
-        self.assertFalse(mcnp_input_reader.check_valid_surf_num(1e10))
+        self.assertTrue(mcnp_input_reader.is_valid_surf_num(1))
+        self.assertFalse(mcnp_input_reader.is_valid_surf_num(1e10))
 
     def test_check_cell_num(self):
-        self.assertTrue(mcnp_input_reader.check_valid_cell_num(1))
-        self.assertFalse(mcnp_input_reader.check_valid_cell_num(10000000000))
+        self.assertTrue(mcnp_input_reader.is_valid_cell_num(1))
+        self.assertFalse(mcnp_input_reader.is_valid_cell_num(10000000000))
 
     def test_mode_valid(self):
         """ """
-        check = mcnp_input_reader.check_mode_valid(["p", "n"])
+        check = mcnp_input_reader.is_mode_valid(["p", "n"])
         self.assertTrue(check)  # check lower case
 
-        check = mcnp_input_reader.check_mode_valid(["n", "P"])
+        check = mcnp_input_reader.is_mode_valid(["n", "P"])
         self.assertTrue(check)  # check upper case and order
 
-        check = mcnp_input_reader.check_mode_valid(["p", "n", "r"])
+        check = mcnp_input_reader.is_mode_valid(["p", "n", "r"])
         self.assertFalse(check)  # check false
 
 
@@ -168,16 +168,16 @@ class surface_card_tests(unittest.TestCase):
     def test_is_surface(self):
         # test check surface type validity
         # check surfaces
-        self.assertTrue(mcnp_input_reader.check_surface_type_validity("px"))
+        self.assertTrue(mcnp_input_reader.is_surface_type_valid("px"))
         # check for possible escape characters
-        self.assertTrue(mcnp_input_reader.check_surface_type_validity("c/x"))
-        self.assertTrue(mcnp_input_reader.check_surface_type_validity("c/y"))
-        self.assertTrue(mcnp_input_reader.check_surface_type_validity("c/z"))
-        self.assertTrue(mcnp_input_reader.check_surface_type_validity("k/z"))
+        self.assertTrue(mcnp_input_reader.is_surface_type_valid("c/x"))
+        self.assertTrue(mcnp_input_reader.is_surface_type_valid("c/y"))
+        self.assertTrue(mcnp_input_reader.is_surface_type_valid("c/z"))
+        self.assertTrue(mcnp_input_reader.is_surface_type_valid("k/z"))
         # check macro body
-        self.assertTrue(mcnp_input_reader.check_surface_type_validity("rpp"))
+        self.assertTrue(mcnp_input_reader.is_surface_type_valid("rpp"))
         # check not a surface
-        self.assertFalse(mcnp_input_reader.check_surface_type_validity("nas"))
+        self.assertFalse(mcnp_input_reader.is_surface_type_valid("nas"))
 
     def test_plane_valid(self):
         # test plane validity

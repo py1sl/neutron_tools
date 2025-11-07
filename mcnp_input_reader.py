@@ -142,7 +142,7 @@ def read_mode_card(lines):
     return mode
 
 
-def check_mode_valid(mode):
+def is_mode_valid(mode):
     """ checks the particles on a mode card are valid particles identifiers
     """
     # todo : particle list should live somewhere else
@@ -187,7 +187,7 @@ def get_tally_numbers(lines):
     return tal_nums
 
 
-def check_surface_type_validity(surface):
+def is_surface_type_valid(surface):
     """ check surface is a valid mcnp type"""
     surface_types = ("p", "px", "py", "pz", "cx", "cy", "cz",
                      "s", "so", "c/x", "c/y", "c/z", "gq", "sq",
@@ -347,24 +347,24 @@ def get_mat(mat_num, mat_list):
     return None
 
 
-def check_valid_number(num, max_num=99999999):
+def is_valid_number(num, max_num=99999999):
     """  check if a number is less than the max_number """
     return num <= max_num
 
 
-def check_valid_mat_num(mat_num):
+def is_valid_mat_num(mat_num):
     """ checks a material number is valid in MCNP"""
-    return check_valid_number(mat_num)
+    return is_valid_number(mat_num)
 
 
-def check_valid_surf_num(surf_num):
+def is_valid_surf_num(surf_num):
     """ checks surface number is a valid MCNP surface number """
-    return check_valid_number(surf_num)
+    return is_valid_number(surf_num)
 
 
-def check_valid_cell_num(cell_num):
+def is_valid_cell_num(cell_num):
     """ checks surface number is a valid MCNP surface number """
-    return check_valid_number(cell_num)
+    return is_valid_number(cell_num)
 
 
 def check_cell_mat_exists(cell, mat_list):
