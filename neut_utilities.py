@@ -1,13 +1,98 @@
 """utility functions for use by neutron tools"""
+from typing import Optional, Union, List, Dict, Any
+from pathlib import Path
 import logging
+import logging.handlers
+import sys
+import os
 import numpy as np
+from datetime import datetime
 
 
-def setup_ntlogger():
-    """ setting up logging """
-    ntlogger = logging.getLogger('nt_logger')
-    ntlogger.setLevel(level=logging.DEBUG)
-    return ntlogger
+class NeutronToolsLogger:
+    """Centralized logging configuration for neutron tools"""
+    
+    def __init__(self) -> None:
+        self.logger = logging.getLogger('nt_logger')
+        self.logger.setLevel(logging.DEBUG)
+
+    def setup_logging(
+        self,
+        log_file: Optional[Union[str, Path]] = None,
+        console_level: str = 'INFO',
+        file_level: str = 'DEBUG',
+        log_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    ) -> logging.Logger:
+        """Configure logging with console and optional file handlers.
+
+        Args:
+            log_file: Path to log file. If None, only console logging will be used.
+                     Set to 'auto' for automatic date-based log file.
+            console_level: Logging level for console output
+            file_level: Logging level for file output
+            log_format: Format string for log messages
+
+        Returns:
+            Configured logger instance
+        """
+        self.logger.handlers.clear()  # Remove any existing handlers
+
+        # Create formatters
+        formatter = logging.Formatter(log_format)
+
+        # Console handler
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setLevel(getattr(logging, console_level.upper()))
+        console_handler.setFormatter(formatter)
+        self.logger.addHandler(console_handler)
+
+        # File handler (if requested)
+        if log_file is not None:
+            if log_file == 'auto':
+                date_str = datetime.now().strftime('%Y%m%d')
+                log_file = f'neutron_tools_{date_str}.log'
+            
+            file_handler = logging.handlers.RotatingFileHandler(
+                log_file,
+                maxBytes=10*1024*1024,  # 10MB
+                backupCount=5
+            )
+            file_handler.setLevel(getattr(logging, file_level.upper()))
+            file_handler.setFormatter(formatter)
+            self.logger.addHandler(file_handler)
+
+        return self.logger
+
+    def get_logger(self) -> logging.Logger:
+        """Get the configured logger instance"""
+        if not self.logger.handlers:
+            self.setup_logging()
+        return self.logger
+
+
+def setup_ntlogger(
+    log_file: Optional[Union[str, Path]] = None,
+    console_level: str = 'INFO',
+    file_level: str = 'DEBUG'
+) -> logging.Logger:
+    """Legacy function maintained for compatibility.
+    Sets up the neutron tools logger with specified configuration.
+
+    Args:
+        log_file: Path to log file. If None, only console logging will be used.
+                 Default is 'auto' for automatic date-based log file.
+        console_level: Logging level for console output
+        file_level: Logging level for file output
+
+    Returns:
+        Configured logger instance
+    """
+    logger_instance = NeutronToolsLogger()
+    return logger_instance.setup_logging(
+        log_file=log_file,
+        console_level=console_level,
+        file_level=file_level
+    )
 
 
 def write_lines(path, lines):
