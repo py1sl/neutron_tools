@@ -15,6 +15,7 @@ class XSDir:
             f"Datapath: {self.datapath}\n"
             f"Number of AWR entries: {len(self.awr)}\n"
             f"Number of directory entries: {len(self.directory)}"
+            f"Number of TSL entries: {len(self.thermal_scattering)}"
         )
 
     @classmethod
@@ -30,6 +31,7 @@ class XSDir:
         # Parse sections
         xs.awr = cls._process_awr(lines)
         xs.directory = cls._process_directory(lines)
+        xs.thermal_scattering = cls._process_thermal(lines)
 
         return xs
 
@@ -37,8 +39,10 @@ class XSDir:
     def _process_datapath(lines):
         """Extract datapath= line from xsdir."""
         for line in lines:
+            line = line.lower()
             if line.strip().startswith("datapath"):
-                return line.split("=")[1].strip()
+                datapath = line.split("=")[1].strip()
+                return datapath
         return None
 
     @staticmethod
@@ -47,12 +51,13 @@ class XSDir:
         awr_data = {}
         in_awr = False
         for line in lines:
-            if line.strip().startswith("atomic_weight_ratios"):
+            line = line.strip()
+            if line.startswith("atomic"):
                 in_awr = True
                 continue
             if in_awr:
-                if line.strip().startswith("directory"):
-                    break  # end of AWR section
+                if line.startswith("directory"):
+                    break 
                 parts = line.split()
                 if len(parts) >= 3:
                     awr_data[parts[1]] = float(parts[2])
@@ -74,8 +79,8 @@ class XSDir:
                 isotope = parts[0]
                 directory[isotope] = parts[1:]
         return directory
-    
-        @staticmethod
+
+    @staticmethod
     def _process_thermal(lines):
         """Parse thermal scattering data section if present."""
         thermal = {}
@@ -95,7 +100,7 @@ class XSDir:
                 thermal[entry] = parts[1:]
         return thermal
 
-    
+
 def read_xsdir(fpath):
     xsdir_file = XSDir.from_file(fpath)
     return xsdir_file
