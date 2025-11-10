@@ -228,7 +228,7 @@ class data_card_tests(unittest.TestCase):
         self.assertEqual(mat.number, 1)
         self.assertEqual(mat.keywords, None)
         self.assertEqual(mat.composition["1000.21c"], 1)
-    """
+    
     def test_mat_keyword(self):
         mat = mcnp_input_reader.mcnp_material()
         test_line = "plib=.70u"
@@ -239,11 +239,11 @@ class data_card_tests(unittest.TestCase):
 
         # test with previous keywords
         mat = mcnp_input_reader.mcnp_material()
-        mat.keywords = {"test_key", "test_value"}
+        mat.keywords = {"test_key": "test_value"}
         mat = mcnp_input_reader.process_material_keyword(test_line, mat)
         self.assertEqual(mat.keywords["plib"], ".70u")
         self.assertEqual(mat.keywords["test_key"], "test_value")
-    """
+    
     def test_get_tal_nums(self):
         """ """
         test_list = ["f1",

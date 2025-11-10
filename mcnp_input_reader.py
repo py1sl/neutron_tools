@@ -12,8 +12,9 @@ class mcnp_input():
     def __init__(self):
         self.cells = None
         self.mat_num_list = None
-        self.mat_list = []
+        self.materials = None
         self.tal_num_list = None
+        self.tallies = None
         self.surface_list = None
         self.surface_block = None
         self.cell_block = None
@@ -338,13 +339,9 @@ def cells_with_surface(surf_num, cells):
     return [cell for cell in cells.values() if surf_num in cell.surfaces]
 
 
-def get_mat(mat_num, mat_list):
+def get_mat(mat_num, mats):
     """ retrieve a particular material number  """
-    for mat in mat_list:
-        if mat.number == mat_num:
-            return mat
-
-    return None
+    return mats.get(mat_num)
 
 
 def is_valid_number(num, max_num=99999999):
@@ -367,9 +364,9 @@ def is_valid_cell_num(cell_num):
     return is_valid_number(cell_num)
 
 
-def check_cell_mat_exists(cell, mat_list):
+def check_cell_mat_exists(cell, mats):
     """ checks the material listed in a cell has a material """
-    if get_mat(cell.mat, mat_list) is None:
+    if get_mat(cell.mat, mats) is None:
         return False
     else:
         return True
@@ -482,7 +479,7 @@ def process_data_block(mc_in):
 
     for mat_num in mc_in.mat_num_list:
         mat = read_material_lines(mat_num, mc_in.data_block)
-        mc_in.mat_list.append(mat)
+        mc_in.materials[mat.number] = mat
 
     return mc_in
     
