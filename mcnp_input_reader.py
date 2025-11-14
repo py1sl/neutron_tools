@@ -48,8 +48,7 @@ class mcnp_cell():
         self.number = ""
         self.mat = ""
         self.density = None
-        self.imp_p = 1.0
-        self.imp_n = 1.0
+        self.imp = {}
         self.geom = ""
         self.surfaces = []
         self.param_list = []
@@ -62,8 +61,6 @@ class mcnp_cell():
         print_list.append("Cell density: ", self.density)
         print_list.append("Cell geom: ", self.geom)
         print_list.append("Cell surfaces: ", self.surfaces)
-        print_list.append("Cell imp p:", self.imp_p)
-        print_list.append("Cell imp n:", self.imp_n)
 
         return "\n".join(print_list)
 
@@ -257,10 +254,8 @@ def process_imp(part, cell):
     """ extracts importances for a cell """
     imp_val = part.split("=")[-1]
     imp_particle = part.split(":")[1][0]
-    if imp_particle.lower() == "p":
-        cell.imp_p = float(imp_val)
-    elif imp_particle.lower() == "n":
-        cell.imp_n = float(imp_val)
+    # todo add check valid particle type
+    cell.imp[imp_particle] = float(imp_val)
 
     return cell
 
@@ -476,6 +471,7 @@ def process_data_block(mc_in):
     mc_in.mode = read_mode_card(mc_in.data_block)
     mc_in.tal_num_list = get_tally_numbers(mc_in.data_block)
     mc_in.mat_num_list = get_material_numbers(mc_in.data_block)
+    mc_in.materials = {}
 
     for mat_num in mc_in.mat_num_list:
         mat = read_material_lines(mat_num, mc_in.data_block)
