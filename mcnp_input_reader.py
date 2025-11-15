@@ -37,7 +37,6 @@ class mcnp_input():
         else:
             print_list.append("Unknown calculation type")
 
-
         return "\n".join(print_list)
 
 
@@ -466,6 +465,11 @@ def check_valid_mat_keyword(mat):
             raise ValueError(f'{key} input not recognised as valid keyword for a material')
 
 
+def is_continue_line(line):
+    """checks if line has 5 spaces at start """
+    return line.startswith(" " * 5)
+
+
 def process_data_block(mc_in):
     """ """
     mc_in.mode = read_mode_card(mc_in.data_block)
@@ -478,8 +482,8 @@ def process_data_block(mc_in):
         mc_in.materials[mat.number] = mat
 
     return mc_in
-    
-    
+
+
 def read_mcnp_input(fpath):
     """ reads the mcnp input file,
         main entry point for this module
@@ -492,9 +496,9 @@ def read_mcnp_input(fpath):
     mc_in.cell_block, mc_in.surface_block, mc_in.data_block = split_blocs(ifile)
     mc_in.cells = process_cell_block(mc_in.cell_block)
 
-    mc_comments = get_full_line_comments(ifile)
+    mc_in.comments = get_full_line_comments(ifile)
     mc_in = process_data_block(mc_in)
-    
+
     return mc_in
 
 

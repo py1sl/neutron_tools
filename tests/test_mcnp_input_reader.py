@@ -227,7 +227,7 @@ class data_card_tests(unittest.TestCase):
         self.assertEqual(mat.number, 1)
         self.assertEqual(mat.keywords, None)
         self.assertEqual(mat.composition["1000.21c"], 1)
-    
+
     def test_mat_keyword(self):
         mat = mcnp_input_reader.mcnp_material()
         test_line = "plib=.70u"
@@ -242,7 +242,7 @@ class data_card_tests(unittest.TestCase):
         mat = mcnp_input_reader.process_material_keyword(test_line, mat)
         self.assertEqual(mat.keywords["plib"], ".70u")
         self.assertEqual(mat.keywords["test_key"], "test_value")
-    
+
     def test_get_tal_nums(self):
         """ """
         test_list = ["f1",
@@ -275,10 +275,10 @@ class data_card_tests(unittest.TestCase):
 
 
 class line_tests(unittest.TestCase):
-    """ test for reading the misc part of input file"""
+    """ tests for general line processing of input file"""
 
     def test_inline_comments(self):
-        """ """
+        """ tests for comments using $"""
         # test not inline comment
         test_line = "no comment"
         line = mcnp_input_reader.remove_inline_comment(test_line)
@@ -288,9 +288,14 @@ class line_tests(unittest.TestCase):
         test_line = " 1 1 $ test"
         line = mcnp_input_reader.remove_inline_comment(test_line)
         self.assertEqual(line, " 1 1 ")
+        
+        # test inline comment no space after $
+        test_line = " 1 1 $test"
+        line = mcnp_input_reader.remove_inline_comment(test_line)
+        self.assertEqual(line, " 1 1 ")
 
     def test_full_line_comment(self):
-        """ """
+        """test for comments using c """
         test_list = ["c cell cards",
                      "C surface ecards",
                      "c234",
@@ -302,7 +307,7 @@ class line_tests(unittest.TestCase):
         self.assertEqual(len(comments), 2)  # check nothing else added
 
     def test_long_line(self):
-        """ """
+        """ tests related to lines over 80 char long """
 
         test_list = ["c cell cards",
                      "C surface ecards",
@@ -313,23 +318,42 @@ class line_tests(unittest.TestCase):
         self.assertEqual(len(ll_index), 1)  # test found a single long line
         self.assertEqual(ll_index, [3])     # check it found the right index
 
+        # if no long lines, return none
         test_list = ["c cell cards",
                      "C surface ecards",
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
-        self.assertEqual(ll_index, None)     # if no long lines, return none
+        self.assertEqual(ll_index, None)     
 
+        # test checking long comment lines, return none
         test_list = ["c cell cards",
                      "C surface" + 90 * "f",
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
-        self.assertEqual(ll_index, None)     # test checking long comment lines, return none
-
+        self.assertEqual(ll_index, None)     
+        
+        # test checking long inline comment, return none
         test_list = ["c cell cards",
                      "       $ surface" + 100 * "f",
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
-        self.assertEqual(ll_index, None)     # test checking long inline comment, return none
+        self.assertEqual(ll_index, None)     
+        
+        # test checking long inline comment no space after $, return none
+        test_list = ["c cell cards",
+                     "       $surface" + 100 * "f",
+                     "c234"]
+        ll_index = mcnp_input_reader.long_line_index(test_list)
+        self.assertEqual(ll_index, None)    
+
+    def test_continue_line(self):
+        """  tests relating to continue line identification"""
+        line = "test_line"
+        self.assertFalse(mcnp_input_reader.is_continue_line(line))
+        self.assertFalse(mcnp_input_reader.is_continue_line(""))
+        self.assertFalse(mcnp_input_reader.is_continue_line(" " * 4))
+        self.assertTrue(mcnp_input_reader.is_continue_line(" " * 5))
+        self.assertTrue(mcnp_input_reader.is_continue_line(" " * 10))
 
 
 if __name__ == '__main__':
