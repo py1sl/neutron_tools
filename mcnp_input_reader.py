@@ -354,8 +354,23 @@ def is_valid_surf_num(surf_num):
 
 
 def is_valid_cell_num(cell_num):
-    """ checks surface number is a valid MCNP surface number """
+    """ checks cell number is a valid MCNP cell number """
     return is_valid_number(cell_num)
+
+
+def is_valid_tally_num(tally_num):
+    """ checks tally number is a valid MCNP tally number """
+    return is_valid_number(tally_num)
+
+
+def is_valid_universe_num(uni_num):
+    """ checks universe number is a valid MCNP universe number """
+    return is_valid_number(uni_num)
+
+
+def is_number_of_tallies_valid(num_tallies):
+    """ chekcks that the total number of tallies in file is valid """
+    return is_valid_number(num_tallies, 9999)
 
 
 def check_cell_mat_exists(cell, mats):
@@ -378,6 +393,18 @@ def remove_inline_comment(line):
     """ in line comments are  every thing after a $ """
     line = line.split("$")[0]
     return line
+
+
+def get_inline_comment(line):
+    """ get the inline comment """
+    if has_inline_comment(line):
+        line = line.split("$")[1]
+    return line
+
+
+def has_inline_comment(line):
+    """ check if there is an inline comment """
+    return "$" in line
 
 
 def read_material_lines(mat_num, lines):

@@ -54,6 +54,19 @@ class input_validation_tests(unittest.TestCase):
         self.assertTrue(mcnp_input_reader.is_valid_cell_num(1))
         self.assertFalse(mcnp_input_reader.is_valid_cell_num(10000000000))
 
+    def test_check_tally_num(self):
+        self.assertTrue(mcnp_input_reader.is_valid_tally_num(1))
+        self.assertFalse(mcnp_input_reader.is_valid_tally_num(10000000000))
+
+    def test_check_universe_num(self):
+        self.assertTrue(mcnp_input_reader.is_valid_universe_num(1))
+        self.assertFalse(mcnp_input_reader.is_valid_universe_num(10000000000))
+
+    def test_check_num_of_tallies(self):
+        self.assertTrue(mcnp_input_reader.is_number_of_tallies_valid(1))
+        self.assertFalse(mcnp_input_reader.is_number_of_tallies_valid(10000))
+        self.assertFalse(mcnp_input_reader.is_number_of_tallies_valid(10000000000))
+
     def test_mode_valid(self):
         """ """
         check = mcnp_input_reader.is_mode_valid(["p", "n"])
@@ -277,7 +290,7 @@ class data_card_tests(unittest.TestCase):
 class line_tests(unittest.TestCase):
     """ tests for general line processing of input file"""
 
-    def test_inline_comments(self):
+    def test_remove_inline_comments(self):
         """ tests for comments using $"""
         # test not inline comment
         test_line = "no comment"
@@ -288,11 +301,38 @@ class line_tests(unittest.TestCase):
         test_line = " 1 1 $ test"
         line = mcnp_input_reader.remove_inline_comment(test_line)
         self.assertEqual(line, " 1 1 ")
-        
+
         # test inline comment no space after $
         test_line = " 1 1 $test"
         line = mcnp_input_reader.remove_inline_comment(test_line)
         self.assertEqual(line, " 1 1 ")
+
+    def test_get_inline_comments(self):
+        """ tests for comments using $"""
+        # test not inline comment
+        test_line = "no comment"
+        line = mcnp_input_reader.get_inline_comment(test_line)
+        self.assertEqual(line, test_line)
+
+        # test inline comment
+        test_line = " 1 1 $ test"
+        line = mcnp_input_reader.get_inline_comment(test_line)
+        self.assertEqual(line, " test")
+
+        # test inline comment no space after $
+        test_line = " 1 1 $test"
+        line = mcnp_input_reader.get_inline_comment(test_line)
+        self.assertEqual(line, "test")
+
+    def test_inline_comments(self):
+        """ tests for comments using $"""
+        # test not inline comment
+        test_line = "no comment"
+        self.assertFalse(mcnp_input_reader.has_inline_comment(test_line))
+
+        # test not inline comment
+        test_line = " 1 1 $ test"
+        self.assertTrue(mcnp_input_reader.has_inline_comment(test_line))
 
     def test_full_line_comment(self):
         """test for comments using c """
@@ -323,28 +363,28 @@ class line_tests(unittest.TestCase):
                      "C surface ecards",
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
-        self.assertEqual(ll_index, None)     
+        self.assertEqual(ll_index, None)
 
         # test checking long comment lines, return none
         test_list = ["c cell cards",
                      "C surface" + 90 * "f",
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
-        self.assertEqual(ll_index, None)     
-        
+        self.assertEqual(ll_index, None)
+
         # test checking long inline comment, return none
         test_list = ["c cell cards",
                      "       $ surface" + 100 * "f",
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
-        self.assertEqual(ll_index, None)     
-        
+        self.assertEqual(ll_index, None)
+
         # test checking long inline comment no space after $, return none
         test_list = ["c cell cards",
                      "       $surface" + 100 * "f",
                      "c234"]
         ll_index = mcnp_input_reader.long_line_index(test_list)
-        self.assertEqual(ll_index, None)    
+        self.assertEqual(ll_index, None)
 
     def test_continue_line(self):
         """  tests relating to continue line identification"""
