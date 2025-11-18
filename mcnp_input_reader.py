@@ -10,10 +10,11 @@ class mcnp_input():
     """ """
 
     def __init__(self):
-        self.cell_list = None
+        self.cells = None
         self.mat_num_list = None
-        self.mat_list = []
+        self.materials = None
         self.tal_num_list = None
+        self.tallies = None
         self.surface_list = None
         self.surface_block = None
         self.cell_block = None
@@ -24,6 +25,20 @@ class mcnp_input():
         self.is_sdef = True
         self.is_kcode = False
 
+    def __str__(self):
+        print_list = []
+        print_list.append("File: ", self.file_path)
+        print_list.append("Mode: ", self.mode)
+
+        if self.is_sdef:
+            print_list.append("Fixed source calculation")
+        elif self.is_kcode:
+            print_list.append("Kcode calculation")
+        else:
+            print_list.append("Unknown calculation type")
+
+        return "\n".join(print_list)
+
 
 class mcnp_cell():
     """ """
@@ -32,8 +47,7 @@ class mcnp_cell():
         self.number = ""
         self.mat = ""
         self.density = None
-        self.imp_p = 1.0
-        self.imp_n = 1.0
+        self.imp = {}
         self.geom = ""
         self.surfaces = []
         self.param_list = []
@@ -46,8 +60,6 @@ class mcnp_cell():
         print_list.append("Cell density: ", self.density)
         print_list.append("Cell geom: ", self.geom)
         print_list.append("Cell surfaces: ", self.surfaces)
-        print_list.append("Cell imp p:", self.imp_p)
-        print_list.append("Cell imp n:", self.imp_n)
 
         return "\n".join(print_list)
 
@@ -60,6 +72,15 @@ class mcnp_material():
         self.num_nuclides = 0
         self.composition = None
         self.keywords = None
+
+    def __str__(self):
+        print_list = []
+        print_list.append("Material number: ", self.number)
+        print_list.append("Number of Nuclides: ", self.num_nuclides)
+        print_list.append("Composition: ", self.composition)
+        print_list.append("Keywords: ", self.keywords)
+
+        return "\n".join(print_list)
 
 
 class mcnp_tally():
@@ -118,8 +139,10 @@ def read_mode_card(lines):
     return mode
 
 
-def check_mode_valid(mode):
-    """ checks the particles on a mode card are valid particles identifiers """
+def is_mode_valid(mode):
+    """ checks the particles on a mode card are valid particles identifiers
+    """
+    # todo : particle list should live somewhere else
     particle_list = ["n", "p", "h", "e", "|", "q", "u", "v", "!"]
     for particle in mode:
         if particle.lower() not in particle_list:
@@ -131,7 +154,7 @@ def get_full_line_comments(lines):
     """  extracts all full line comments """
     comments = {}
     for i, line in enumerate(lines):
-        if len(line) > 1 and line[0].lower() == "c" and line[1] == " ":
+        if line.lower().startswith("c "):
             comments[i] = line
     return comments
 
@@ -161,7 +184,7 @@ def get_tally_numbers(lines):
     return tal_nums
 
 
-def check_surface_type_validity(surface):
+def is_surface_type_valid(surface):
     """ check surface is a valid mcnp type"""
     surface_types = ("p", "px", "py", "pz", "cx", "cy", "cz",
                      "s", "so", "c/x", "c/y", "c/z", "gq", "sq",
@@ -230,10 +253,8 @@ def process_imp(part, cell):
     """ extracts importances for a cell """
     imp_val = part.split("=")[-1]
     imp_particle = part.split(":")[1][0]
-    if imp_particle.lower() == "p":
-        cell.imp_p = float(imp_val)
-    elif imp_particle.lower() == "n":
-        cell.imp_n = float(imp_val)
+    # todo add check valid particle type
+    cell.imp[imp_particle] = float(imp_val)
 
     return cell
 
@@ -267,14 +288,14 @@ def process_geom(geom, cell):
 
 def process_cell_block(bloc):
     """ split cell block into cell objects """
-    cell_list = []
+    cell_dict = {}
     cell = None
     geom = []
     for line in bloc:
         if line[0].isdigit():
             if cell is not None:
                 cell = process_geom(geom, cell)
-                cell_list.append(cell)
+                cell_dict[cell.number] = cell
                 geom = []
 
             cell = mcnp_cell()
@@ -292,82 +313,77 @@ def process_cell_block(bloc):
 
     # add last cell
     cell = process_geom(geom, cell)
-    cell_list.append(cell)
+    cell_dict[cell.number] = cell
 
-    return cell_list
+    return cell_dict
 
 
-def get_cell(cell_num, cell_list):
+def get_cell(cell_num, cells):
     """ get cell from cell list """
-    for cell in cell_list:
-        if cell_num == cell.number:
-            return cell
-
-    return None
+    return cells.get(cell_num)
 
 
-def cells_with_mat(mat_num, cell_list):
+def cells_with_mat(mat_num, cells):
     """ get all cells with mat """
-    cells = []
-    for cell in cell_list:
-        if mat_num == cell.mat:
-            cells.append(cell)
-    return cells
+    return [cell for cell in cells.values() if cell.mat == mat_num]
 
 
-def cells_with_surface(surf_num, cell_list):
-    """ get all cells that contain surface """
-    cells = []
-    for cell in cell_list:
-        if surf_num in cell.surfaces:
-            cells.append(cell)
-    return cells
+def cells_with_surface(surf_num, cells):
+    """ get all cells that contain surface with id surf_num """
+    return [cell for cell in cells.values() if surf_num in cell.surfaces]
 
 
-def get_mat(mat_num, mat_list):
+def get_mat(mat_num, mats):
     """ retrieve a particular material number  """
-    for mat in mat_list:
-        if mat.number == mat_num:
-            return mat
-
-    return None
+    return mats.get(mat_num)
 
 
-def check_valid_mat_num(mat_num):
+def is_valid_number(num, max_num=99999999):
+    """  check if a number is less than the max_number """
+    return num <= max_num
+
+
+def is_valid_mat_num(mat_num):
     """ checks a material number is valid in MCNP"""
-    if mat_num > 99999999:
-        return False
-    else:
-        return True
+    return is_valid_number(mat_num)
 
 
-def check_valid_surf_num(surf_num):
+def is_valid_surf_num(surf_num):
     """ checks surface number is a valid MCNP surface number """
-    if surf_num > 99999999:
-        return False
-    else:
-        return True
+    return is_valid_number(surf_num)
 
 
-def check_valid_cell_num(cell_num):
-    """ checks surface number is a valid MCNP surface number """
-    if cell_num > 99999999:
-        return False
-    else:
-        return True
+def is_valid_cell_num(cell_num):
+    """ checks cell number is a valid MCNP cell number """
+    return is_valid_number(cell_num)
 
 
-def check_cell_mat_exists(cell, mat_list):
+def is_valid_tally_num(tally_num):
+    """ checks tally number is a valid MCNP tally number """
+    return is_valid_number(tally_num)
+
+
+def is_valid_universe_num(uni_num):
+    """ checks universe number is a valid MCNP universe number """
+    return is_valid_number(uni_num)
+
+
+def is_number_of_tallies_valid(num_tallies):
+    """ chekcks that the total number of tallies in file is valid """
+    return is_valid_number(num_tallies, 9999)
+
+
+def check_cell_mat_exists(cell, mats):
     """ checks the material listed in a cell has a material """
-    if get_mat(cell.mat, mat_list) is None:
+    if get_mat(cell.mat, mats) is None:
         return False
     else:
         return True
 
 
-def check_cell_exists(cell_num, cell_list):
+def check_cell_exists(cell_num, cells):
     """ checks a cell object exists for that cell number"""
-    if get_cell(cell_num, cell_list) is None:
+    if get_cell(cell_num, cells) is None:
         return False
     else:
         return True
@@ -377,6 +393,18 @@ def remove_inline_comment(line):
     """ in line comments are  every thing after a $ """
     line = line.split("$")[0]
     return line
+
+
+def get_inline_comment(line):
+    """ get the inline comment """
+    if has_inline_comment(line):
+        line = line.split("$")[1]
+    return line
+
+
+def has_inline_comment(line):
+    """ check if there is an inline comment """
+    return "$" in line
 
 
 def read_material_lines(mat_num, lines):
@@ -449,9 +477,7 @@ def process_material_line(mat_line, mat_num):
     # remove keyword entries from mat_line
     filtered_data = [entry for entry in mat_line if not (isinstance(entry, str) and "=" in entry)]
     # convert to a material dict with zaid - fraction pairs
-    material_dict = {filtered_data[i]: float(filtered_data[i + 1]) for i in range(0, len(filtered_data), 2)}
-
-    mat.composition = material_dict
+    mat.composition = {filtered_data[i]: float(filtered_data[i + 1]) for i in range(0, len(filtered_data), 2)}
 
     return mat
 
@@ -466,6 +492,25 @@ def check_valid_mat_keyword(mat):
             raise ValueError(f'{key} input not recognised as valid keyword for a material')
 
 
+def is_continue_line(line):
+    """checks if line has 5 spaces at start """
+    return line.startswith(" " * 5)
+
+
+def process_data_block(mc_in):
+    """ """
+    mc_in.mode = read_mode_card(mc_in.data_block)
+    mc_in.tal_num_list = get_tally_numbers(mc_in.data_block)
+    mc_in.mat_num_list = get_material_numbers(mc_in.data_block)
+    mc_in.materials = {}
+
+    for mat_num in mc_in.mat_num_list:
+        mat = read_material_lines(mat_num, mc_in.data_block)
+        mc_in.materials[mat.number] = mat
+
+    return mc_in
+
+
 def read_mcnp_input(fpath):
     """ reads the mcnp input file,
         main entry point for this module
@@ -476,17 +521,10 @@ def read_mcnp_input(fpath):
     mc_in = mcnp_input()
     mc_in.file_path = fpath
     mc_in.cell_block, mc_in.surface_block, mc_in.data_block = split_blocs(ifile)
-    mc_in.cell_list = process_cell_block(mc_in.cell_block)
+    mc_in.cells = process_cell_block(mc_in.cell_block)
 
-    mc_comments = get_full_line_comments(ifile)
-
-    mc_in.mode = read_mode_card(mc_in.data_block)
-    mc_in.tal_num_list = get_tally_numbers(mc_in.data_block)
-    mc_in.mat_num_list = get_material_numbers(mc_in.data_block)
-
-    for mat_num in mc_in.mat_num_list:
-        mat = read_material_lines(mat_num, mc_in.data_block)
-        mc_in.mat_list.append(mat)
+    mc_in.comments = get_full_line_comments(ifile)
+    mc_in = process_data_block(mc_in)
 
     return mc_in
 
