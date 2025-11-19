@@ -3,6 +3,8 @@ import tempfile
 from unittest.mock import patch, mock_open
 import neut_utilities as ut
 import os
+import logging
+from datetime import datetime
 
 
 class getlines_test_case(unittest.TestCase):
@@ -119,6 +121,50 @@ class same_value_test_case(unittest.TestCase):
         self.assertFalse(ut.is_same_value(2.0, 1.0, tolerance=1e-3))  # custom tolerance
         self.assertTrue(ut.is_same_value(1.0001, 1.0, tolerance=1e-3))  # custom tolerance
 
+
+class logger_test_case(unittest.TestCase):
+    """tests for the NeutronToolsLogger / setup_ntlogger behavior"""
+
+    def tearDown(self):
+        # Clear handlers after each test to avoid cross-test interference
+        logger = logging.getLogger('nt_logger')
+        for h in list(logger.handlers):
+            logger.removeHandler(h)
+            h.close()
+
+    def test_console_only(self):
+        # console only: no file handler should be attached
+        logger = ut.NeutronToolsLogger().setup_logging(log_file=None)
+        # Expect at least a StreamHandler and no RotatingFileHandler
+        self.assertTrue(any('StreamHandler' in type(h).__name__ for h in logger.handlers))
+        self.assertFalse(any('RotatingFileHandler' in type(h).__name__ for h in logger.handlers))
+
+    def test_explicit_file(self):
+        # explicit file path should attach a RotatingFileHandler (mocked)
+        path = 'test.log'
+        with patch('logging.handlers.RotatingFileHandler') as mock_rotating:
+            mock_handler = mock_rotating.return_value
+            logger = ut.NeutronToolsLogger().setup_logging(log_file=path)
+            mock_rotating.assert_called_once()
+            called_args, called_kwargs = mock_rotating.call_args
+            self.assertEqual(called_args[0], path)
+            # Expect the same maxBytes/backupCount as configured in neut_utilities
+            self.assertEqual(called_kwargs.get('maxBytes'), 10*1024*1024)
+            self.assertEqual(called_kwargs.get('backupCount'), 5)
+            # The mock handler should be present in logger.handlers
+            self.assertIn(mock_handler, logger.handlers)
+
+    def test_auto_file(self):
+        # 'auto' should result in a RotatingFileHandler constructed with a date-based filename
+        date_str = datetime.now().strftime('%Y%m%d')
+        expected_fname = f'nt_{date_str}.log'
+        with patch('logging.handlers.RotatingFileHandler') as mock_rotating:
+            mock_handler = mock_rotating.return_value
+            logger = ut.NeutronToolsLogger().setup_logging(log_file='auto')
+            mock_rotating.assert_called_once()
+            called_args, called_kwargs = mock_rotating.call_args
+            self.assertEqual(called_args[0], expected_fname)
+            self.assertIn(mock_handler, logger.handlers)
 
 if __name__ == '__main__':
     unittest.main()
