@@ -141,11 +141,10 @@ class logger_test_case(unittest.TestCase):
 
     def test_explicit_file(self):
         # explicit file path should attach a RotatingFileHandler (mocked)
-        path = 'explicit_test.log'
+        path = 'test.log'
         with patch('logging.handlers.RotatingFileHandler') as mock_rotating:
             mock_handler = mock_rotating.return_value
             logger = ut.NeutronToolsLogger().setup_logging(log_file=path)
-            # RotatingFileHandler should have been constructed with the given path
             mock_rotating.assert_called_once()
             called_args, called_kwargs = mock_rotating.call_args
             self.assertEqual(called_args[0], path)
@@ -158,7 +157,7 @@ class logger_test_case(unittest.TestCase):
     def test_auto_file(self):
         # 'auto' should result in a RotatingFileHandler constructed with a date-based filename
         date_str = datetime.now().strftime('%Y%m%d')
-        expected_fname = f'neutron_tools_{date_str}.log'
+        expected_fname = f'nt_{date_str}.log'
         with patch('logging.handlers.RotatingFileHandler') as mock_rotating:
             mock_handler = mock_rotating.return_value
             logger = ut.NeutronToolsLogger().setup_logging(log_file='auto')

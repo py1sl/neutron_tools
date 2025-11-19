@@ -10,7 +10,7 @@ from datetime import datetime
 
 
 class NeutronToolsLogger:
-    """Centralized logging configuration for neutron tools"""
+    """Centralized logging config for neutron tools"""
     
     def __init__(self) -> None:
         self.logger = logging.getLogger('nt_logger')
@@ -23,7 +23,7 @@ class NeutronToolsLogger:
         file_level: str = 'DEBUG',
         log_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     ) -> logging.Logger:
-        """Configure logging with console and optional file handlers.
+        """Config logging with console and optional file handlers.
 
         Args:
             log_file: Path to log file. If None, only console logging will be used.
@@ -35,22 +35,20 @@ class NeutronToolsLogger:
         Returns:
             Configured logger instance
         """
-        self.logger.handlers.clear()  # Remove any existing handlers
+        self.logger.handlers.clear()  
 
-        # Create formatters
         formatter = logging.Formatter(log_format)
 
-        # Console handler
         console_handler = logging.StreamHandler(sys.stdout)
         console_handler.setLevel(getattr(logging, console_level.upper()))
         console_handler.setFormatter(formatter)
         self.logger.addHandler(console_handler)
 
-        # File handler (if requested)
+        # optional output to file
         if log_file is not None:
             if log_file == 'auto':
                 date_str = datetime.now().strftime('%Y%m%d')
-                log_file = f'neutron_tools_{date_str}.log'
+                log_file = f'nt_{date_str}.log'
             
             file_handler = logging.handlers.RotatingFileHandler(
                 log_file,
@@ -75,17 +73,8 @@ def setup_ntlogger(
     console_level: str = 'INFO',
     file_level: str = 'DEBUG'
 ) -> logging.Logger:
-    """Legacy function maintained for compatibility.
+    """
     Sets up the neutron tools logger with specified configuration.
-
-    Args:
-        log_file: Path to log file. If None, only console logging will be used.
-                 Default is 'auto' for automatic date-based log file.
-        console_level: Logging level for console output
-        file_level: Logging level for file output
-
-    Returns:
-        Configured logger instance
     """
     logger_instance = NeutronToolsLogger()
     return logger_instance.setup_logging(
