@@ -1,5 +1,6 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, mock_open, call
+import mcnp_output_reader as mor
 import output_utilities
 import os
 
@@ -53,6 +54,20 @@ class points_test_case(unittest.TestCase):
                          "data_val must have the same length as x_vals, y_vals, and z_vals.")
 
 
+class csv_test_case(unittest.TestCase):
+    """ tests write_lines function"""
+
+    def test_write_csv(self):
+        open_mock = mock_open()
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        single = mor.read_output_file(path)
+        for tn in single.tally_data:
+            if tn.number == 4:
+                data = tn
+        with patch("neut_utilities.open", open_mock, create=True):
+            output_utilities.csv_out(data, "output.txt")
+
+        open_mock.assert_called_with("output.txt", "w")
 
 
 if __name__ == '__main__':
