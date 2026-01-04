@@ -26,34 +26,47 @@ def reduce_to_non_zero(values, time_values):
 
 def is_nuc_present(inv, nuc):
     """ checks if a nuclide is in an inventory"""
-    if nuc in inv["nuclide"].unique():
-        return True
-    else:
-        return False
+    if not isinstance(inv, pd.DataFrame):
+        raise ValueError("inv must be a pandas DataFrame")
+    if "nuclide" not in inv.columns:
+        raise ValueError("inv DataFrame must contain a 'nuclide' column")
+    return nuc in inv["nuclide"].unique()
 
 
 def remove_stable(inv):
     """ removes stable isotopes from inventory listing"""
-    inv = inv[inv["act"] > 0.0]
-    return inv
+    if not isinstance(inv, pd.DataFrame):
+        raise ValueError("inv must be a pandas DataFrame")
+    if "act" not in inv.columns:
+        raise ValueError("inv DataFrame must contain an 'act' column")
+    return inv[inv["act"] > 0.0]
 
 
 def filter_emits_gamma(inv):
     """ remove stable or pure alpha or pure beta emitters  """
-    inv = inv[inv["g_energy"] > 0.0]
-    return inv
+    if not isinstance(inv, pd.DataFrame):
+        raise ValueError("inv must be a pandas DataFrame")
+    if "g_energy" not in inv.columns:
+        raise ValueError("inv DataFrame must contain a 'g_energy' column")
+    return inv[inv["g_energy"] > 0.0]
 
 
 def filter_emits_beta(inv):
     """ remove stable or pure alpha or pure gamma emitters  """
-    inv = inv[inv["b_energy"] > 0.0]
-    return inv
+    if not isinstance(inv, pd.DataFrame):
+        raise ValueError("inv must be a pandas DataFrame")
+    if "b_energy" not in inv.columns:
+        raise ValueError("inv DataFrame must contain a 'b_energy' column")
+    return inv[inv["b_energy"] > 0.0]
 
 
 def filter_emits_alpha(inv):
     """ remove stable or pure beta or pure gamma emitters  """
-    inv = inv[inv["a_energy"] > 0.0]
-    return inv
+    if not isinstance(inv, pd.DataFrame):
+        raise ValueError("inv must be a pandas DataFrame")
+    if "a_energy" not in inv.columns:
+        raise ValueError("inv DataFrame must contain an 'a_energy' column")
+    return inv[inv["a_energy"] > 0.0]
 
 
 def output_mcnp_mat(inv, lib=".70c"):
@@ -179,12 +192,21 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
     """ plots any of the columns from the data frame as a function of time
     (included: activity, dose rate, heat output, ingestion dose, inhalation dose,
     tritium activity)"""
+    
+    if not isinstance(sum_dat, pd.DataFrame):
+        raise ValueError("sum_dat must be a pandas DataFrame")
+    if column not in sum_dat.columns:
+        raise ValueError(f"column '{column}' not found in sum_dat DataFrame")
 
     if cooling:
         sum_dat = sum_dat[sum_dat["is_cooling"]]
 
     data = sum_dat[column]
     x_units = check_time_units(x_units)
+    
+    if x_units not in sum_dat.columns:
+        raise ValueError(f"time units '{x_units}' not found in sum_dat DataFrame")
+    
     time_vals = sum_dat[x_units]
     data, time_vals = reduce_to_non_zero(data, time_vals)
 
@@ -194,7 +216,7 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
 
     elif column == "act":
         if y_units in ["Bq/kg", "Bq/g"]:
-            y_label = "Specific Activity " + y_units
+            y_label = f"Specific Activity {y_units}"
         else:
             y_label = "Activity Bq"
 
@@ -235,7 +257,7 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
     # plot to screen or file
     if fname:
         plt.savefig(fname)
-        logging.info("plotted " + column)
+        logging.info(f"plotted {column}")
     else:
         plt.show()
 
@@ -300,6 +322,11 @@ def plot_pie(dom_data, title, param="act", fname=None, thres=1.0):
 
 def plot_nuc_cont(fout, nuc_list, param="act", fname=None, total=False):
     """  plots all nuclides in nuclist over all times steps"""
+    if not hasattr(fout, 'timestep_data') or not hasattr(fout, 'sumdat'):
+        raise ValueError("fout must be a FispactOutput object with timestep_data and sumdat attributes")
+    if not isinstance(nuc_list, (list, tuple)) or len(nuc_list) == 0:
+        raise ValueError("nuc_list must be a non-empty list or tuple of nuclide names")
+    
     # clear old plots
     plt.clf()
 

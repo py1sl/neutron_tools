@@ -22,6 +22,7 @@ import neut_utilities as ut
 import numpy as np
 import pandas as pd
 import re
+import os
 
 
 class FispactOutput():
@@ -87,10 +88,19 @@ def read_fis_out(path):
     """ parse a fispact output file
         returns fo, a fispact output object
     """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"FISPACT output file not found: {path}")
+    
+    if not os.path.isfile(path):
+        raise ValueError(f"Path is not a file: {path}")
 
     fo = FispactOutput()
     fo.file_name = path
-    lines = ut.get_lines(path)
+    
+    try:
+        lines = ut.get_lines(path)
+    except Exception as e:
+        raise IOError(f"Failed to read FISPACT output file {path}: {e}") from e
 
     fo.version = check_fisp_version(lines)
     fo.isFisII = isFisII(lines)
@@ -131,13 +141,22 @@ def read_fis_out(path):
 
 def read_time_step(lines, i):
     """ reads a particular time step """
+    if not isinstance(lines, (list, tuple)) or len(lines) == 0:
+        raise ValueError("lines must be a non-empty list or tuple")
+    
     ts = FispactTimeStep()
     ts.step_num = i + 1
 
-    ts.step_length = float(lines[0][50:60])
+    try:
+        ts.step_length = float(lines[0][50:60])
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Failed to parse step_length from line: {lines[0] if lines else 'empty'}") from e
 
     ind = ut.find_ind(lines, "TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
-    ts.num_nuclides = int(lines[ind][50:])
+    try:
+        ts.num_nuclides = int(lines[ind][50:])
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Failed to parse num_nuclides at index {ind}") from e
 
     ind = ut.find_ind(lines, "ALPHA BECQUERELS")
     ts.alpha_act = float(lines[ind][22:34])
@@ -429,19 +448,22 @@ def parse_spectra(data):
         returns list of length 24 corresponding to 24 gamma energy groups
         data is in gamma/s/cc
     """
+    if not isinstance(data, (list, tuple)) or len(data) == 0:
+        raise ValueError("data must be a non-empty list or tuple")
+    
     p1 = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
 
     # check data is long enough - checks for bad files
     if len(data) < p1 + 31:
-        raise ValueError("data is too short for complete gamma spectra")
+        raise ValueError(f"data is too short for complete gamma spectra: length {len(data)}, need at least {p1 + 31}")
 
     data = data[p1 + 7:p1 + 31]
     spectra = []
     for line in data:
         try:
             spectra.append(float(line[130:141]))
-        except ValueError as e:
-            raise ValueError(f" Error parsing gamma spec line: {line} ") from e
+        except (ValueError, IndexError) as e:
+            raise ValueError(f"Error parsing gamma spec line: '{line}': {e}") from e
     return spectra
 
 
@@ -458,15 +480,21 @@ def parse_inventory(data):
         gamma energy in kw
         dose rate in Sv/hr
     """
+    if not isinstance(data, (list, tuple)) or len(data) == 0:
+        raise ValueError("data must be a non-empty list or tuple")
+    
     inv = []
     p2 = ut.find_ind(data, "0  TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
     data = data[4:p2]
     for nuc in data:
-        nuc_data = [nuc[2:8], float(nuc[14:25]),
-                    float(nuc[28:37]), float(nuc[40:49]),
-                    float(nuc[52:61]), float(nuc[64:72]),
-                    float(nuc[75:84]), float(nuc[87:96])]
-        inv.append(nuc_data)
+        try:
+            nuc_data = [nuc[2:8], float(nuc[14:25]),
+                        float(nuc[28:37]), float(nuc[40:49]),
+                        float(nuc[52:61]), float(nuc[64:72]),
+                        float(nuc[75:84]), float(nuc[87:96])]
+            inv.append(nuc_data)
+        except (ValueError, IndexError) as e:
+            raise ValueError(f"Error parsing inventory line: '{nuc}': {e}") from e
 
     col_heads = ["nuclide", "atoms", "mass", "act", "b_energy", "a_energy",
                  "g_energy", "dose_rate"]
@@ -504,12 +532,20 @@ def find_first_cooling_index(sumdat):
 
 def read_parameter(data, sub):
     """ finds and cleans integral values in each timestep"""
+    if not isinstance(data, (list, tuple)) or len(data) == 0:
+        raise ValueError("data must be a non-empty list or tuple")
+    
     ind = ut.find_ind(data, sub)
     line = data[ind]
     line = line.split("=")
+    if len(line) < 2:
+        raise ValueError(f"Could not parse parameter line for '{sub}': {data[ind]}")
     line = line[1].strip()
     line = line.split(" ")
-    param = float(line[0])
+    try:
+        param = float(line[0])
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Could not convert parameter value to float for '{sub}': {line}") from e
     return param
 
 
