@@ -371,6 +371,13 @@ def plot_nuc_cont(fout, nuc_list, param="act", fname=None, total=False):
 
 def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
     """ plots a table of nuclides style plot of the given parameter """
+    if not isinstance(inv_dat, pd.DataFrame):
+        raise ValueError("inv_dat must be a pandas DataFrame")
+    if prop not in inv_dat.columns:
+        raise ValueError(f"Property '{prop}' not found in inv_dat DataFrame")
+    if "element" not in inv_dat.columns or "A" not in inv_dat.columns:
+        raise ValueError("inv_dat DataFrame must contain 'element' and 'A' columns")
+    
     # set up the array
     z_min = 0
     z_max = 118  # max possible Z value element Og
@@ -393,19 +400,25 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
 
     # map Z values to data frame
     zdict = neut_constants.Z_dict()
+    inv_dat = inv_dat.copy()
     inv_dat["Z"] = inv_dat["element"].map(zdict)
-
-    # map the values to the array positions
-    for a in np.arange(a_min, a_max):
-        for z in np.arange(z_min, z_max):
-            df = inv_dat[(inv_dat["A"] == str(a)) & (inv_dat["Z"] == z)]
-
-            if df.empty:
-                value = 0.0
-            else:
-                value = df[prop].iloc[0]
-
-            data[a][z] = value
+    
+    # Convert A to integer for vectorized operations
+    inv_dat["A_int"] = pd.to_numeric(inv_dat["A"], errors='coerce').fillna(0).astype(int)
+    
+    # Vectorized approach: filter and group data
+    mask = (
+        (inv_dat["A_int"] >= a_min) & (inv_dat["A_int"] < a_max) &
+        (inv_dat["Z"] >= z_min) & (inv_dat["Z"] < z_max)
+    )
+    filtered_data = inv_dat[mask]
+    
+    # Populate data array using vectorized operations
+    for _, row in filtered_data.iterrows():
+        a_idx = int(row["A_int"])
+        z_idx = int(row["Z"])
+        if 0 <= a_idx < a_max and 0 <= z_idx < z_max:
+            data[a_idx][z_idx] = row[prop]
 
     # create the plot
     fig, ax = plt.subplots(figsize=(14, 8))
