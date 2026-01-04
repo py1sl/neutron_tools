@@ -22,6 +22,7 @@ import neut_utilities as ut
 import numpy as np
 import pandas as pd
 import re
+import os
 
 
 class FispactOutput():
@@ -87,10 +88,19 @@ def read_fis_out(path):
     """ parse a fispact output file
         returns fo, a fispact output object
     """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"FISPACT output file not found: {path}")
+    
+    if not os.path.isfile(path):
+        raise ValueError(f"Path is not a file: {path}")
 
     fo = FispactOutput()
     fo.file_name = path
-    lines = ut.get_lines(path)
+    
+    try:
+        lines = ut.get_lines(path)
+    except Exception as e:
+        raise IOError(f"Failed to read FISPACT output file {path}: {e}") from e
 
     fo.version = check_fisp_version(lines)
     fo.isFisII = isFisII(lines)
@@ -131,13 +141,22 @@ def read_fis_out(path):
 
 def read_time_step(lines, i):
     """ reads a particular time step """
+    if not isinstance(lines, (list, tuple)) or len(lines) == 0:
+        raise ValueError("lines must be a non-empty list or tuple")
+    
     ts = FispactTimeStep()
     ts.step_num = i + 1
 
-    ts.step_length = float(lines[0][50:60])
+    try:
+        ts.step_length = float(lines[0][50:60])
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Failed to parse step_length from line: {lines[0] if lines else 'empty'}") from e
 
     ind = ut.find_ind(lines, "TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
-    ts.num_nuclides = int(lines[ind][50:])
+    try:
+        ts.num_nuclides = int(lines[ind][50:])
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Failed to parse num_nuclides at index {ind}") from e
 
     ind = ut.find_ind(lines, "ALPHA BECQUERELS")
     ts.alpha_act = float(lines[ind][22:34])
@@ -241,6 +260,34 @@ def find_summary_block(data, fisII):
     return start_ind, end_ind
 
 
+def add_time_columns(df, base_time_col="time_years"):
+    """Add time columns in different units based on a base time column
+    
+    Args:
+        df: pandas DataFrame with time data
+        base_time_col: name of the column containing time in years
+        
+    Returns:
+        DataFrame with additional time columns (days, hours, seconds)
+    """
+    if not isinstance(df, pd.DataFrame):
+        raise ValueError("df must be a pandas DataFrame")
+    if base_time_col not in df.columns:
+        raise ValueError(f"Column '{base_time_col}' not found in DataFrame")
+    
+    # Constants for time conversions - precomputed for better performance
+    DAYS_PER_YEAR = 365.4
+    HOURS_PER_YEAR = 365.4 * 24
+    SECONDS_PER_YEAR = 365.4 * 24 * 3600
+    
+    # Vectorized multiplication with precomputed factors
+    df["time_days"] = df[base_time_col] * DAYS_PER_YEAR
+    df["time_hours"] = df[base_time_col] * HOURS_PER_YEAR
+    df["time_secs"] = df[base_time_col] * SECONDS_PER_YEAR
+    
+    return df
+
+
 def read_summary_data(data):
     """ Processes the summary block at the end of the file"""
 
@@ -312,10 +359,8 @@ def read_summary_data(data):
     sum_data = sum_data.transpose()
     sum_data.columns = col_heads
 
-    # add columns for time in days, hrs, seconds
-    sum_data["time_days"] = sum_data["time_years"] * 365.4
-    sum_data["time_hours"] = sum_data["time_years"] * 365.4 * 24
-    sum_data["time_secs"] = sum_data["time_years"] * 365.4 * 24 * 3600
+    # add columns for time in days, hrs, seconds using helper function
+    sum_data = add_time_columns(sum_data, "time_years")
 
     return sum_data
 
@@ -330,6 +375,9 @@ def retrieve_cooling_data(sum_data):
 
 def parse_dominant(data):
     """parse dominant nuclides section and return a list of lists """
+    if not isinstance(data, (list, tuple)) or len(data) == 0:
+        raise ValueError("data must be a non-empty list or tuple")
+    
     p1_ind = ut.find_ind(data, "DOMINANT NUCLIDES")
     data = data[p1_ind:]
     d1_ind = ut.find_ind(data, "(Bq) ")
@@ -338,15 +386,34 @@ def parse_dominant(data):
     topset = np.array(topset)
     lowerset = data[d2_ind + 3:]
 
-    act_nuc = []
-    act = []
-    act_percent = []
-    heat_nuc = []
-    heat = []
-    heat_percent = []
-    dr_nuc = []
-    dr = []
-    dr_percent = []
+    # Pre-allocate numpy arrays for better performance
+    n_top = len(topset)
+    act_nuc = [None] * n_top
+    act = np.zeros(n_top)
+    act_percent = np.zeros(n_top)
+    heat_nuc = [None] * n_top
+    heat = np.zeros(n_top)
+    heat_percent = np.zeros(n_top)
+    dr_nuc = [None] * n_top
+    dr = np.zeros(n_top)
+    dr_percent = np.zeros(n_top)
+
+    # Use enumerate for indexing instead of append
+    for i, tl in enumerate(topset):
+        try:
+            act_nuc[i] = tl[7:13].replace(" ", "")
+            act[i] = float(tl[15:25])
+            act_percent[i] = float(tl[27:36])
+            heat_nuc[i] = tl[38:44].replace(" ", "")
+            heat[i] = float(tl[46:56])
+            heat_percent[i] = float(tl[58:67])
+            dr_nuc[i] = tl[69:75].replace(" ", "")
+            dr[i] = float(tl[77:87])
+            dr_percent[i] = float(tl[89:98])
+        except (ValueError, IndexError) as e:
+            raise ValueError(f"Error parsing dominant nuclide line: '{tl}': {e}") from e
+
+    # Parse lower set with pre-allocation
     gheat_nuc = []
     gheat = []
     gheat_percent = []
@@ -354,26 +421,18 @@ def parse_dominant(data):
     bheat = []
     bheat_percent = []
 
-    for tl in topset:
-        act_nuc.append(tl[7:13].replace(" ", ""))
-        act.append(float(tl[15:25]))
-        act_percent.append(float(tl[27:36]))
-        heat_nuc.append(tl[38:44].replace(" ", ""))
-        heat.append(float(tl[46:56]))
-        heat_percent.append(float(tl[58:67]))
-        dr_nuc.append(tl[69:75].replace(" ", ""))
-        dr.append(float(tl[77:87]))
-        dr_percent.append(float(tl[89:98]))
-
     for ll in lowerset:
         if ll[0] == "1":
             break
-        gheat_nuc.append(ll[7:13].replace(" ", ""))
-        gheat.append(float(ll[15:25]))
-        gheat_percent.append(float(ll[27:36]))
-        bheat_nuc.append(ll[38:44].replace(" ", ""))
-        bheat.append(float(ll[46:56]))
-        bheat_percent.append(float(ll[58:67]))
+        try:
+            gheat_nuc.append(ll[7:13].replace(" ", ""))
+            gheat.append(float(ll[15:25]))
+            gheat_percent.append(float(ll[27:36]))
+            bheat_nuc.append(ll[38:44].replace(" ", ""))
+            bheat.append(float(ll[46:56]))
+            bheat_percent.append(float(ll[58:67]))
+        except (ValueError, IndexError) as e:
+            raise ValueError(f"Error parsing dominant nuclide lower line: '{ll}': {e}") from e
 
     dom_data = pd.DataFrame()
     dom_data["act_nuc"] = act_nuc
@@ -400,6 +459,9 @@ def parse_composition(data):
         returns dataframe with two columns, one with name of element,
         one with the number of atoms
     """
+    if not isinstance(data, (list, tuple)) or len(data) == 0:
+        raise ValueError("data must be a non-empty list or tuple")
+    
     start = ut.find_ind(data, "COMPOSITION  OF  MATERIAL  BY  ELEMENT") + 5
     end = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND") - 3
 
@@ -408,17 +470,20 @@ def parse_composition(data):
     atoms = []
 
     for line in data:
-        ele_list.append(line[12:14])
-        atoms.append(float(line[20:30]))
+        try:
+            ele_list.append(line[12:14])
+            atoms.append(float(line[20:30]))
+        except (ValueError, IndexError) as e:
+            raise ValueError(f"Error parsing composition line: '{line}': {e}") from e
 
     composition = pd.DataFrame()
     composition["element"] = ele_list
     composition["atoms"] = atoms
 
     # Calculate the total number of atoms
-    total_atoms = sum(atoms)
+    total_atoms = composition["atoms"].sum()
 
-    # Compute the atom fraction for each element
+    # Compute the atom fraction for each element using vectorized operation
     composition["atom_fraction"] = composition["atoms"] / total_atoms
 
     return composition
@@ -429,19 +494,22 @@ def parse_spectra(data):
         returns list of length 24 corresponding to 24 gamma energy groups
         data is in gamma/s/cc
     """
+    if not isinstance(data, (list, tuple)) or len(data) == 0:
+        raise ValueError("data must be a non-empty list or tuple")
+    
     p1 = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
 
     # check data is long enough - checks for bad files
     if len(data) < p1 + 31:
-        raise ValueError("data is too short for complete gamma spectra")
+        raise ValueError(f"data is too short for complete gamma spectra: length {len(data)}, need at least {p1 + 31}")
 
     data = data[p1 + 7:p1 + 31]
     spectra = []
     for line in data:
         try:
             spectra.append(float(line[130:141]))
-        except ValueError as e:
-            raise ValueError(f" Error parsing gamma spec line: {line} ") from e
+        except (ValueError, IndexError) as e:
+            raise ValueError(f"Error parsing gamma spec line: '{line}': {e}") from e
     return spectra
 
 
@@ -458,15 +526,21 @@ def parse_inventory(data):
         gamma energy in kw
         dose rate in Sv/hr
     """
+    if not isinstance(data, (list, tuple)) or len(data) == 0:
+        raise ValueError("data must be a non-empty list or tuple")
+    
     inv = []
     p2 = ut.find_ind(data, "0  TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
     data = data[4:p2]
     for nuc in data:
-        nuc_data = [nuc[2:8], float(nuc[14:25]),
-                    float(nuc[28:37]), float(nuc[40:49]),
-                    float(nuc[52:61]), float(nuc[64:72]),
-                    float(nuc[75:84]), float(nuc[87:96])]
-        inv.append(nuc_data)
+        try:
+            nuc_data = [nuc[2:8], float(nuc[14:25]),
+                        float(nuc[28:37]), float(nuc[40:49]),
+                        float(nuc[52:61]), float(nuc[64:72]),
+                        float(nuc[75:84]), float(nuc[87:96])]
+            inv.append(nuc_data)
+        except (ValueError, IndexError) as e:
+            raise ValueError(f"Error parsing inventory line: '{nuc}': {e}") from e
 
     col_heads = ["nuclide", "atoms", "mass", "act", "b_energy", "a_energy",
                  "g_energy", "dose_rate"]
@@ -504,12 +578,20 @@ def find_first_cooling_index(sumdat):
 
 def read_parameter(data, sub):
     """ finds and cleans integral values in each timestep"""
+    if not isinstance(data, (list, tuple)) or len(data) == 0:
+        raise ValueError("data must be a non-empty list or tuple")
+    
     ind = ut.find_ind(data, sub)
     line = data[ind]
     line = line.split("=")
+    if len(line) < 2:
+        raise ValueError(f"Could not parse parameter line for '{sub}': {data[ind]}")
     line = line[1].strip()
     line = line.split(" ")
-    param = float(line[0])
+    try:
+        param = float(line[0])
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Could not convert parameter value to float for '{sub}': {line}") from e
     return param
 
 

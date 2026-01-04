@@ -13,10 +13,17 @@ import neut_utilities as ut
 def get_group_pos(groups, energy):
     """ finds the energy bin number for a given energy
         input is the group energy boundaries and the energy
-        output is the position in the list of the bin in whihc that energy sits
+        output is the position in the list of the bin in which that energy sits
     """
-    groups = np.asarray(groups, dtype=float)
-    energy = float(energy)
+    if not isinstance(groups, (list, tuple, np.ndarray)) or len(groups) == 0:
+        raise ValueError("groups must be a non-empty array-like object")
+    
+    try:
+        groups = np.asarray(groups, dtype=float)
+        energy = float(energy)
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"groups and energy must be convertible to float: {e}") from e
+    
     n = len(groups)
 
     # check for energy above the highest group
@@ -192,7 +199,7 @@ def get_group_struct(gs):
     elif gs == "162":
         return gs_162
     else:
-        ntlogger.debug("Error group structure not found")
+        ntlogger.debug(f"Error: group structure '{gs}' not found")
         return False
 
 
@@ -202,10 +209,15 @@ def create_fluxes_data(groups, epos):
         all other bins are set to zero
         a power line is also added to ensure it is the correct size
     """
-
+    if not isinstance(groups, (list, tuple, np.ndarray)):
+        raise ValueError("groups must be an array-like object")
+    
+    if not isinstance(epos, (int, np.integer)):
+        raise ValueError("epos must be an integer")
+    
     # Check if epos is within bounds
     if not 0 <= epos < len(groups):
-        raise ValueError(f" The energy bin position ({epos}) is out of bounds for the given groups array.")
+        raise ValueError(f"The energy bin position ({epos}) is out of bounds for the given groups array (length {len(groups)}).")
 
     flux_data = np.zeros(len(groups) + 1)
     flux_data[epos] = 1
@@ -215,10 +227,13 @@ def create_fluxes_data(groups, epos):
 
 
 def convert_mcnp_spect_to_fispact_fluxes_format(mcnp_spect):
-    """ takes a list asumed to be ordered low to high energy
+    """ takes a list assumed to be ordered low to high energy
         inverts to fispact fluxes format high to low energy
         adds a power line
     """
+    if not isinstance(mcnp_spect, (list, tuple, np.ndarray)) or len(mcnp_spect) == 0:
+        raise ValueError("mcnp_spect must be a non-empty array-like object")
+    
     mcnp_spect = np.asarray(mcnp_spect)
 
     # Check if the input is sorted in ascending order
@@ -235,8 +250,17 @@ def convert_mcnp_spect_to_fispact_fluxes_format(mcnp_spect):
 
 def check_upper_bound(groups, energy):
     """ checks energy is not beyond the upper energy of the group structure """
-    if energy > groups[0]:
-        ntlogger.debug("Energy above max group structure energy")
+    if not isinstance(groups, (list, tuple, np.ndarray)) or len(groups) == 0:
+        raise ValueError("groups must be a non-empty array-like object")
+    
+    try:
+        energy = float(energy)
+        groups_array = np.asarray(groups, dtype=float)
+    except (ValueError, TypeError) as e:
+        raise ValueError(f"groups and energy must be convertible to float: {e}") from e
+    
+    if energy > groups_array[0]:
+        ntlogger.debug(f"Energy {energy} is above max group structure energy {groups_array[0]}")
         return False
     else:
         return True
@@ -244,9 +268,14 @@ def check_upper_bound(groups, energy):
 
 def write_fluxes_file(opath, data):
     """ writes the data to a file """
-    data = data.astype(str)
-    data = data.tolist()
-    ut.write_lines(opath, data)
+    if not isinstance(data, (list, tuple, np.ndarray)) or len(data) == 0:
+        raise ValueError("data must be a non-empty array-like object")
+    
+    try:
+        data = np.asarray(data).astype(str).tolist()
+        ut.write_lines(opath, data)
+    except Exception as e:
+        raise IOError(f"Failed to write fluxes file to {opath}: {e}") from e
 
 
 def check_group_struct(gs):
