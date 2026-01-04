@@ -413,12 +413,11 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
     )
     filtered_data = inv_dat[mask]
     
-    # Populate data array using vectorized operations
+    # Populate data array - indices already validated by mask
     for _, row in filtered_data.iterrows():
         a_idx = int(row["A_int"])
         z_idx = int(row["Z"])
-        if 0 <= a_idx < a_max and 0 <= z_idx < z_max:
-            data[a_idx][z_idx] = row[prop]
+        data[a_idx][z_idx] = row[prop]
 
     # create the plot
     fig, ax = plt.subplots(figsize=(14, 8))

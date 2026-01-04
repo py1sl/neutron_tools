@@ -275,14 +275,15 @@ def add_time_columns(df, base_time_col="time_years"):
     if base_time_col not in df.columns:
         raise ValueError(f"Column '{base_time_col}' not found in DataFrame")
     
-    # Constants for time conversions
+    # Constants for time conversions - precomputed for better performance
     DAYS_PER_YEAR = 365.4
-    HOURS_PER_DAY = 24
-    SECONDS_PER_HOUR = 3600
+    HOURS_PER_YEAR = 365.4 * 24
+    SECONDS_PER_YEAR = 365.4 * 24 * 3600
     
+    # Vectorized multiplication with precomputed factors
     df["time_days"] = df[base_time_col] * DAYS_PER_YEAR
-    df["time_hours"] = df[base_time_col] * DAYS_PER_YEAR * HOURS_PER_DAY
-    df["time_secs"] = df[base_time_col] * DAYS_PER_YEAR * HOURS_PER_DAY * SECONDS_PER_HOUR
+    df["time_hours"] = df[base_time_col] * HOURS_PER_YEAR
+    df["time_secs"] = df[base_time_col] * SECONDS_PER_YEAR
     
     return df
 
@@ -385,17 +386,17 @@ def parse_dominant(data):
     topset = np.array(topset)
     lowerset = data[d2_ind + 3:]
 
-    # Pre-allocate lists with correct size for better performance
+    # Pre-allocate numpy arrays for better performance
     n_top = len(topset)
     act_nuc = [None] * n_top
-    act = [0.0] * n_top
-    act_percent = [0.0] * n_top
+    act = np.zeros(n_top)
+    act_percent = np.zeros(n_top)
     heat_nuc = [None] * n_top
-    heat = [0.0] * n_top
-    heat_percent = [0.0] * n_top
+    heat = np.zeros(n_top)
+    heat_percent = np.zeros(n_top)
     dr_nuc = [None] * n_top
-    dr = [0.0] * n_top
-    dr_percent = [0.0] * n_top
+    dr = np.zeros(n_top)
+    dr_percent = np.zeros(n_top)
 
     # Use enumerate for indexing instead of append
     for i, tl in enumerate(topset):
