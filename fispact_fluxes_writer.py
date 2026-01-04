@@ -17,13 +17,13 @@ def get_group_pos(groups, energy):
     """
     if not isinstance(groups, (list, tuple, np.ndarray)) or len(groups) == 0:
         raise ValueError("groups must be a non-empty array-like object")
-    
+
     try:
         groups = np.asarray(groups, dtype=float)
         energy = float(energy)
     except (ValueError, TypeError) as e:
         raise ValueError(f"groups and energy must be convertible to float: {e}") from e
-    
+
     n = len(groups)
 
     # check for energy above the highest group
@@ -211,10 +211,10 @@ def create_fluxes_data(groups, epos):
     """
     if not isinstance(groups, (list, tuple, np.ndarray)):
         raise ValueError("groups must be an array-like object")
-    
+
     if not isinstance(epos, (int, np.integer)):
         raise ValueError("epos must be an integer")
-    
+
     # Check if epos is within bounds
     if not 0 <= epos < len(groups):
         raise ValueError(f"The energy bin position ({epos}) is out of bounds for the given groups array (length {len(groups)}).")
@@ -233,7 +233,7 @@ def convert_mcnp_spect_to_fispact_fluxes_format(mcnp_spect):
     """
     if not isinstance(mcnp_spect, (list, tuple, np.ndarray)) or len(mcnp_spect) == 0:
         raise ValueError("mcnp_spect must be a non-empty array-like object")
-    
+
     mcnp_spect = np.asarray(mcnp_spect)
 
     # Check if the input is sorted in ascending order
@@ -252,13 +252,13 @@ def check_upper_bound(groups, energy):
     """ checks energy is not beyond the upper energy of the group structure """
     if not isinstance(groups, (list, tuple, np.ndarray)) or len(groups) == 0:
         raise ValueError("groups must be a non-empty array-like object")
-    
+
     try:
         energy = float(energy)
         groups_array = np.asarray(groups, dtype=float)
     except (ValueError, TypeError) as e:
         raise ValueError(f"groups and energy must be convertible to float: {e}") from e
-    
+
     if energy > groups_array[0]:
         ntlogger.debug(f"Energy {energy} is above max group structure energy {groups_array[0]}")
         return False
@@ -270,7 +270,7 @@ def write_fluxes_file(opath, data):
     """ writes the data to a file """
     if not isinstance(data, (list, tuple, np.ndarray)) or len(data) == 0:
         raise ValueError("data must be a non-empty array-like object")
-    
+
     try:
         data = np.asarray(data).astype(str).tolist()
         ut.write_lines(opath, data)

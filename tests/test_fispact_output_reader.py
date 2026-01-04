@@ -1,5 +1,6 @@
 import unittest
 import os
+import pandas as pd
 import fispact_output_reader as fo
 import neut_utilities as ut
 
@@ -19,6 +20,13 @@ class version_test_case(unittest.TestCase):
         version = fo.isFisII(lines)
         self.assertEqual(version, True)
 
+    def test_old_version(self):
+        """Test detection of old FISPACT version"""
+        lines = ["FISPACT VERSION 07.0/0"] + [""] * 50
+        version = fo.check_fisp_version(lines)
+        self.assertEqual(version, "FISP07")
+        self.assertFalse(fo.isFisII(lines))
+
 
 class read_mass_tests(unittest.TestCase):
     """ tests for the read mass function """
@@ -27,6 +35,12 @@ class read_mass_tests(unittest.TestCase):
         test_lines = ["", "test", "0 Mass of material input =  1.0000E+00 kg. "]
         mass = fo.read_mass(test_lines)
         self.assertEqual(mass, 1)
+
+    def test_mass_not_found(self):
+        """Test when mass line is not found"""
+        test_lines = ["", "test", "no mass here"]
+        mass = fo.read_mass(test_lines)
+        self.assertEqual(mass, 0.0)
 
 
 class read_fis_out_test_case(unittest.TestCase):
@@ -74,6 +88,16 @@ class read_fis_out_test_case(unittest.TestCase):
         self.assertEqual(ts1.appm_h3, 2.7557E-12)
         self.assertEqual(ts1.appm_h2, 9.3281E-12)
         self.assertEqual(ts1.appm_h1, 5.4402E-11)
+
+    def test_file_not_found(self):
+        """Test error when file doesn't exist"""
+        with self.assertRaises(FileNotFoundError):
+            fo.read_fis_out("/nonexistent/path/file.out")
+
+    def test_path_is_directory(self):
+        """Test error when path is a directory"""
+        with self.assertRaises(ValueError):
+            fo.read_fis_out(os.path.dirname(__file__))
 
 
 class read_summary_data_test_case(unittest.TestCase):
@@ -124,6 +148,80 @@ class retrieve_cooling_data_test_case(unittest.TestCase):
         cooling_data = fo.retrieve_cooling_data(sum_data)
 
         self.assertEqual(len(cooling_data), 5)
+
+
+class add_time_columns_test_case(unittest.TestCase):
+    """tests for the add_time_columns function"""
+
+    def test_add_time_columns(self):
+        """Test adding time columns to a dataframe"""
+        df = pd.DataFrame()
+        df["time_years"] = [1.0, 2.0, 3.0]
+
+        result = fo.add_time_columns(df, "time_years")
+
+        self.assertIn("time_days", result.columns)
+        self.assertIn("time_hours", result.columns)
+        self.assertIn("time_secs", result.columns)
+        self.assertAlmostEqual(result["time_days"].iloc[0], 365.4, places=1)
+        self.assertAlmostEqual(result["time_hours"].iloc[0], 365.4 * 24, places=1)
+
+    def test_add_time_columns_invalid_df(self):
+        """Test error when df is not a DataFrame"""
+        with self.assertRaises(ValueError):
+            fo.add_time_columns([1, 2, 3], "time_years")
+
+    def test_add_time_columns_missing_column(self):
+        """Test error when base column is missing"""
+        df = pd.DataFrame()
+        df["wrong_column"] = [1.0, 2.0, 3.0]
+        with self.assertRaises(ValueError):
+            fo.add_time_columns(df, "time_years")
+
+
+class parse_functions_test_case(unittest.TestCase):
+    """tests for parse functions with error handling"""
+
+    def test_parse_dominant_empty_data(self):
+        """Test parse_dominant with invalid input"""
+        with self.assertRaises(ValueError):
+            fo.parse_dominant([])
+
+    def test_parse_composition_empty_data(self):
+        """Test parse_composition with invalid input"""
+        with self.assertRaises(ValueError):
+            fo.parse_composition([])
+
+    def test_parse_spectra_empty_data(self):
+        """Test parse_spectra with invalid input"""
+        with self.assertRaises(ValueError):
+            fo.parse_spectra([])
+
+    def test_parse_inventory_empty_data(self):
+        """Test parse_inventory with invalid input"""
+        with self.assertRaises(ValueError):
+            fo.parse_inventory([])
+
+    def test_read_time_step_empty_data(self):
+        """Test read_time_step with invalid input"""
+        with self.assertRaises(ValueError):
+            fo.read_time_step([], 0)
+
+    def test_read_parameter_empty_data(self):
+        """Test read_parameter with invalid input"""
+        with self.assertRaises(ValueError):
+            fo.read_parameter([], "test")
+
+
+class find_first_cooling_index_test_case(unittest.TestCase):
+    """tests for find_first_cooling_index"""
+
+    def test_no_cooling(self):
+        """Test when there is no cooling phase"""
+        df = pd.DataFrame()
+        df["is_cooling"] = [False, False, False]
+        result = fo.find_first_cooling_index(df)
+        self.assertIsNone(result)
 
 
 if __name__ == '__main__':

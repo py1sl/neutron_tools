@@ -59,6 +59,16 @@ class create_fluxes_data_test_case(unittest.TestCase):
         with self.assertRaises(ValueError):
             data = fw.create_fluxes_data([1, 1, 1, 1], 10)
 
+    def test_create_fluxes_invalid_groups(self):
+        """Test error handling for invalid groups"""
+        with self.assertRaises(ValueError):
+            fw.create_fluxes_data("not a list", 1)
+
+    def test_create_fluxes_invalid_epos(self):
+        """Test error handling for invalid epos"""
+        with self.assertRaises(ValueError):
+            fw.create_fluxes_data([1, 2, 3], "not an int")
+
     def test_create_fluxes_mcnp(self):
         data = fw.convert_mcnp_spect_to_fispact_fluxes_format([1, 2, 3, 4, 5])
         self.assertEqual(len(data), 6)
@@ -69,11 +79,44 @@ class create_fluxes_data_test_case(unittest.TestCase):
         with self.assertRaises(ValueError):
             fw.convert_mcnp_spect_to_fispact_fluxes_format([1, 1, 4, 3, 5])
 
+    def test_mcnp_spect_empty(self):
+        """Test error handling for empty spectrum"""
+        with self.assertRaises(ValueError):
+            fw.convert_mcnp_spect_to_fispact_fluxes_format([])
+
     def test_upper_bound(self):
         groups = [10, 9, 8, 7]
         self.assertTrue(fw.check_upper_bound(groups, 3))
         self.assertTrue(fw.check_upper_bound(groups, 10))
         self.assertFalse(fw.check_upper_bound(groups, 20.2))
+
+    def test_upper_bound_invalid_input(self):
+        """Test error handling for invalid inputs"""
+        with self.assertRaises(ValueError):
+            fw.check_upper_bound([], 5)
+
+
+class get_group_pos_error_test_case(unittest.TestCase):
+    """tests for error handling in get_group_pos"""
+
+    def test_empty_groups(self):
+        """Test error when groups is empty"""
+        with self.assertRaises(ValueError):
+            fw.get_group_pos([], 5)
+
+    def test_invalid_energy_type(self):
+        """Test error when energy cannot be converted to float"""
+        with self.assertRaises(ValueError):
+            fw.get_group_pos([1, 2, 3], "not_a_number")
+
+
+class write_fluxes_file_error_test_case(unittest.TestCase):
+    """tests for error handling in write_fluxes_file"""
+
+    def test_empty_data(self):
+        """Test error when data is empty"""
+        with self.assertRaises(ValueError):
+            fw.write_fluxes_file("test.txt", [])
 
 
 if __name__ == '__main__':

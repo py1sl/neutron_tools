@@ -133,7 +133,7 @@ def check_nuclide_oos(nuclide, nuc_act, oos_data, mass=1000):
         oos_value = oos_values[0]
 
     # now do the comparison
-    if nuc_act/mass > oos_value:
+    if nuc_act / mass > oos_value:
         return False
     else:
         return True
@@ -192,7 +192,7 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
     """ plots any of the columns from the data frame as a function of time
     (included: activity, dose rate, heat output, ingestion dose, inhalation dose,
     tritium activity)"""
-    
+
     if not isinstance(sum_dat, pd.DataFrame):
         raise ValueError("sum_dat must be a pandas DataFrame")
     if column not in sum_dat.columns:
@@ -203,10 +203,10 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
 
     data = sum_dat[column]
     x_units = check_time_units(x_units)
-    
+
     if x_units not in sum_dat.columns:
         raise ValueError(f"time units '{x_units}' not found in sum_dat DataFrame")
-    
+
     time_vals = sum_dat[x_units]
     data, time_vals = reduce_to_non_zero(data, time_vals)
 
@@ -326,7 +326,7 @@ def plot_nuc_cont(fout, nuc_list, param="act", fname=None, total=False):
         raise ValueError("fout must be a FispactOutput object with timestep_data and sumdat attributes")
     if not isinstance(nuc_list, (list, tuple)) or len(nuc_list) == 0:
         raise ValueError("nuc_list must be a non-empty list or tuple of nuclide names")
-    
+
     # clear old plots
     plt.clf()
 
@@ -377,7 +377,7 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
         raise ValueError(f"Property '{prop}' not found in inv_dat DataFrame")
     if "element" not in inv_dat.columns or "A" not in inv_dat.columns:
         raise ValueError("inv_dat DataFrame must contain 'element' and 'A' columns")
-    
+
     # set up the array
     z_min = 0
     z_max = 118  # max possible Z value element Og
@@ -403,14 +403,15 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
     inv_dat = inv_dat.copy()
     inv_dat["Z"] = inv_dat["element"].map(zdict)
     inv_dat["A_int"] = pd.to_numeric(inv_dat["A"], errors='coerce').fillna(0).astype(int)
-    
+
     # Vectorized approach: filter and group data
     mask = (
-        (inv_dat["A_int"] >= a_min) & (inv_dat["A_int"] < a_max) &
-        (inv_dat["Z"] >= z_min) & (inv_dat["Z"] < z_max)
+        (inv_dat["A_int"] >= a_min) & (inv_dat["A_int"] < a_max)
+        & (inv_dat["Z"] >= z_min)
+        & (inv_dat["Z"] < z_max)
     )
     filtered_data = inv_dat[mask]
-    
+
     # Populate data array - indices already validated by mask
     for _, row in filtered_data.iterrows():
         a_idx = int(row["A_int"])
