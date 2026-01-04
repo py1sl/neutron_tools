@@ -90,13 +90,13 @@ def read_fis_out(path):
     """
     if not os.path.exists(path):
         raise FileNotFoundError(f"FISPACT output file not found: {path}")
-    
+
     if not os.path.isfile(path):
         raise ValueError(f"Path is not a file: {path}")
 
     fo = FispactOutput()
     fo.file_name = path
-    
+
     try:
         lines = ut.get_lines(path)
     except Exception as e:
@@ -143,7 +143,7 @@ def read_time_step(lines, i):
     """ reads a particular time step """
     if not isinstance(lines, (list, tuple)) or len(lines) == 0:
         raise ValueError("lines must be a non-empty list or tuple")
-    
+
     ts = FispactTimeStep()
     ts.step_num = i + 1
 
@@ -262,11 +262,11 @@ def find_summary_block(data, fisII):
 
 def add_time_columns(df, base_time_col="time_years"):
     """Add time columns in different units based on a base time column
-    
+
     Args:
         df: pandas DataFrame with time data
         base_time_col: name of the column containing time in years
-        
+
     Returns:
         DataFrame with additional time columns (days, hours, seconds)
     """
@@ -274,17 +274,17 @@ def add_time_columns(df, base_time_col="time_years"):
         raise ValueError("df must be a pandas DataFrame")
     if base_time_col not in df.columns:
         raise ValueError(f"Column '{base_time_col}' not found in DataFrame")
-    
+
     # Constants for time conversions - precomputed for better performance
     DAYS_PER_YEAR = 365.4
     HOURS_PER_YEAR = 365.4 * 24
     SECONDS_PER_YEAR = 365.4 * 24 * 3600
-    
+
     # Vectorized multiplication with precomputed factors
     df["time_days"] = df[base_time_col] * DAYS_PER_YEAR
     df["time_hours"] = df[base_time_col] * HOURS_PER_YEAR
     df["time_secs"] = df[base_time_col] * SECONDS_PER_YEAR
-    
+
     return df
 
 
@@ -377,7 +377,7 @@ def parse_dominant(data):
     """parse dominant nuclides section and return a list of lists """
     if not isinstance(data, (list, tuple)) or len(data) == 0:
         raise ValueError("data must be a non-empty list or tuple")
-    
+
     p1_ind = ut.find_ind(data, "DOMINANT NUCLIDES")
     data = data[p1_ind:]
     d1_ind = ut.find_ind(data, "(Bq) ")
@@ -461,7 +461,7 @@ def parse_composition(data):
     """
     if not isinstance(data, (list, tuple)) or len(data) == 0:
         raise ValueError("data must be a non-empty list or tuple")
-    
+
     start = ut.find_ind(data, "COMPOSITION  OF  MATERIAL  BY  ELEMENT") + 5
     end = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND") - 3
 
@@ -496,7 +496,7 @@ def parse_spectra(data):
     """
     if not isinstance(data, (list, tuple)) or len(data) == 0:
         raise ValueError("data must be a non-empty list or tuple")
-    
+
     p1 = ut.find_ind(data, "GAMMA SPECTRUM AND ENERGIES/SECOND")
 
     # check data is long enough - checks for bad files
@@ -528,7 +528,7 @@ def parse_inventory(data):
     """
     if not isinstance(data, (list, tuple)) or len(data) == 0:
         raise ValueError("data must be a non-empty list or tuple")
-    
+
     inv = []
     p2 = ut.find_ind(data, "0  TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
     data = data[4:p2]
@@ -580,7 +580,7 @@ def read_parameter(data, sub):
     """ finds and cleans integral values in each timestep"""
     if not isinstance(data, (list, tuple)) or len(data) == 0:
         raise ValueError("data must be a non-empty list or tuple")
-    
+
     ind = ut.find_ind(data, sub)
     line = data[ind]
     line = line.split("=")
