@@ -407,7 +407,8 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
     # Vectorized approach: filter and group data
     mask = (
         (inv_dat["A_int"] >= a_min) & (inv_dat["A_int"] < a_max)
-        & (inv_dat["Z"] >= z_min) & (inv_dat["Z"] < z_max)
+        & (inv_dat["Z"] >= z_min)
+        & (inv_dat["Z"] < z_max)
     )
     filtered_data = inv_dat[mask]
 

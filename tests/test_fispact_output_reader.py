@@ -1,6 +1,5 @@
 import unittest
 import os
-import tempfile
 import pandas as pd
 import fispact_output_reader as fo
 import neut_utilities as ut
