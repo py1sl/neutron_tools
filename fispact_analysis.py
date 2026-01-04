@@ -398,12 +398,10 @@ def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
     min_val = inv_dat[prop].min() + 1e-8
     max_val = inv_dat[prop].max()
 
-    # map Z values to data frame
+    # map Z values to data frame and convert A to integer in single operation
     zdict = neut_constants.Z_dict()
     inv_dat = inv_dat.copy()
     inv_dat["Z"] = inv_dat["element"].map(zdict)
-    
-    # Convert A to integer for vectorized operations
     inv_dat["A_int"] = pd.to_numeric(inv_dat["A"], errors='coerce').fillna(0).astype(int)
     
     # Vectorized approach: filter and group data
