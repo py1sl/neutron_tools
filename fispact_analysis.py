@@ -133,7 +133,7 @@ def check_nuclide_oos(nuclide, nuc_act, oos_data, mass=1000):
         oos_value = oos_values[0]
 
     # now do the comparison
-    if nuc_act /mass > oos_value:
+    if nuc_act / mass > oos_value:
         return False
     else:
         return True
