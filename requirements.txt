@@ -1,5 +1,6 @@
+# Core scientific computing packages
+numpy>=1.21.1
 scipy>=1.7.0
 sympy>=1.8
-numpy>=1.21.1
 matplotlib>=3.4.2
-pandas
+pandas>=1.3.0
