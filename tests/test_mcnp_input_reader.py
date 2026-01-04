@@ -220,49 +220,14 @@ class surface_card_tests(unittest.TestCase):
 class data_card_tests(unittest.TestCase):
     """ test for reading the data part of input file"""
 
-    def test_get_mat_nums(self):
-        """ """
-        test_list = ["M1",
-                     "m10",
-                     "m ",
-                     "m",
-                     "a "]
-        mnums = mcnp_input_reader.get_material_numbers(test_list)
-        self.assertEqual(mnums[0], 1)    # test for lower case m
-        self.assertEqual(mnums[1], 10)   # test for upper case m
-        self.assertEqual(len(mnums), 2)  # check nothing else added
-
-    def test_read_material(self):
-        lines = ["m1 $ a material", "      1000.21c 1",
-                 "m2 $ next mat", "      1001.21c 1"]
-
-        mat = mcnp_input_reader.read_material_lines(1, lines)
-        self.assertEqual(mat.number, 1)
-        self.assertEqual(mat.keywords, None)
-        self.assertEqual(mat.composition["1000.21c"], 1)
-
-    def test_mat_keyword(self):
-        mat = mcnp_input_reader.mcnp_material()
-        test_line = "plib=.70u"
-
-        # test no previous keywords
-        mat = mcnp_input_reader.process_material_keyword(test_line, mat)
-        self.assertEqual(mat.keywords["plib"], ".70u")
-
-        # test with previous keywords
-        mat = mcnp_input_reader.mcnp_material()
-        mat.keywords = {"test_key": "test_value"}
-        mat = mcnp_input_reader.process_material_keyword(test_line, mat)
-        self.assertEqual(mat.keywords["plib"], ".70u")
-        self.assertEqual(mat.keywords["test_key"], "test_value")
-
     def test_get_tal_nums(self):
         """ """
         test_list = ["f1",
                      "F10",
                      "f ",
                      "f",
-                     "a "]
+                     "a ",
+                     "Fabc"]
         tnums = mcnp_input_reader.get_tally_numbers(test_list)
         self.assertEqual(tnums[0], 1)    # test for lower case f
         self.assertEqual(tnums[1], 10)   # test for upper case f
@@ -280,11 +245,15 @@ class data_card_tests(unittest.TestCase):
 
         mode = mcnp_input_reader.read_mode_card(["MODE n p", "m34 32000"])
         self.assertEqual(mode, ["n", "p"])  # test for upper case mode
-        self.assertEqual(len(mode), 2)  # check multipe particles else added
+        self.assertEqual(len(mode), 2)  # check multipe particles added
 
         mode = mcnp_input_reader.read_mode_card(["m23 1001.21c 1",
                                                  "m34 32000"])
         self.assertIsNone(mode)  # test other lines starting with m
+
+        mode = mcnp_input_reader.read_mode_card(["MODE n", "      p", "m34 32000"])
+        self.assertEqual(mode, ["n", "p"])  # test for mode over multiple lines
+        self.assertEqual(len(mode), 2)  # check multipe particles added
 
 
 class line_tests(unittest.TestCase):
@@ -324,14 +293,27 @@ class line_tests(unittest.TestCase):
         line = mcnp_input_reader.get_inline_comment(test_line)
         self.assertEqual(line, "test")
 
+        # test inline comment continue line $
+        test_line = "      $test"
+        line = mcnp_input_reader.get_inline_comment(test_line)
+        self.assertEqual(line, "test")
+
     def test_inline_comments(self):
         """ tests for comments using $"""
         # test not inline comment
         test_line = "no comment"
         self.assertFalse(mcnp_input_reader.has_inline_comment(test_line))
 
-        # test not inline comment
+        # test inline comment
         test_line = " 1 1 $ test"
+        self.assertTrue(mcnp_input_reader.has_inline_comment(test_line))
+
+        # test inline comment no space after $
+        test_line = " 1 1 $test"
+        self.assertTrue(mcnp_input_reader.has_inline_comment(test_line))
+
+        # test $ in continue line
+        test_line = "     $ test"
         self.assertTrue(mcnp_input_reader.has_inline_comment(test_line))
 
     def test_full_line_comment(self):
@@ -394,6 +376,142 @@ class line_tests(unittest.TestCase):
         self.assertFalse(mcnp_input_reader.is_continue_line(" " * 4))
         self.assertTrue(mcnp_input_reader.is_continue_line(" " * 5))
         self.assertTrue(mcnp_input_reader.is_continue_line(" " * 10))
+
+
+class MaterialTests(unittest.TestCase):
+    def test_read_material_includes_mt_and_mx(self):
+        lines = [
+            "m1 $ mat1",
+            "     1000.21c 1",
+            "mt1 some_mt_entry $ inline",
+            "     continued_mt_entry",
+            "mx1 some_mx_entry",
+            "m2 $ next",
+            "     1001.21c 1",
+        ]
+
+        mat = mcnp_input_reader.read_material_lines(1, lines)
+        self.assertEqual(mat.number, 1)
+        self.assertIn("1000.21c", mat.composition)
+        self.assertEqual(mat.composition["1000.21c"], 1.0)
+
+        # mt and mx lines should be returned as lists (lowercased by reader)
+        self.assertIsInstance(mat.thermal_scattering, list)
+        self.assertTrue(any(l.strip().startswith("mt1") for l in mat.thermal_scattering))
+        self.assertIsInstance(mat.mx_lines, list)
+        self.assertTrue(any(l.strip().startswith("mx1") for l in mat.mx_lines))
+
+    def test_process_material_keyword_multivalue(self):
+        mat = mcnp_input_reader.mcnp_material()
+        mat = mcnp_input_reader.process_material_keyword("gas=1=2", mat)
+        self.assertIn("gas", mat.keywords)
+        self.assertEqual(mat.keywords["gas"], ["1", "2"])
+
+    def test_check_valid_mat_keyword_raises(self):
+        mat = mcnp_input_reader.mcnp_material()
+        mat.keywords = {"badkey": "value"}
+        with self.assertRaises(ValueError):
+            mcnp_input_reader.check_valid_mat_keyword(mat)
+
+    def test_process_material_line_parses_keywords_and_composition(self):
+        line = "m1 plib=.70u 1000.21c 1 2000.21c 2"
+        mat = mcnp_input_reader.process_material_line(line, 1)
+        self.assertEqual(mat.number, 1)
+        self.assertIn("plib", mat.keywords)
+        self.assertEqual(mat.keywords["plib"], ".70u")
+        self.assertIn("1000.21c", mat.composition)
+        self.assertIn("2000.21c", mat.composition)
+        self.assertEqual(mat.num_nuclides, 2)
+
+    def test_get_mat_nums(self):
+        """ """
+        test_list = ["M1",
+                     "m10",
+                     "m ",
+                     "m",
+                     "a "]
+        mnums = mcnp_input_reader.get_material_numbers(test_list)
+        self.assertEqual(mnums[0], 1)    # test for lower case m
+        self.assertEqual(mnums[1], 10)   # test for upper case m
+        self.assertEqual(len(mnums), 2)  # check nothing else added
+
+    def test_read_material(self):
+        lines = ["m1 $ a material", "      1000.21c 1",
+                 "m2 $ next mat", "      1001.21c 1"]
+
+        mat = mcnp_input_reader.read_material_lines(1, lines)
+        self.assertEqual(mat.number, 1)
+        self.assertEqual(mat.keywords, None)
+        self.assertEqual(mat.composition["1000.21c"], 1)
+        self.assertEqual(mat.num_nuclides, 1)
+
+    def test_mat_keyword(self):
+        mat = mcnp_input_reader.mcnp_material()
+        test_line = "plib=.70u"
+
+        # test no previous keywords
+        mat = mcnp_input_reader.process_material_keyword(test_line, mat)
+        self.assertEqual(mat.keywords["plib"], ".70u")
+
+        # test with previous keywords
+        mat = mcnp_input_reader.mcnp_material()
+        mat.keywords = {"test_key": "test_value"}
+        mat = mcnp_input_reader.process_material_keyword(test_line, mat)
+        self.assertEqual(mat.keywords["plib"], ".70u")
+        self.assertEqual(mat.keywords["test_key"], "test_value")
+        
+
+
+class CardAndPrefixTests(unittest.TestCase):
+    def test_get_card_lines_continuation_and_comments(self):
+        lines = [
+            "cardA arg $inline",
+            "     cont1 $ci",
+            "c full comment",
+            "     cont2",
+            "other",
+        ]
+
+        got = mcnp_input_reader.get_card_lines(lines, "cardA")
+        # start + two continuation lines
+        self.assertEqual(len(got), 3)
+        self.assertTrue(got[0].strip().startswith("carda"))
+        # inline comments removed
+        self.assertFalse("$" in "".join(got))
+
+    def test_get_card_lines_only_first_block(self):
+        lines = [
+            "cardA a",
+            "     a1",
+            "end",
+            "cardA b",
+            "     b1",
+        ]
+        got = mcnp_input_reader.get_card_lines(lines, "cardA")
+        # should only return the first cardA block
+        self.assertEqual(len(got), 2)
+        self.assertTrue(got[0].strip().startswith("carda a"))
+
+    def test_is_card_present_behavior(self):
+        self.assertTrue(mcnp_input_reader.is_card_present(["cardX foo"], "cardX"))
+        # leading whitespace should not match
+        self.assertFalse(mcnp_input_reader.is_card_present([" cardX foo"], "cardX"))
+        # case-insensitive match
+        self.assertTrue(mcnp_input_reader.is_card_present(["CaRd 1"], "card"))
+
+    def test_get_prefixed_lines_basic(self):
+        lines = ["mt1 a $c", "     cont", "mt2 x"]
+        got = mcnp_input_reader.get_prefixed_lines(lines, "mt", 1)
+        self.assertEqual(len(got), 2)
+        self.assertTrue(got[0].strip().startswith("mt1"))
+
+    def test_find_prefixed_lines_token_boundary(self):
+        # current implementation uses startswith on the combined prefix+num
+        lines = ["mt10 a", "     cont10", "mt1 b", "     cont1"]
+        got = mcnp_input_reader.get_prefixed_lines(lines, "mt", 1)
+        self.assertTrue(len(got) >= 1)
+        self.assertFalse(got[0].strip().startswith("mt10"))
+        self.assertTrue(got[0].strip().startswith("mt1"))
 
 
 if __name__ == '__main__':

@@ -24,6 +24,8 @@ class mcnp_input():
         self.mode = None
         self.is_sdef = True
         self.is_kcode = False
+        self.is_void = False
+        self.is_ptrac = False
 
     def __str__(self):
         print_list = []
@@ -57,9 +59,14 @@ class mcnp_cell():
         print_list = []
         print_list.append("Cell number: ", self.number)
         print_list.append("Cell material: ", self.mat)
-        print_list.append("Cell density: ", self.density)
+        if self.density is not None:
+            print_list.append("Cell density: ", self.density)
         print_list.append("Cell geom: ", self.geom)
         print_list.append("Cell surfaces: ", self.surfaces)
+        print_list.append("Cell importances: ", self.imp)
+        print_list.append("Cell comments: ", self.cell_comment)
+        print_list.append("Cell parameters: ", self.param_list)
+
 
         return "\n".join(print_list)
 
@@ -72,13 +79,16 @@ class mcnp_material():
         self.num_nuclides = 0
         self.composition = None
         self.keywords = None
+        self.thermal_scattering = None
+        self.mx_lines = None
 
     def __str__(self):
         print_list = []
         print_list.append("Material number: ", self.number)
         print_list.append("Number of Nuclides: ", self.num_nuclides)
         print_list.append("Composition: ", self.composition)
-        print_list.append("Keywords: ", self.keywords)
+        if self.keywords is not None:
+            print_list.append("Keywords: ", self.keywords)
 
         return "\n".join(print_list)
 
@@ -132,10 +142,12 @@ def long_line_index(lines):
 def read_mode_card(lines):
     """ finds the mode card and returns the particle identifiers"""
     mode = None
-    for line in lines:
-        if line.lower().startswith("mode "):
-            line = ut.string_cleaner(line)
-            mode = line.split(" ")[1:]
+    line = get_card_lines(lines, "mode")
+    if len(line) == 0:
+        return None # mode card not present
+    line = " ".join(line)
+    line = ut.string_cleaner(line)  
+    mode = line.split(" ")[1:]
     return mode
 
 
@@ -319,7 +331,7 @@ def process_cell_block(bloc):
 
 
 def get_cell(cell_num, cells):
-    """ get cell from cell list """
+    """ get cell from cell dict """
     return cells.get(cell_num)
 
 
@@ -437,6 +449,11 @@ def read_material_lines(mat_num, lines):
     material = " ".join(material_lines)
     material = ut.string_cleaner(material)
     material = process_material_line(material, mat_num)
+    
+    # look for any thermal scattering input assocated with the material
+    material.thermal_scattering = get_mt_lines(lines, mat_num)
+    # look for any mx lines assocated with the material
+    material.mx_lines = get_mx_lines(lines, mat_num)
 
     return material
 
@@ -474,10 +491,13 @@ def process_material_line(mat_line, mat_num):
         for entry in keyword_entries:
             mat = process_material_keyword(entry, mat)
 
+        # validate any keywords found
+        check_valid_mat_keyword(mat)
     # remove keyword entries from mat_line
     filtered_data = [entry for entry in mat_line if not (isinstance(entry, str) and "=" in entry)]
     # convert to a material dict with zaid - fraction pairs
     mat.composition = {filtered_data[i]: float(filtered_data[i + 1]) for i in range(0, len(filtered_data), 2)}
+    mat.num_nuclides = len(mat.composition)
 
     return mat
 
@@ -492,10 +512,115 @@ def check_valid_mat_keyword(mat):
             raise ValueError(f'{key} input not recognised as valid keyword for a material')
 
 
+def get_mt_lines(lines, mnum):
+    """ finds mt lines for a material"""
+    return get_prefixed_lines(lines, "mt", mnum)
+
+
+def get_mx_lines(lines, mnum):
+    """ finds mx lines for a material"""
+    return get_prefixed_lines(lines, "mx", mnum)
+
+
+def is_card_present(lines, card):
+    """ check if a particular card is present in the lines """
+    for line in lines:
+        line = line.lower()
+        if line.startswith(card.lower()):
+            return True
+    return False
+
+
+def get_card_lines(lines, card):
+    """ get all lines associated with a particular card """
+    card_lines = []
+    in_block = False
+
+    for line in lines:
+        line = line.lower()
+
+        if in_block:
+            if is_continue_line(line):
+                line = remove_inline_comment(line)
+                card_lines.append(line)
+            elif line.startswith("c "):
+                continue
+            elif line and not is_continue_line(line):
+                break
+
+        # find starting card line
+        if line.startswith(card.lower()) and (line[len(card):len(card)+1] in (" ", ":")):
+            in_block = True
+            line = remove_inline_comment(line)
+            card_lines.append(line)
+
+    return card_lines
+
+
+def get_prefixed_lines(lines, prefix, mnum):
+    """Generic finder for continuation blocks that start with a prefixed card.
+    """
+    card = f"{prefix}{mnum}"
+    pref_lines = get_card_lines(lines, card)
+
+    return pref_lines
+
+
 def is_continue_line(line):
     """checks if line has 5 spaces at start """
     return line.startswith(" " * 5)
 
+
+def process_tally_line(tal_line, tal_num):
+    """ process a tally line into a tally object """
+    tally = mcnp_tally()
+    tally.number = tal_num
+    tally.data = tal_line
+
+    # get tally type
+    tal_type = tal_line.split(" ")[0]
+    tal_type = tal_type.split(":")[0][1:]
+    tally.tal_type = tal_type
+
+    return tally
+
+
+def read_tally_lines(tal_num, lines):
+    """ extracts the block of lines used for a given tally """
+    tally_lines = []
+    in_tal = False
+
+    for line in lines:
+        line = line.lower()
+
+        # check if line is a continuation of tally
+        if in_tal:
+            if is_continue_line(line):
+                line = remove_inline_comment(line)
+                tally_lines.append(line)
+            # check for full line comments
+            elif line.startswith("c "):
+                continue
+            # find end of tally
+            elif line and not is_continue_line(line):
+                break
+        # find tally lines
+        if len(line) > 1 and line[0] == "f" and line[1].isdigit():
+            tnum = line.split(" ")[0][1:]
+            tnum = tnum.split(":")[0]
+            if tnum == str(tal_num):
+                in_tal = True
+                line = remove_inline_comment(line)
+                tally_lines.append(line)
+
+    tally = " ".join(tally_lines)
+    tally = ut.string_cleaner(tally)
+    # process tally line into object
+    tally = process_tally_line(tally, tal_num)
+
+    # look for any ebins, tbins, fm, sd, fc associated with tally
+
+    return tally
 
 def process_data_block(mc_in):
     """ """
@@ -503,10 +628,20 @@ def process_data_block(mc_in):
     mc_in.tal_num_list = get_tally_numbers(mc_in.data_block)
     mc_in.mat_num_list = get_material_numbers(mc_in.data_block)
     mc_in.materials = {}
+    
+    mc_in.is_void = is_card_present(mc_in.data_block, "void")
+    mc_in.is_kcode = is_card_present(mc_in.data_block, "kcode")
+    mc_in.is_sdef = is_card_present(mc_in.data_block, "sdef")
+    mc_in.is_ptrac = is_card_present(mc_in.data_block, "ptrac")
+
 
     for mat_num in mc_in.mat_num_list:
         mat = read_material_lines(mat_num, mc_in.data_block)
         mc_in.materials[mat.number] = mat
+
+    for tal_num in mc_in.tal_num_list:
+        # todo process tallies
+        pass    
 
     return mc_in
 
