@@ -3,7 +3,6 @@ MCNP input file reader
 """
 import argparse
 import neut_utilities as ut
-import pandas as pd
 
 
 class mcnp_input():
@@ -40,6 +39,7 @@ class mcnp_input():
             print_list.append("Unknown calculation type")
 
         return "\n".join(print_list)
+
 
 class mcnp_surface():
     """ class representing a MCNP surface definition """
@@ -88,8 +88,6 @@ class mcnp_cell():
         print_list.append("Cell importances: ", self.imp)
         print_list.append("Cell comments: ", self.cell_comment)
         print_list.append("Cell parameters: ", self.param_list)
-
-
         return "\n".join(print_list)
 
 
@@ -166,9 +164,9 @@ def read_mode_card(lines):
     mode = None
     line = get_card_lines(lines, "mode")
     if len(line) == 0:
-        return None # mode card not present
+        return None  # mode card not present
     line = " ".join(line)
-    line = ut.string_cleaner(line)  
+    line = ut.string_cleaner(line)
     mode = line.split(" ")[1:]
     return mode
 
@@ -298,7 +296,8 @@ def process_geom(geom, cell):
     surfaces = []
     cell.geom = geom
 
-    for part in geom:
+    for i, part in enumerate(geom):
+        print("part", part)
         if "$" in part:
             part = part.split("$")
             cell.cell_comment.append(part[-1])
@@ -471,7 +470,7 @@ def read_material_lines(mat_num, lines):
     material = " ".join(material_lines)
     material = ut.string_cleaner(material)
     material = process_material_line(material, mat_num)
-    
+
     # look for any thermal scattering input assocated with the material
     material.thermal_scattering = get_mt_lines(lines, mat_num)
     # look for any mx lines assocated with the material
@@ -656,7 +655,7 @@ def process_data_block(mc_in):
     mc_in.tal_num_list = get_tally_numbers(mc_in.data_block)
     mc_in.mat_num_list = get_material_numbers(mc_in.data_block)
     mc_in.materials = {}
-    
+
     mc_in.is_void = is_card_present(mc_in.data_block, "void")
     mc_in.is_kcode = is_card_present(mc_in.data_block, "kcode")
     mc_in.is_sdef = is_card_present(mc_in.data_block, "sdef")
@@ -685,7 +684,7 @@ def process_surface_block(surf_bloc):
             surf_line = surf_line + " " + ut.string_cleaner(line)
         elif line.strip() == "":
             continue
-        elif line.lower().startswith("c "):
+        elif line.lower().startswith("c"):
             continue
         elif len(surf_line) > 0:
             surf = process_surface_line(surf_line)
@@ -693,7 +692,7 @@ def process_surface_block(surf_bloc):
             surf_line = ut.string_cleaner(line)
         else:
             surf_line = ut.string_cleaner(line)
-    
+
     # add last surface line if present
     if len(surf_line) > 0:
         surf = process_surface_line(surf_line)
@@ -708,7 +707,7 @@ def process_surface_line(surf_line):
     surf_line = surf_line.split(" ")
 
     surf = mcnp_surface()
-    surf.number = int(surf_line[0]) # surface number
+    surf.number = int(surf_line[0])  # surface number
     surf.has_transform = check_surf_transform(surf_line)
     if surf.has_transform:
         surf.surf_type = surf_line[2]
@@ -717,7 +716,7 @@ def process_surface_line(surf_line):
     else:
         surf.surf_type = surf_line[1]
         surf.params = surf_line[2:]
-    
+
     if not is_surface_type_valid(surf.surf_type):
         raise ValueError(f"Surface type {surf.surf_type} not valid MCNP surface type")
 
