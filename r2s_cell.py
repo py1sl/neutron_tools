@@ -86,8 +86,8 @@ def get_cell_data(mc_input, tally_cell_list):
     """ get the cll material, mass and volume data"""
     cell_data = []
     for cell_num in tally_cell_list:
-        if mir.check_cell_exists(cell_num, mc_input.cell_list):
-            cell = mir.get_cell(cell_num, mc_input.cell_list)
+        if mir.check_cell_exists(cell_num, mc_input.cells):
+            cell = mir.get_cell(cell_num, mc_input.cells)
             cell_data.append(cell)
         else:
             raise ValueError(f"Cell: {cell_num} not found in input")
