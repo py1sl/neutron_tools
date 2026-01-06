@@ -15,7 +15,7 @@ class mcnp_input():
         self.materials = None
         self.tal_num_list = None
         self.tallies = None
-        self.surface_list = None
+        self.surfaces_dict = None
         self.surface_block = None
         self.cell_block = None
         self.data_block = None
@@ -38,6 +38,28 @@ class mcnp_input():
             print_list.append("Kcode calculation")
         else:
             print_list.append("Unknown calculation type")
+
+        return "\n".join(print_list)
+
+class mcnp_surface():
+    """ class representing a MCNP surface definition """
+    def __init__(self):
+        self.number = None
+        self.surf_type = None
+        self.params = []
+        self.has_transform = False
+        self.transform = None
+        self.comment = None
+
+    def __str__(self):
+        print_list = []
+        print_list.append("Surface number: ", self.number)
+        print_list.append("Surface type: ", self.surf_type)
+        print_list.append("Surface parameters: ", self.params)
+        if self.has_transform:
+            print_list.append("Surface transform: ", self.transform)
+        if self.comment is not None:
+            print_list.append("Surface comment: ", self.comment)
 
         return "\n".join(print_list)
 
@@ -320,7 +342,7 @@ def process_cell_block(bloc):
                 cell.density = float(line[2])
                 geo_start_pos = 3
             geom = line[geo_start_pos:]
-        elif line.startswith("     "):
+        elif is_continue_line(line):
             geom.append(line)
 
     # add last cell
@@ -429,14 +451,14 @@ def read_material_lines(mat_num, lines):
 
         # check if line is a continuation of material
         if in_mat:
-            if line.startswith("    "):
+            if is_continue_line(line):
                 line = remove_inline_comment(line)
                 material_lines.append(line)
             # check for full line comments
             elif line.startswith("c "):
                 continue
             # find end of material
-            elif line and not line.startswith("    "):
+            elif line and not is_continue_line(line):
                 break
         # find material lines
         if len(line) > 1 and line[0] == "m" and line[1].isdigit():
@@ -619,8 +641,14 @@ def read_tally_lines(tal_num, lines):
     tally = process_tally_line(tally, tal_num)
 
     # look for any ebins, tbins, fm, sd, fc associated with tally
+    tally.has_ebins = is_card_present(lines, f"e{tal_num} ")
+    tally.has_tbins = is_card_present(lines, f"t{tal_num} ")
+    tally.has_fm = is_card_present(lines, f"fm{tal_num} ")
+    tally.has_sd = is_card_present(lines, f"sd{tal_num} ")
+    tally.has_fc = is_card_present(lines, f"fc{tal_num} ")
 
     return tally
+
 
 def process_data_block(mc_in):
     """ """
@@ -640,10 +668,68 @@ def process_data_block(mc_in):
         mc_in.materials[mat.number] = mat
 
     for tal_num in mc_in.tal_num_list:
-        # todo process tallies
-        pass    
+        tally = read_tally_lines(tal_num, mc_in.data_block)
+        if mc_in.tallies is None:
+            mc_in.tallies = {}
+        mc_in.tallies[tally.number] = tally
 
     return mc_in
+
+
+def process_surface_block(surf_bloc):
+    """ process surface block into a surface list """
+    surface_dict = {}
+    surf_line = ""
+    for line in surf_bloc:
+        if is_continue_line(line):
+            surf_line = surf_line + " " + ut.string_cleaner(line)
+        elif line.strip() == "":
+            continue
+        elif line.lower().startswith("c "):
+            continue
+        elif len(surf_line) > 0:
+            surf = process_surface_line(surf_line)
+            surface_dict[surf.number] = surf
+            surf_line = ut.string_cleaner(line)
+        else:
+            surf_line = ut.string_cleaner(line)
+    
+    # add last surface line if present
+    if len(surf_line) > 0:
+        surf = process_surface_line(surf_line)
+        surface_dict[surf.number] = surf
+
+    return surface_dict
+
+
+def process_surface_line(surf_line):
+    """ process a surface line into a surface object """
+    surf_line = surf_line.lower()
+    surf_line = surf_line.split(" ")
+
+    surf = mcnp_surface()
+    surf.number = int(surf_line[0]) # surface number
+    surf.has_transform = check_surf_transform(surf_line)
+    if surf.has_transform:
+        surf.surf_type = surf_line[2]
+        surf.params = surf_line[3:]
+        surf.transform = surf_line[1]
+    else:
+        surf.surf_type = surf_line[1]
+        surf.params = surf_line[2:]
+    
+    if not is_surface_type_valid(surf.surf_type):
+        raise ValueError(f"Surface type {surf.surf_type} not valid MCNP surface type")
+
+    return surf
+
+
+def check_surf_transform(surf_line):
+    """ check if surface has a transform """
+
+    if surf_line[1].isdigit():
+        return True
+    return False
 
 
 def read_mcnp_input(fpath):
@@ -658,6 +744,7 @@ def read_mcnp_input(fpath):
     mc_in.cell_block, mc_in.surface_block, mc_in.data_block = split_blocs(ifile)
     mc_in.cells = process_cell_block(mc_in.cell_block)
 
+    mc_in.surfaces_dict = process_surface_block(mc_in.surface_block)
     mc_in.comments = get_full_line_comments(ifile)
     mc_in = process_data_block(mc_in)
 

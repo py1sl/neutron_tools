@@ -1,4 +1,5 @@
 import unittest
+import os
 import mcnp_input_reader
 
 
@@ -171,11 +172,31 @@ class surface_card_tests(unittest.TestCase):
 
     # test simple surface card
     def test_single_line_surface(self):
-        self.assertTrue(True)
+        surf = "1 px 1.0"
+        surface = mcnp_input_reader.process_surface_line(surf)
+        self.assertTrue(surface.number, 1)
+        self.assertTrue(surface.surf_type, "px")
+        self.assertTrue(surface.params, ["1.0"])
 
+    # test single line surface card with transform
+    def test_single_line_surface_transform(self):
+        surf = "1 2 px 1.0"
+        surface = mcnp_input_reader.process_surface_line(surf)
+        self.assertTrue(surface.number, 1)
+        self.assertTrue(surface.surf_type, "px")
+        self.assertTrue(surface.params, ["1.0"])
+        self.assertTrue(surface.transform, 2)
+        self.assertTrue(surface.has_transform)
+        
     # test multi line surface card
     def test_multi_line_surface(self):
         self.assertTrue(True)
+
+    def test_check_surf_transform(self):
+        surf = ["1", "px", "1.0"]
+        self.assertFalse(mcnp_input_reader.check_surf_transform(surf))
+        surf = ["1", "1", "px", "1.0"]
+        self.assertTrue(mcnp_input_reader.check_surf_transform(surf))
 
     def test_is_surface(self):
         # test check surface type validity
@@ -513,6 +534,20 @@ class CardAndPrefixTests(unittest.TestCase):
         self.assertFalse(got[0].strip().startswith("mt10"))
         self.assertTrue(got[0].strip().startswith("mt1"))
 
+class real_file_Tests(unittest.TestCase):
+    def test_read_simple_input(self):
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.i')
+        mc_in = mcnp_input_reader.read_mcnp_input(path)
+        self.assertEqual(len(mc_in.cells), 4)
+        self.assertIn(99, mc_in.cells)
+        self.assertEqual(len(mc_in.materials), 1)
+        self.assertEqual(len(mc_in.surfaces_dict), 3)
+        self.assertEqual(mc_in.mode, ['p'])
+        self.assertEqual(len(mc_in.tallies), 6)
+        self.assertTrue(mc_in.is_sdef)
+        self.assertFalse(mc_in.is_kcode)
+        self.assertFalse(mc_in.is_void)
+        self.assertFalse(mc_in.is_ptrac)
 
 if __name__ == '__main__':
     unittest.main()
