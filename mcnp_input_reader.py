@@ -28,8 +28,8 @@ class mcnp_input():
 
     def __str__(self):
         print_list = []
-        print_list.append("File: ", self.file_path)
-        print_list.append("Mode: ", self.mode)
+        print_list.append(f"File: {self.file_path}")
+        print_list.append(f"Mode: {self.mode}")
 
         if self.is_sdef:
             print_list.append("Fixed source calculation")
@@ -53,13 +53,13 @@ class mcnp_surface():
 
     def __str__(self):
         print_list = []
-        print_list.append("Surface number: ", self.number)
-        print_list.append("Surface type: ", self.surf_type)
-        print_list.append("Surface parameters: ", self.params)
+        print_list.append(f"Surface number: {self.number}")
+        print_list.append(f"Surface type: {self.surf_type}")
+        print_list.append(f"Surface parameters: {self.params}")
         if self.has_transform:
-            print_list.append("Surface transform: ", self.transform)
+            print_list.append(f"Surface transform: {self.transform}")
         if self.comment is not None:
-            print_list.append("Surface comment: ", self.comment)
+            print_list.append(f"Surface comment: {self.comment}")
 
         return "\n".join(print_list)
 
@@ -79,15 +79,15 @@ class mcnp_cell():
 
     def __str__(self):
         print_list = []
-        print_list.append("Cell number: ", self.number)
-        print_list.append("Cell material: ", self.mat)
+        print_list.append(f"Cell number: {self.number}")
+        print_list.append(f"Cell material: {self.mat}")
         if self.density is not None:
-            print_list.append("Cell density: ", self.density)
-        print_list.append("Cell geom: ", self.geom)
-        print_list.append("Cell surfaces: ", self.surfaces)
-        print_list.append("Cell importances: ", self.imp)
-        print_list.append("Cell comments: ", self.cell_comment)
-        print_list.append("Cell parameters: ", self.param_list)
+            print_list.append(f"Cell density: {self.density}")
+        print_list.append(f"Cell geom: {self.geom}")
+        print_list.append(f"Cell surfaces: {self.surfaces}")
+        print_list.append(f"Cell importances: {self.imp}")
+        print_list.append(f"Cell comments: {self.cell_comment}")
+        print_list.append(f"Cell parameters: {self.param_list}")
         return "\n".join(print_list)
 
 
@@ -104,11 +104,11 @@ class mcnp_material():
 
     def __str__(self):
         print_list = []
-        print_list.append("Material number: ", self.number)
-        print_list.append("Number of Nuclides: ", self.num_nuclides)
-        print_list.append("Composition: ", self.composition)
+        print_list.append(f"Material number: {self.number}")
+        print_list.append(f"Number of Nuclides: {self.num_nuclides}")
+        print_list.append(f"Composition: {self.composition}")
         if self.keywords is not None:
-            print_list.append("Keywords: ", self.keywords)
+            print_list.append(f"Keywords: {self.keywords}")
 
         return "\n".join(print_list)
 
@@ -127,8 +127,8 @@ class mcnp_tally():
 
     def __str__(self):
         print_list = []
-        print_list.append("Tally number: ", self.number)
-        print_list.append("Tally card:", self.data)
+        print_list.append(f"Tally number: {self.number}")
+        print_list.append(f"Tally card: {self.data}")
 
         if self.has_ebins:
             print_list.append("Has energy bins")
@@ -297,7 +297,6 @@ def process_geom(geom, cell):
     cell.geom = geom
 
     for i, part in enumerate(geom):
-        print("part", part)
         if "$" in part:
             part = part.split("$")
             cell.cell_comment.append(part[-1])

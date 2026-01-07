@@ -69,7 +69,7 @@ def get_cells_mcnp(mcnp_output, particle="neutrons", tallies=None):
     tally_data = []
     for tal in mcnp_output.tally_data:
         if tal.tally_type == '4' and tal.particle == particle:
-            if tallies != None:
+            if tallies is not None:
                 if tal.number in tallies:
                     cell_list = cell_list + tal.cells
                     tally_data.append(tal)
@@ -107,13 +107,15 @@ def get_cell_data(mc_input, tally_cell_list):
 
 def write_collapse(path, groups_count):
     """ writes the collapse stage fispact input file"""
-    lines = ["<< -----collapse cross section data----- >>",
-             "CLOBBER"
-             "GETXS 1 " + str(groups_count),
-             "FISPACT",
-             "* COLLAPSE",
-             "END",
-             "* END OF RUN"]
+    lines = [
+        "<< -----collapse cross section data----- >>",
+        "CLOBBER",
+        f"GETXS 1 {groups_count}",
+        "FISPACT",
+        "* COLLAPSE",
+        "END",
+        "* END OF RUN",
+    ]
     ut.write_lines(path, lines)
     return 0
 
@@ -142,8 +144,8 @@ def write_fispact(inputs, cell_data, path):
 def copy_files_file(inputs, path):
     """ copy the files file into the folder for the current cell"""
     if not Path(inputs.files_file).exists():
-        raise FileNotFoundError(f" Files file {inputs.files_file} not found")
-    shutil.copyfile(inputs.files_files, path+"/FILES")
+        raise FileNotFoundError(f"Files file {inputs.files_file} not found")
+    shutil.copyfile(inputs.files_file, f"{path}/FILES")
     return 0
 
 
@@ -200,13 +202,13 @@ def fispact_setup(path, inputs, cell_data):
         os.makedirs(path)
 
     # TODO: need to get the groups number for the collapse
-    write_collapse(path+"/collapse.i")
-    write_array(path+"/array.i")
+    write_collapse(f"{path}/collapse.i")
+    write_array(f"{path}/array.i")
 
-    write_fispact(inputs, cell_data, path+"/"+path+".i")
+    write_fispact(inputs, cell_data, f"{path}/{path}.i")
     copy_files_file(inputs, path)
-    check_files_file(path+"/FILES")
-    write_fluxes(cell_data, path+"/fluxes")
+    check_files_file(f"{path}/FILES")
+    write_fluxes(cell_data, f"{path}/fluxes")
 
     return 0
 
@@ -265,7 +267,7 @@ def main(config_fp):
     # generate fispact inputs
     # TODO: loop over the cell_data object
     for cell in cells:
-        path = "cell"+str(cell)
+        path = f"cell{cell}"
         fispact_setup(path, inputs, cell_data)
 
         # run fispact
