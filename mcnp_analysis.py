@@ -312,18 +312,17 @@ def html_output(mc_object, fname):
             hlines.append("Warning Statistical test data not found")
 
         # add tally type specific data
-            if tdat.tally_type == "4":
-                hlines.append(f"Number Cells: {len(tdat.cells)}")
-                cell_string = "".join(tdat.cells)
-                hlines.append(f"Cells: {cell_string}")
-                hlines.append(f"Volumes: {''.join(tdat.vols)}")
+        if tdat.tally_type == "4":
+            hlines.append(f"Number Cells: {len(tdat.cells)}")
+            cell_string = "".join(tdat.cells)
+            hlines.append(f"Cells: {cell_string}")
+            hlines.append(f"Volumes: {''.join(tdat.vols)}")
             # add result plots
-                if tdat.eng and len(tdat.cells) == 1:
-                    pname = f"tally_{tdat.number}_{tdat.cells[0]}.png"
-                    title = f"{tdat.particle} Spectra for cell {tdat.cells[0]}"
-                    plot_spectra(tdat, pname, title, sp="neutron")
-
-                    hlines.append(f"<img src={pname} alt=\"simulated spectrum\">")
+            if tdat.eng and len(tdat.cells) == 1:
+                pname = f"tally_{tdat.number}_{tdat.cells[0]}.png"
+                title = f"{tdat.particle} Spectra for cell {tdat.cells[0]}"
+                plot_spectra(tdat, pname, title, sp="neutron")
+                hlines.append(f"<img src={pname} alt=\"simulated spectrum\">")
             else:
                 print("no energy bins or more than one cell")
 

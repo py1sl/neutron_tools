@@ -202,7 +202,8 @@ def fispact_setup(path, inputs, cell_data):
         os.makedirs(path)
 
     # TODO: need to get the groups number for the collapse
-    write_collapse(f"{path}/collapse.i")
+    ngroups_count = 175
+    write_collapse(f"{path}/collapse.i", ngroups_count)
     write_array(f"{path}/array.i")
 
     write_fispact(inputs, cell_data, f"{path}/{path}.i")
