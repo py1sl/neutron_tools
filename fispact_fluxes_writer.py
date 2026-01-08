@@ -217,7 +217,11 @@ def create_fluxes_data(groups, epos):
 
     # Check if epos is within bounds
     if not 0 <= epos < len(groups):
-        raise ValueError(f"The energy bin position ({epos}) is out of bounds for the given groups array (length {len(groups)}).")
+        msg = (
+            f"The energy bin position ({epos}) is out of bounds for the given "
+            f"groups array (length {len(groups)})."
+        )
+        raise ValueError(msg)
 
     flux_data = np.zeros(len(groups) + 1)
     flux_data[epos] = 1

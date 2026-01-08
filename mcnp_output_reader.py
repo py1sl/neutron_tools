@@ -70,11 +70,11 @@ class MCNP_type5_tally(MCNP_tally_data):
 
     def __str__(self):
         print_list = []
-        print_list.append("Tally number: "+str(self.number))
-        print_list.append("Particle: "+self.particle)
-        print_list.append("X: "+str(self.x))
-        print_list.append("Y: "+str(self.y))
-        print_list.append("Z: "+str(self.z))
+        print_list.append(f"Tally number: {self.number}")
+        print_list.append(f"Particle: {self.particle}")
+        print_list.append(f"X: {self.x}")
+        print_list.append(f"Y: {self.y}")
+        print_list.append(f"Z: {self.z}")
         if self.eng is not None:
             print_list.append("Energy Bins: True")
         else:
@@ -99,9 +99,9 @@ class MCNP_surface_tally(MCNP_tally_data):
 
     def __str__(self):
         print_list = []
-        print_list.append("Tally number: "+str(self.number))
-        print_list.append("Particle: "+self.particle)
-        print_list.append("Number of Surfaces: " + str(len(self.surfaces)))
+        print_list.append(f"Tally number: {self.number}")
+        print_list.append(f"Particle: {self.particle}")
+        print_list.append(f"Number of Surfaces: {len(self.surfaces)}")
         if self.eng is not None:
             print_list.append("Energy Bins: True")
         else:
@@ -128,9 +128,9 @@ class MCNP_cell_tally(MCNP_tally_data):
 
     def __str__(self):
         print_list = []
-        print_list.append("Tally number: "+str(self.number))
-        print_list.append("Particle: "+self.particle)
-        print_list.append("Number of Cells: " + str(len(self.cells)))
+        print_list.append(f"Tally number: {self.number}")
+        print_list.append(f"Particle: {self.particle}")
+        print_list.append(f"Number of Cells: {len(self.cells)}")
         if self.eng is not None:
             print_list.append("Energy Bins: True")
         else:
@@ -152,9 +152,9 @@ class MCNP_pulse_tally(MCNP_tally_data):
 
     def __str__(self):
         print_list = []
-        print_list.append("Tally number: "+str(self.number))
-        print_list.append("Particle: "+self.particle)
-        print_list.append("Number of Cells: " + str(len(self.cells)))
+        print_list.append(f"Tally number: {self.number}")
+        print_list.append(f"Particle: {self.particle}")
+        print_list.append(f"Number of Cells: {len(self.cells)}")
         if self.eng is not None:
             print_list.append("Energy Bins: True")
         else:
