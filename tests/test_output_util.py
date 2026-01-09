@@ -3,6 +3,41 @@ from unittest.mock import patch
 import output_utilities
 import os
 
+class wrap_tokens_test_case(unittest.TestCase):
+    """ tests of wrap tokens function"""
+
+    def test_basic_wrapping(self):
+        prefix = "PREFIX"
+        tokens = ["token1", "token2", "token3"]
+        max_len = 20
+        result = output_utilities.wrap_tokens(prefix, tokens, max_len)
+        expected = ["PREFIX token1 token2", "     token3"]
+        self.assertEqual(result, expected)
+
+    def test_no_tokens(self):
+        prefix = "PREFIX"
+        tokens = []
+        max_len = 20
+        result = output_utilities.wrap_tokens(prefix, tokens, max_len)
+        expected = ["PREFIX"]
+        self.assertEqual(result, expected)
+    
+    def test_empty_tokens(self):
+        prefix = "PREFIX"
+        tokens = ["", "   ", "\t"]
+        max_len = 20
+        result = output_utilities.wrap_tokens(prefix, tokens, max_len)
+        expected = ["PREFIX"]
+        self.assertEqual(result, expected)
+
+    def test_token_too_long(self):
+        prefix = "PREFIX"
+        tokens = ["a" * 25]
+        max_len = 20
+        with self.assertRaises(ValueError) as context:
+            output_utilities.wrap_tokens(prefix, tokens, max_len)
+        self.assertEqual(str(context.exception), f"Token length 25 exceeds max_len 20: {'a' * 25}")
+
 
 class points_test_case(unittest.TestCase):
     """ tests ofile reduce function"""
