@@ -179,3 +179,19 @@ def text_replace(fname, old_string, new_string):
 def is_same_value(v1, v2, tolerance=1e-6):
     """ check if two float values are effectively equal within tolerance."""
     return abs(v1 - v2) < tolerance
+
+
+def ensure_dir_exists(dir_path: Union[str, Path]) -> None:
+    """Ensure that a directory exists; create it if it does not."""
+    Path(dir_path).mkdir(parents=True, exist_ok=True)
+
+
+def find_tabs_in_list(lines: List[str]) -> List[int]:
+    """Find indices of lines that contain tab characters."""
+    tab_indices = [i for i, line in enumerate(lines) if '\t' in line]
+    return tab_indices
+
+
+def replace_tab_with_space(line: str, num_spaces: int = 5) -> str:
+    """Replace tab characters in a line with a specified number of spaces."""
+    return line.replace('\t', ' ' * num_spaces)

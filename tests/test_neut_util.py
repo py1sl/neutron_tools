@@ -166,5 +166,96 @@ class logger_test_case(unittest.TestCase):
             self.assertEqual(called_args[0], expected_fname)
             self.assertIn(mock_handler, logger.handlers)
 
+
+class tab_finder_test_case(unittest.TestCase):
+    """test for the function """
+    def test_find_tabs_in_list_with_tabs(self):
+        """Test finding tabs in a list with multiple tab-containing lines."""
+        lines = [
+            "no tabs here",
+            "has\ttab",
+            "another line",
+            "multiple\ttabs\there",
+        ]
+        result = ut.find_tabs_in_list(lines)
+        assert result == [1, 3]
+
+
+    def test_find_tabs_in_list_no_tabs(self):
+        """Test with a list containing no tabs."""
+        lines = [
+            "line one",
+            "line two",
+            "line three",
+        ]
+        result = ut.find_tabs_in_list(lines)
+        assert result == []
+
+
+    def test_find_tabs_in_list_all_tabs(self):
+        """Test with a list where all lines contain tabs."""
+        lines = [
+            "first\ttab",
+            "second\ttab",
+            "third\ttab",
+        ]
+        result = ut.find_tabs_in_list(lines)
+        assert result == [0, 1, 2]
+
+
+    def test_find_tabs_in_list_empty(self):
+        """Test with an empty list."""
+        lines = []
+        result = ut.find_tabs_in_list(lines)
+        assert result == []
+
+
+    def test_find_tabs_in_list_single_line_with_tab(self):
+        """Test with a single line containing a tab."""
+        lines = ["single\tline"]
+        result = ut.find_tabs_in_list(lines)
+        assert result == [0]
+
+
+    def test_find_tabs_in_list_single_line_no_tab(self):
+        """Test with a single line without a tab."""
+        lines = ["single line"]
+        result = ut.find_tabs_in_list(lines)
+        assert result == []
+
+
+class replace_tab_with_space_test_case(unittest.TestCase):
+    """test for the function """
+    def test_replace_tab_with_space(self):
+        line = "This\tis\ta\ttest."
+        expected = "This     is     a     test."
+        result = ut.replace_tab_with_space(line, num_spaces=5)
+        self.assertEqual(result, expected)
+
+    def test_replace_tab_with_space_no_tabs(self):
+        line = "This is a test."
+        result = ut.replace_tab_with_space(line, num_spaces=5)
+        self.assertEqual(result, line)
+
+    def test_replace_tab_with_space_multiple_tabs(self):
+        line = "\tStart\tand\tend\t"
+        expected = "     Start     and     end     "
+        result = ut.replace_tab_with_space(line, num_spaces=5)
+        self.assertEqual(result, expected)
+
+        
+class ensure_dir_exists_test_case(unittest.TestCase):
+    """test for the function """
+    def test_ensure_dir_exists(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            new_dir = os.path.join(temp_dir, "new_subdir")
+            # Directory should not exist initially
+            self.assertFalse(os.path.exists(new_dir))
+            # Call the function to ensure directory exists
+            ut.ensure_dir_exists(new_dir)
+            # Now the directory should exist
+            self.assertTrue(os.path.exists(new_dir))
+            self.assertTrue(os.path.isdir(new_dir))
+
 if __name__ == '__main__':
     unittest.main()
