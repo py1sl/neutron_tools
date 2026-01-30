@@ -4,7 +4,7 @@ import os
 import xsdir_reader
 
 
-class XSDirInitTest(unittest.TestCase):
+class xsdir_init_test_case(unittest.TestCase):
     """Tests for XSDir initialization"""
     
     def test_init(self):
@@ -17,7 +17,7 @@ class XSDirInitTest(unittest.TestCase):
         self.assertEqual(xs.thermal_scattering, {})
 
 
-class XSDirStrTest(unittest.TestCase):
+class xsdir_str_test_case(unittest.TestCase):
     """Tests for XSDir __str__ method"""
     
     def test_str_empty(self):
@@ -30,9 +30,10 @@ class XSDirStrTest(unittest.TestCase):
         self.assertIn("Datapath: /data/path", str_repr)
         self.assertIn("Number of AWR entries: 0", str_repr)
         self.assertIn("Number of directory entries: 0", str_repr)
+        self.assertIn("Number of TSL entries: 0", str_repr)
 
 
-class ProcessDatapathTest(unittest.TestCase):
+class process_datapath_test_case(unittest.TestCase):
     """Tests for _process_datapath static method"""
     
     def test_datapath_simple(self):
@@ -71,7 +72,7 @@ class ProcessDatapathTest(unittest.TestCase):
         self.assertIsNone(result)
 
 
-class ProcessAwrTest(unittest.TestCase):
+class process_awr_test_case(unittest.TestCase):
     """Tests for _process_awr static method"""
     
     def test_awr_basic(self):
@@ -107,7 +108,7 @@ class ProcessAwrTest(unittest.TestCase):
         self.assertEqual(result["H-1"], 1.007825)
 
 
-class ProcessDirectoryTest(unittest.TestCase):
+class process_directory_test_case(unittest.TestCase):
     """Tests for _process_directory static method"""
     
     def test_directory_basic(self):
@@ -145,7 +146,7 @@ class ProcessDirectoryTest(unittest.TestCase):
         self.assertEqual(len(result), 0)
 
 
-class ProcessThermalTest(unittest.TestCase):
+class process_thermal_test_case(unittest.TestCase):
     """Tests for _process_thermal static method"""
     
     def test_thermal_basic(self):
@@ -191,7 +192,7 @@ class ProcessThermalTest(unittest.TestCase):
         self.assertEqual(len(result), 0)
 
 
-class FromFileTest(unittest.TestCase):
+class from_file_test_case(unittest.TestCase):
     """Tests for from_file class method"""
     
     def test_from_file_complete(self):
@@ -228,7 +229,9 @@ h-zrh.20t 1.0000 zrh.tsl 0 1 56789
             self.assertEqual(xs.awr["He-4"], 4.002603)
             self.assertEqual(xs.awr["C-nat"], 12.0)
             
-            # Check directory (includes thermal entries since directory parsing doesn't stop)
+            # Check directory
+            # Note: directory parser continues through all lines after "directory" marker,
+            # so thermal entries are also included in directory dict
             self.assertGreaterEqual(len(xs.directory), 3)
             self.assertIn("1001.80c", xs.directory)
             self.assertEqual(xs.directory["1001.80c"][0], "1.0078")
@@ -260,7 +263,7 @@ directory
             os.remove(temp_file_path)
 
 
-class ReadXsdirFunctionTest(unittest.TestCase):
+class read_xsdir_function_test_case(unittest.TestCase):
     """Tests for read_xsdir convenience function"""
     
     def test_read_xsdir(self):
