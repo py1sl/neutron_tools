@@ -146,10 +146,10 @@ def long_line_index(lines):
     """
     long_lines = []
     for i, line in enumerate(lines):
-        if len(line) > 79:
+        if len(line) > 80:
             if line.lower().startswith("c "):
                 continue
-            elif " $" in line:
+            elif "$" in line:
                 continue
             else:
                 long_lines.append(i)
@@ -294,24 +294,51 @@ def process_imp(part, cell):
 def process_geom(geom, cell):
     """ processes geometry part of a cell """
     surfaces = []
+    seen_surfaces = set()
     cell.geom = geom
 
     for i, part in enumerate(geom):
+        # deal with inline comments in geometry part of cell
         if "$" in part:
-            part = part.split("$")
-            cell.cell_comment.append(part[-1])
-            part = part[0]
-        if len(part) == 0:
-            continue
-        part = part.strip("()-")
-        if "imp" in part.lower():
-            cell = process_imp(part, cell)
-        elif part[0].isdigit():
-            part = part.split(":")
-            for s in part:
-                surfaces.append(float(s))
-        else:
-            print(f"{part} part not recogninsed")
+            part, comment = part.split("$", 1)
+            if comment.strip():
+                cell.cell_comment.append(comment)
+
+        # split any line into tokens before processing
+        for token in part.split():
+            # remove brackets but preserve sign
+            token = token.replace("(", "").replace(")", "").strip()
+            if len(token) == 0:
+                continue
+            # check for importances
+            if token.lower().startswith("imp"):
+                cell = process_imp(token, cell)
+                continue
+            if token.lower().startswith("vol"):
+                continue  # ignore volume specifications for now
+            # store other parameter-style tokens
+            if "=" in token:
+                cell.param_list.append(token)
+                continue
+
+            # surface tokens can be colon-separated
+            parts = token.split(":")
+            parsed_any = False
+            for s in parts:
+                s = s.strip()
+                if len(s) == 0:
+                    continue
+                try:
+                    surf_id = abs(float(s))
+                    if surf_id not in seen_surfaces:
+                        surfaces.append(surf_id)
+                        seen_surfaces.add(surf_id)
+                    parsed_any = True
+                except ValueError:
+                    print(f"{s} part not recogninsed")
+
+            if not parsed_any and len(parts) == 1:
+                print(f"{token} part not recogninsed")
 
     cell.surfaces = surfaces
 
@@ -339,7 +366,7 @@ def process_cell_block(bloc):
             if cell.mat != 0:
                 cell.density = float(line[2])
                 geo_start_pos = 3
-            geom = line[geo_start_pos:]
+            geom = [" ".join(line[geo_start_pos:])]
         elif is_continue_line(line):
             geom.append(line)
 
