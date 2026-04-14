@@ -3,6 +3,7 @@ from unittest.mock import patch, mock_open, call, MagicMock
 import copy
 import mcnp_analysis as ma
 import mcnp_output_reader as mor
+import output_utilities
 import os
 import numpy as np
 
@@ -14,9 +15,9 @@ class normalise_test_case(unittest.TestCase):
         data = [1, 2, 3, 4]
         np.testing.assert_array_equal(ma.normalise(data, 10), np.array([10, 20, 30, 40]))
         np.testing.assert_array_equal(ma.normalise(data, 1), np.array(data))
-        
+
         result = ma.normalise(data, 0.1)
-        np.testing.assert_allclose(result, [0.1, 0.2, 0.3, 0.4], rtol=1e-7)        
+        np.testing.assert_allclose(result, [0.1, 0.2, 0.3, 0.4], rtol=1e-7)
 
         # empty list
         result = ma.normalise([], 1)
@@ -52,22 +53,6 @@ class calc_bin_mid_test(unittest.TestCase):
         bins = [1, 3, 5]
         self.assertEqual(len(ma.calc_mid_points(bins)), 2)
         self.assertEqual(ma.calc_mid_points(bins), [2, 4])
-
-
-class csv_test_case(unittest.TestCase):
-    """ tests write_lines function"""
-
-    def test_write_csv(self):
-        open_mock = mock_open()
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
-        single = mor.read_output_file(path)
-        for tn in single.tally_data:
-            if tn.number == 4:
-                data = tn
-        with patch("neut_utilities.open", open_mock, create=True):
-            ma.csv_out(data, "output.txt")
-
-        open_mock.assert_called_with("output.txt", "w")
 
 
 class plotting_test_cases(unittest.TestCase):
@@ -269,7 +254,7 @@ class energy_slice_test(unittest.TestCase):
 class html_output_test(unittest.TestCase):
     """ tests for html_output """
 
-    @patch("mcnp_analysis.ut.write_html", create=True)
+    @patch("output_utilities.ut.write_html", create=True)
     @patch("matplotlib.pyplot.savefig")
     def test_html_output_no_eng(self, mock_savefig, mock_write_html):
         mc_obj = MagicMock()
@@ -291,10 +276,11 @@ class html_output_test(unittest.TestCase):
 
         mc_obj.tally_data = [tdat]
 
-        ma.html_output(mc_obj, "output.html")
+        output_utilities.html_output(mc_obj, "output.html")
         mock_write_html.assert_called_once()
 
-    @patch("mcnp_analysis.ut.write_html", create=True)
+
+    @patch("output_utilities.ut.write_html", create=True)
     @patch("matplotlib.pyplot.savefig")
     def test_html_output_with_stat_tests(self, mock_savefig, mock_write_html):
         mc_obj = MagicMock()
@@ -316,7 +302,7 @@ class html_output_test(unittest.TestCase):
 
         mc_obj.tally_data = [tdat]
 
-        ma.html_output(mc_obj, "output.html")
+        output_utilities.html_output(mc_obj, "output.html")
         mock_write_html.assert_called_once()
 
 
@@ -331,7 +317,7 @@ class html_f4_tab_out_test(unittest.TestCase):
         tally.err = [0.01, 0.02]
 
         fname = "/tmp/test_f4_tab_out.html"
-        ma.html_f4_tab_out(tally, fname)
+        output_utilities.html_f4_tab_out(tally, fname)
 
         with open(fname) as f:
             content = f.read()
@@ -353,7 +339,7 @@ class html_f4_tab_out_test(unittest.TestCase):
         tally2.err = [0.02]
 
         fname = "/tmp/test_f4_tab_out_list.html"
-        ma.html_f4_tab_out([tally1, tally2], fname)
+        output_utilities.html_f4_tab_out([tally1, tally2], fname)
 
         with open(fname) as f:
             content = f.read()
@@ -370,7 +356,7 @@ class csv_out_list_test(unittest.TestCase):
         tallies = [tn for tn in single.tally_data if tn.number in (4, 6)]
 
         with patch("neut_utilities.open", open_mock, create=True):
-            ma.csv_out(tallies, "output_list.txt")
+            output_utilities.csv_out(tallies, "output_list.txt")
 
         open_mock.assert_called_with("output_list.txt", "w")
 
