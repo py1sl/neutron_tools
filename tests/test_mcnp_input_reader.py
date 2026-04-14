@@ -549,5 +549,184 @@ class real_file_Tests(unittest.TestCase):
         self.assertFalse(mc_in.is_void)
         self.assertFalse(mc_in.is_ptrac)
 
+
+class str_method_tests(unittest.TestCase):
+    """ tests for __str__ methods of mcnp_input_reader classes """
+
+    def test_mcnp_input_str(self):
+        mc_in = mcnp_input_reader.mcnp_input()
+        mc_in.file_path = "test.i"
+        mc_in.mode = ['n']
+        mc_in.is_sdef = True
+        mc_in.is_kcode = False
+        result = str(mc_in)
+        self.assertIn("test.i", result)
+
+    def test_mcnp_input_str_kcode(self):
+        mc_in = mcnp_input_reader.mcnp_input()
+        mc_in.file_path = "kcode.i"
+        mc_in.mode = ['n']
+        mc_in.is_sdef = False
+        mc_in.is_kcode = True
+        result = str(mc_in)
+        self.assertIn("kcode.i", result)
+
+    def test_mcnp_input_str_unknown_type(self):
+        mc_in = mcnp_input_reader.mcnp_input()
+        mc_in.file_path = "unknown.i"
+        mc_in.mode = ['n']
+        mc_in.is_sdef = False
+        mc_in.is_kcode = False
+        result = str(mc_in)
+        self.assertIn("unknown.i", result)
+
+    def test_mcnp_surface_str_no_transform_no_comment(self):
+        surf = mcnp_input_reader.mcnp_surface()
+        surf.number = 1
+        surf.surf_type = "px"
+        surf.params = ["1.0"]
+        surf.has_transform = False
+        surf.comment = None
+        result = str(surf)
+        self.assertIn("1", result)
+        self.assertIn("px", result)
+
+    def test_mcnp_surface_str_with_transform_and_comment(self):
+        surf = mcnp_input_reader.mcnp_surface()
+        surf.number = 2
+        surf.surf_type = "cz"
+        surf.params = ["5.0"]
+        surf.has_transform = True
+        surf.transform = 10
+        surf.comment = "outer cylinder"
+        result = str(surf)
+        self.assertIn("10", result)
+        self.assertIn("outer cylinder", result)
+
+    def test_mcnp_cell_str_no_density(self):
+        cell = mcnp_input_reader.mcnp_cell()
+        cell.number = 1
+        cell.mat = 0
+        cell.density = None
+        cell.geom = "(-1)"
+        cell.surfaces = [1]
+        cell.imp = {'n': 1}
+        cell.cell_comment = []
+        cell.param_list = []
+        result = str(cell)
+        self.assertIn("1", result)
+
+    def test_mcnp_cell_str_with_density(self):
+        cell = mcnp_input_reader.mcnp_cell()
+        cell.number = 2
+        cell.mat = 1
+        cell.density = -2.7
+        cell.geom = "(-1)"
+        cell.surfaces = [1]
+        cell.imp = {'n': 1}
+        cell.cell_comment = []
+        cell.param_list = []
+        result = str(cell)
+        self.assertIn("-2.7", result)
+
+    def test_mcnp_material_str_no_keywords(self):
+        mat = mcnp_input_reader.mcnp_material()
+        mat.number = 1
+        mat.num_nuclides = 2
+        mat.composition = {"1001.70c": 0.6, "8016.70c": 0.4}
+        mat.keywords = None
+        result = str(mat)
+        self.assertIn("1", result)
+
+    def test_mcnp_material_str_with_keywords(self):
+        mat = mcnp_input_reader.mcnp_material()
+        mat.number = 2
+        mat.num_nuclides = 1
+        mat.composition = {"1001.70c": 1.0}
+        mat.keywords = {"nlib": ".70c"}
+        result = str(mat)
+        self.assertIn("nlib", result)
+
+    def test_mcnp_tally_str_no_flags(self):
+        tally = mcnp_input_reader.mcnp_tally()
+        tally.number = 4
+        tally.data = "f4:n 2"
+        tally.has_ebins = False
+        tally.has_tbins = False
+        tally.has_fm = False
+        result = str(tally)
+        self.assertIn("4", result)
+
+    def test_mcnp_tally_str_with_all_flags(self):
+        tally = mcnp_input_reader.mcnp_tally()
+        tally.number = 14
+        tally.data = "f14:n 2"
+        tally.has_ebins = True
+        tally.has_tbins = True
+        tally.has_fm = True
+        result = str(tally)
+        self.assertIn("energy bins", result)
+        self.assertIn("time bins", result)
+        self.assertIn("flux modifed", result)
+
+
+class check_cell_mat_tests(unittest.TestCase):
+    """ tests for check_cell_mat_exists """
+
+    def test_cell_mat_exists_true(self):
+        mat = mcnp_input_reader.mcnp_material()
+        mat.number = 1
+        mats = {1: mat}
+        cell = mcnp_input_reader.mcnp_cell()
+        cell.mat = 1
+        self.assertTrue(mcnp_input_reader.check_cell_mat_exists(cell, mats))
+
+    def test_cell_mat_exists_false(self):
+        mats = {}
+        cell = mcnp_input_reader.mcnp_cell()
+        cell.mat = 99
+        self.assertFalse(mcnp_input_reader.check_cell_mat_exists(cell, mats))
+
+
+class get_mat_tests(unittest.TestCase):
+    """ tests for get_mat """
+
+    def test_get_mat_found(self):
+        mat = mcnp_input_reader.mcnp_material()
+        mat.number = 5
+        mats = {5: mat}
+        self.assertEqual(mcnp_input_reader.get_mat(5, mats), mat)
+
+    def test_get_mat_not_found(self):
+        self.assertIsNone(mcnp_input_reader.get_mat(99, {}))
+
+
+class surface_type_invalid_test(unittest.TestCase):
+    """ tests for invalid surface type in process_surface_line """
+
+    def test_invalid_surface_type_raises(self):
+        with self.assertRaises(ValueError):
+            mcnp_input_reader.process_surface_line("1 invalid_type 1.0")
+
+
+class find_blank_lines_test(unittest.TestCase):
+    """ tests for find_blank_lines """
+
+    def test_find_blank_lines(self):
+        lines = ["cell 1", "", "surf 1", "", "data"]
+        count, blank_dict = mcnp_input_reader.find_blank_lines(lines)
+        self.assertEqual(count, 2)
+        self.assertIn(1, blank_dict)
+        self.assertIn(2, blank_dict)
+        self.assertEqual(blank_dict[1], 1)
+        self.assertEqual(blank_dict[2], 3)
+
+    def test_find_blank_lines_none(self):
+        lines = ["cell 1", "surf 1", "data"]
+        count, blank_dict = mcnp_input_reader.find_blank_lines(lines)
+        self.assertEqual(count, 0)
+        self.assertEqual(blank_dict, {})
+
+
 if __name__ == '__main__':
     unittest.main()

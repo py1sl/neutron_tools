@@ -801,5 +801,193 @@ class tables_testing(unittest.TestCase):
         self.assertTrue(True)
 
 
+class str_method_tests(unittest.TestCase):
+    """ tests for __str__ methods on tally classes """
+
+    def test_type5_tally_str_no_bins(self):
+        t = mcnp_output_reader.MCNP_type5_tally()
+        t.number = 5
+        t.particle = "photons"
+        t.x = 10.0
+        t.y = 0.0
+        t.z = 0.0
+        result = str(t)
+        self.assertIn("5", result)
+        self.assertIn("photons", result)
+        self.assertIn("Energy Bins: False", result)
+        self.assertIn("Time Bins: False", result)
+
+    def test_type5_tally_str_with_bins(self):
+        t = mcnp_output_reader.MCNP_type5_tally()
+        t.number = 5
+        t.particle = "neutrons"
+        t.x = 5.0
+        t.y = 5.0
+        t.z = 0.0
+        t.eng = [0.1, 1.0]
+        t.times = [10, 100]
+        result = str(t)
+        self.assertIn("Energy Bins: True", result)
+        self.assertIn("Time Bins: True", result)
+
+    def test_surface_tally_str_no_bins(self):
+        t = mcnp_output_reader.MCNP_surface_tally()
+        t.number = 2
+        t.particle = "photons"
+        t.surfaces = ['1', '2', '3']
+        result = str(t)
+        self.assertIn("3", result)
+        self.assertIn("Energy Bins: False", result)
+        self.assertIn("Time Bins: False", result)
+        self.assertIn("Angular Bins: False", result)
+
+    def test_surface_tally_str_with_bins(self):
+        t = mcnp_output_reader.MCNP_surface_tally()
+        t.number = 2
+        t.particle = "neutrons"
+        t.surfaces = ['1']
+        t.eng = [0.1, 1.0]
+        t.times = [10, 100]
+        t.ang_bins = [-1.0, 0.0]
+        result = str(t)
+        self.assertIn("Energy Bins: True", result)
+        self.assertIn("Time Bins: True", result)
+        self.assertIn("Angular Bins: True", result)
+
+    def test_cell_tally_str_no_bins(self):
+        t = mcnp_output_reader.MCNP_cell_tally()
+        t.number = 4
+        t.particle = "photons"
+        t.cells = ['2', '3']
+        result = str(t)
+        self.assertIn("2", result)
+        self.assertIn("Energy Bins: False", result)
+        self.assertIn("Time Bins: False", result)
+
+    def test_cell_tally_str_with_bins(self):
+        t = mcnp_output_reader.MCNP_cell_tally()
+        t.number = 4
+        t.particle = "neutrons"
+        t.cells = ['2']
+        t.eng = [0.1, 1.0]
+        t.times = [10, 100]
+        result = str(t)
+        self.assertIn("Energy Bins: True", result)
+        self.assertIn("Time Bins: True", result)
+
+    def test_pulse_tally_str_no_bins(self):
+        t = mcnp_output_reader.MCNP_pulse_tally()
+        t.number = 8
+        t.particle = "photons"
+        t.cells = ['2']
+        result = str(t)
+        self.assertIn("8", result)
+        self.assertIn("Energy Bins: False", result)
+        self.assertIn("Time Bins: False", result)
+
+    def test_pulse_tally_str_with_bins(self):
+        t = mcnp_output_reader.MCNP_pulse_tally()
+        t.number = 8
+        t.particle = "photons"
+        t.cells = ['2']
+        t.eng = [0.1, 1.0]
+        t.times = [10, 100]
+        result = str(t)
+        self.assertIn("Energy Bins: True", result)
+        self.assertIn("Time Bins: True", result)
+
+    def test_summary_data_str(self):
+        s = mcnp_output_reader.MCNP_summary_data()
+        s.nps = 1000000
+        s.particle = "Neutron"
+        result = str(s)
+        self.assertIn("1000000", result)
+        self.assertIn("Neutron", result)
+
+
+class process_ang_string_test(unittest.TestCase):
+    """ tests for process_ang_string """
+
+    def test_process_ang_string(self):
+        # format: "... angle  bin: X to Y mu" - [-2] is the upper bound float
+        line = " angle  bin: -1.0000E+00 to  0.0000E+00 mu"
+        result = mcnp_output_reader.process_ang_string(line)
+        self.assertAlmostEqual(result, 0.0)
+
+    def test_process_ang_string_negative(self):
+        line = " angle  bin: -1.0000E+00 to -2.5000E-01 mu"
+        result = mcnp_output_reader.process_ang_string(line)
+        self.assertAlmostEqual(result, -0.25)
+
+
+class eng_time_get_eng_bins_test(unittest.TestCase):
+    """ tests for eng_time_get_eng_bins """
+
+    def test_basic_energy_bins(self):
+        data = [
+            "some header",
+            "energy 1.0 2.0 3.0",
+            "1.0 0.01",
+            "2.0 0.02",
+            "total 3.0 0.03",
+        ]
+        result = mcnp_output_reader.eng_time_get_eng_bins(data)
+        self.assertIn("1.0", result)
+        self.assertIn("2.0", result)
+        self.assertEqual(result[-1], "total")
+
+    def test_no_energy_line(self):
+        data = ["line 1", "line 2"]
+        result = mcnp_output_reader.eng_time_get_eng_bins(data)
+        self.assertIn("total", result)
+
+
+class find_term_line_test(unittest.TestCase):
+    """ tests for find_term_line """
+
+    def test_term_line_found(self):
+        lines = ["some header",
+                 "      run terminated when 1000000 particle histories were done.",
+                 "more data"]
+        result = mcnp_output_reader.find_term_line(lines)
+        self.assertEqual(result, 1)
+
+    def test_term_line_not_found(self):
+        lines = ["no term line here", "just data"]
+        result = mcnp_output_reader.find_term_line(lines)
+        self.assertIsNone(result)
+
+
+class read_stat_tests_test(unittest.TestCase):
+    """ tests for read_stat_tests """
+
+    def test_stat_tests_no_passed_line(self):
+        lines = ["some tally data", "no stat info here"]
+        result = mcnp_output_reader.read_stat_tests(lines)
+        self.assertEqual(result, ["no"])
+
+    def test_stat_tests_with_passed_line(self):
+        lines = [
+            "some data",
+            " passed  ok ok ok ok ok ok ok ok ok",
+            "more data",
+        ]
+        result = mcnp_output_reader.read_stat_tests(lines)
+        self.assertIsInstance(result, list)
+        self.assertGreater(len(result), 0)
+
+
+class check_fatal_test(unittest.TestCase):
+    """ tests for check_fatal """
+
+    def test_check_fatal_true(self):
+        lines = ["some data", " fatal error found", "end"]
+        self.assertTrue(mcnp_output_reader.check_fatal(lines))
+
+    def test_check_fatal_false(self):
+        lines = ["some data", "no issues here", "end"]
+        self.assertFalse(mcnp_output_reader.check_fatal(lines))
+
+
 if __name__ == '__main__':
     unittest.main()
