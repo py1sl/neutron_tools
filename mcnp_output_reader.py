@@ -48,6 +48,7 @@ class MCNP_tally_data():
         self.stat_tests = None
         self.times = None
         self.user_bins = None
+        self.totals = None
 
 
 class MCNP_type5_tally(MCNP_tally_data):
@@ -557,8 +558,12 @@ def find_last_rendevous(lines):
 
     # the last one is generally at the end of the file, if not a complete run
     # therefore index of last complete set is the second last one
-    ntlogger.debug("last index: %s", str(indexes[-2]))
-    return indexes[-2]
+    if len(indexes) < 2:
+        ntlogger.debug("not enough rendevous points found")
+        return None
+    else:
+        ntlogger.debug("last index: %s", str(indexes[-2]))
+        return indexes[-2]
 
 
 def read_tally(lines, tnum, rnum=-1):
