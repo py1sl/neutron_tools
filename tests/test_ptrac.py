@@ -18,30 +18,31 @@ class header_test_case(unittest.TestCase):
 class event_test_case(unittest.TestCase):
     """ tests events functions"""
 
+    @classmethod
+    def setUpClass(cls):
+        ptrac_path = os.path.join(os.path.dirname(__file__), 'test_output', 'ptrak_asc_all')
+        cls.hists = mpr.read_ptrac(ptrac_path)
+
     def test_process_event(self):
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'ptrak_asc_all')
-        hists = mpr.read_ptrac(path)
-        self.assertEqual(len(hists[0].events), 12)
-        self.assertEqual(len(hists[-1].events), 12)
-        self.assertEqual(len(hists[-2].events), 9)
-        self.assertEqual(hists[0].events[0].type, 3000)
-        self.assertEqual(hists[0].events[-1].type, 9000)
-        self.assertEqual(hists[0].events[0].x, 0)
-        self.assertEqual(hists[0].events[0].y, 0)
-        self.assertEqual(hists[0].events[0].z, 0)
-        self.assertEqual(hists[0].events[0].u, 0.50848)
-        self.assertEqual(hists[0].events[0].v, 0.47328)
-        self.assertEqual(hists[0].events[0].w, 0.71935)
-        self.assertEqual(hists[0].events[0].wgt, 1)
-        self.assertEqual(hists[0].events[0].energy, 1.332)
+        self.assertEqual(len(self.hists[0].events), 12)
+        self.assertEqual(len(self.hists[-1].events), 12)
+        self.assertEqual(len(self.hists[-2].events), 9)
+        self.assertEqual(self.hists[0].events[0].type, 3000)
+        self.assertEqual(self.hists[0].events[-1].type, 9000)
+        self.assertEqual(self.hists[0].events[0].x, 0)
+        self.assertEqual(self.hists[0].events[0].y, 0)
+        self.assertEqual(self.hists[0].events[0].z, 0)
+        self.assertEqual(self.hists[0].events[0].u, 0.50848)
+        self.assertEqual(self.hists[0].events[0].v, 0.47328)
+        self.assertEqual(self.hists[0].events[0].w, 0.71935)
+        self.assertEqual(self.hists[0].events[0].wgt, 1)
+        self.assertEqual(self.hists[0].events[0].energy, 1.332)
 
     def test_events_eq(self):
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'ptrak_asc_all')
-        hists = mpr.read_ptrac(path)
-        self.assertTrue(hists[0].events[0] == hists[0].events[0])
-        self.assertEqual(hists[0].events[0], hists[0].events[0])
-        self.assertTrue(hists[0].events[0] != hists[0].events[1])
-        self.assertFalse(hists[0].events[0] == hists[0].events[1])
+        self.assertTrue(self.hists[0].events[0] == self.hists[0].events[0])
+        self.assertEqual(self.hists[0].events[0], self.hists[0].events[0])
+        self.assertTrue(self.hists[0].events[0] != self.hists[0].events[1])
+        self.assertFalse(self.hists[0].events[0] == self.hists[0].events[1])
 
     def _make_event(self, **kwargs):
         """ helper to build an event with defaults that can be overridden """

@@ -8,16 +8,17 @@ import neut_utilities as ut
 class version_test_case(unittest.TestCase):
     """ test for reading the version of output file"""
 
-    def test_version(self):
+    @classmethod
+    def setUpClass(cls):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
-        lines = ut.get_lines(path)
-        version = fo.check_fisp_version(lines)
+        cls.lines = ut.get_lines(path)
+
+    def test_version(self):
+        version = fo.check_fisp_version(self.lines)
         self.assertEqual(version, "FISPACT-II")
 
     def test_fis2version(self):
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
-        lines = ut.get_lines(path)
-        version = fo.isFisII(lines)
+        version = fo.isFisII(self.lines)
         self.assertEqual(version, True)
 
     def test_old_version(self):

@@ -78,11 +78,15 @@ class read_warnings_test_case(unittest.TestCase):
 class get_tally_nums_test_case(unittest.TestCase):
     """ test for get talyl num """
 
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        cls.data = ut.get_lines(path)
+        cls.single = mcnp_output_reader.read_output_file(path)
+
     def test_get_tally_num(self):
         # test with a set of differnt tally types
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
-        data = ut.get_lines(path)
-        tnums = mcnp_output_reader.get_tally_nums(data)
+        tnums = mcnp_output_reader.get_tally_nums(self.data)
         self.assertEqual(len(tnums), 6)
         self.assertIn("1", tnums)
         self.assertIn("2", tnums)
@@ -93,36 +97,33 @@ class get_tally_nums_test_case(unittest.TestCase):
 
     def test_tally_count(self):
         # test assignment of mcnp output object num_tallies
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
-        single = mcnp_output_reader.read_output_file(path)
-        self.assertEqual(single.num_tallies, 6)
+        self.assertEqual(self.single.num_tallies, 6)
 
 
 class rendevous_test_case(unittest.TestCase):
     """ test for reading the version of output file"""
+
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
+        cls.data = ut.get_lines(path)
 
     def test_count_rendevous_tests(self):
 
         # add test with a single core job count should be 0
 
         # need to add test for multicore job
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
-        data = ut.get_lines(path)
-        count = mcnp_output_reader.count_rendevous(data)
+        count = mcnp_output_reader.count_rendevous(self.data)
         self.assertEqual(count, 76)
 
     def test_index_rendevous_tests(self):
 
         # add test with a single core job should be 0
-        # path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
-        # data = ut.get_lines(path)
-        # index = mcnp_output_reader.get_rendevous_index(data)
+        # index = mcnp_output_reader.get_rendevous_index(self.data)
         # self.assertEqual(index, [])
 
         # need to add test for multicore job
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
-        data = ut.get_lines(path)
-        index = mcnp_output_reader.get_rendevous_index(data)
+        index = mcnp_output_reader.get_rendevous_index(self.data)
         self.assertEqual(len(index), 76)
 
 
