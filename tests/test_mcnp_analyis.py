@@ -1,5 +1,6 @@
 import unittest
 from unittest.mock import patch, mock_open, call, MagicMock
+import copy
 import mcnp_analysis as ma
 import mcnp_output_reader as mor
 import os
@@ -72,12 +73,15 @@ class csv_test_case(unittest.TestCase):
 class plotting_test_cases(unittest.TestCase):
     """ tests for different plotting functions """
 
+    @classmethod
+    def setUpClass(cls):
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
+        cls.single = mor.read_output_file(path)
+
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_raw_spec_plot(self, mock_show, mock_savefig):
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
-        single = mor.read_output_file(path)
-        for tn in single.tally_data:
+        for tn in self.single.tally_data:
             if tn.number == 4:
                 data = tn
         fname = "test"
@@ -88,9 +92,7 @@ class plotting_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_spec_plot(self, mock_show, mock_savefig):
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
-        single = mor.read_output_file(path)
-        for tn in single.tally_data:
+        for tn in self.single.tally_data:
             if tn.number == 4:
                 data = tn
         fname = "test"
@@ -101,13 +103,11 @@ class plotting_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_spec_ratio_plot(self, mock_show, mock_savefig):
-        path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
-        single = mor.read_output_file(path)
-        for tn in single.tally_data:
+        for tn in self.single.tally_data:
             if tn.number == 4:
-                tn.result = [[1, 2, 3, 4, 5, 6], [1]]
-                tn.eng = [10, 20, 30, 40, 50, 60]
-                data = tn
+                data = copy.deepcopy(tn)
+                data.result = [[1, 2, 3, 4, 5, 6], [1]]
+                data.eng = [10, 20, 30, 40, 50, 60]
         fname = "test"
         ma.plot_spectra_ratio(data, data, fname, "")
         # Assert that savefig was called with the specified filename

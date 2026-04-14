@@ -86,31 +86,33 @@ class count_zeros_test(unittest.TestCase):
 
 class read_mesh_file_tests(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.mesh = ma.read_meshtally_file(path)
+        cls.time_mesh = ma.read_meshtally_file(timepath)[0]
+
     def test_read_mesh_file(self):
-        mesh = ma.read_meshtally_file(path)
-        length = len(mesh[0].data)
-        print(mesh[0])
-        self.assertEqual(mesh[0].x_bounds[1], '-8.00')
-        self.assertEqual(mesh[0].x_mids[2], -5.0)
-        self.assertEqual(mesh[0].e_bounds[1], '1.00E+36')
-        self.assertEqual(mesh[0].y_bounds[2], '-6.00')
-        self.assertEqual(mesh[0].y_mids[3], -3.00)
-        self.assertEqual(mesh[0].z_bounds[2], '2.20')
-        self.assertEqual(mesh[0].z_mids[1], 1.4)
-        self.assertEqual(mesh[0].ptype, 'photon')
-        self.assertEqual(mesh[0].idnum, 214)
+        length = len(self.mesh[0].data)
+        print(self.mesh[0])
+        self.assertEqual(self.mesh[0].x_bounds[1], '-8.00')
+        self.assertEqual(self.mesh[0].x_mids[2], -5.0)
+        self.assertEqual(self.mesh[0].e_bounds[1], '1.00E+36')
+        self.assertEqual(self.mesh[0].y_bounds[2], '-6.00')
+        self.assertEqual(self.mesh[0].y_mids[3], -3.00)
+        self.assertEqual(self.mesh[0].z_bounds[2], '2.20')
+        self.assertEqual(self.mesh[0].z_mids[1], 1.4)
+        self.assertEqual(self.mesh[0].ptype, 'photon')
+        self.assertEqual(self.mesh[0].idnum, 214)
         self.assertEqual(length, 1000)
 
     def test_read_mesh(self):
-        read_mesh = ma.read_meshtally_file(path)[0]
+        read_mesh = self.mesh[0]
         self.assertEqual(read_mesh.ptype, 'photon')
         self.assertEqual(read_mesh.idnum, 214)
         self.assertEqual(read_mesh.ctype, '6col_e')
 
     def test_read_time_bins_mesh(self):
-
-        read_mesh = ma.read_meshtally_file(timepath)[0]
-
+        read_mesh = self.time_mesh
         self.assertEqual(read_mesh.ptype, 'neutron')
         self.assertEqual(read_mesh.idnum, 314)
         self.assertEqual(read_mesh.ctype, '6col_t')
@@ -380,14 +382,18 @@ class filter_energy_time_tests(unittest.TestCase):
 
 class meshes_tests(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.meshes = ma.read_meshtally_file(meshes_path)
+
     def test_read_multiple_meshes(self):
 
-        mesh_1 = ma.read_meshtally_file(meshes_path)[0]
+        mesh_1 = self.meshes[0]
         self.assertEqual(mesh_1.ptype, 'neutron')
         self.assertEqual(mesh_1.idnum, 4)
         self.assertEqual(mesh_1.ctype, '6col_e')
 
-        mesh_2 = ma.read_meshtally_file(meshes_path)[1]
+        mesh_2 = self.meshes[1]
         self.assertEqual(mesh_2.ptype, 'neutron')
         self.assertEqual(mesh_2.idnum, 14)
         self.assertEqual(mesh_2.ctype, '5col')
