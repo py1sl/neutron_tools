@@ -53,11 +53,28 @@ class filtering_functions_tests(unittest.TestCase):
         inv = fa.remove_stable(inv)
         self.assertEqual(len(inv["act"]), 4)
 
+    def test_act_filter_invalid_input(self):
+        """Test error handling for invalid input"""
+        with self.assertRaises(ValueError):
+            fa.remove_stable([1, 2, 3])
+
+    def test_act_filter_missing_column(self):
+        """Test error handling for missing column"""
+        inv = pd.DataFrame()
+        inv["wrong_col"] = [10, 20]
+        with self.assertRaises(ValueError):
+            fa.remove_stable(inv)
+
     def test_alpha_filter(self):
         inv = pd.DataFrame()
         inv["a_energy"] = [10, 20, 30, 0, 40]
         inv = fa.filter_emits_alpha(inv)
         self.assertEqual(len(inv["a_energy"]), 4)
+
+    def test_alpha_filter_invalid_input(self):
+        """Test error handling for invalid input"""
+        with self.assertRaises(ValueError):
+            fa.filter_emits_alpha("not a dataframe")
 
     def test_beta_filter(self):
         inv = pd.DataFrame()
@@ -65,17 +82,39 @@ class filtering_functions_tests(unittest.TestCase):
         inv = fa.filter_emits_beta(inv)
         self.assertEqual(len(inv["b_energy"]), 4)
 
+    def test_beta_filter_invalid_input(self):
+        """Test error handling for invalid input"""
+        with self.assertRaises(ValueError):
+            fa.filter_emits_beta(None)
+
     def test_gamma_filter(self):
         inv = pd.DataFrame()
         inv["g_energy"] = [10, 20, 30, 0, 40]
         inv = fa.filter_emits_gamma(inv)
         self.assertEqual(len(inv["g_energy"]), 4)
 
+    def test_gamma_filter_invalid_input(self):
+        """Test error handling for invalid input"""
+        with self.assertRaises(ValueError):
+            fa.filter_emits_gamma(123)
+
     def test_is_nuc_present(self):
         inv = pd.DataFrame()
         inv["nuclide"] = ["Ta181", "W180"]
         self.assertEqual(fa.is_nuc_present(inv, "Ta181"), True)
         self.assertEqual(fa.is_nuc_present(inv, "N45"), False)
+
+    def test_is_nuc_present_invalid_input(self):
+        """Test error handling for invalid input"""
+        with self.assertRaises(ValueError):
+            fa.is_nuc_present("not a df", "Ta181")
+
+    def test_is_nuc_present_missing_column(self):
+        """Test error handling for missing column"""
+        inv = pd.DataFrame()
+        inv["wrong_col"] = ["Ta181"]
+        with self.assertRaises(ValueError):
+            fa.is_nuc_present(inv, "Ta181")
 
 
 class plotting_tests(unittest.TestCase):
@@ -193,6 +232,62 @@ class plotting_tests(unittest.TestCase):
         fa.plot_nuc_chart(output.timestep_data[3].inventory, fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
+
+
+class plotting_error_tests(unittest.TestCase):
+    """Test error handling in plotting functions"""
+
+    def test_plot_summary_invalid_data(self):
+        """Test plot_summary with invalid input"""
+        with self.assertRaises(ValueError):
+            fa.plot_summary([1, 2, 3], column="act")
+
+    def test_plot_summary_missing_column(self):
+        """Test plot_summary with missing column"""
+        test_data = pd.DataFrame()
+        test_data["time_years"] = [1, 2, 3]
+        test_data["time_hours"] = [1, 2, 3]
+        with self.assertRaises(ValueError):
+            fa.plot_summary(test_data, column="nonexistent")
+
+    def test_plot_summary_missing_time_column(self):
+        """Test plot_summary with missing time column"""
+        test_data = pd.DataFrame()
+        test_data["act"] = [1, 2, 3]
+        with self.assertRaises(ValueError):
+            fa.plot_summary(test_data, column="act")
+
+    def test_plot_nuc_cont_invalid_fout(self):
+        """Test plot_nuc_cont with invalid fout"""
+        with self.assertRaises(ValueError):
+            fa.plot_nuc_cont("not an object", ["V52"])
+
+    def test_plot_nuc_cont_invalid_nuclist(self):
+        """Test plot_nuc_cont with invalid nuc_list"""
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
+        output = fo.read_fis_out(path)
+        with self.assertRaises(ValueError):
+            fa.plot_nuc_cont(output, [])
+
+    def test_plot_nuc_chart_invalid_inv(self):
+        """Test plot_nuc_chart with invalid inventory"""
+        with self.assertRaises(ValueError):
+            fa.plot_nuc_chart("not a dataframe")
+
+    def test_plot_nuc_chart_missing_property(self):
+        """Test plot_nuc_chart with missing property"""
+        inv = pd.DataFrame()
+        inv["element"] = ["H"]
+        inv["A"] = [1]
+        with self.assertRaises(ValueError):
+            fa.plot_nuc_chart(inv, prop="nonexistent")
+
+    def test_plot_nuc_chart_missing_columns(self):
+        """Test plot_nuc_chart with missing required columns"""
+        inv = pd.DataFrame()
+        inv["act"] = [1, 2, 3]
+        with self.assertRaises(ValueError):
+            fa.plot_nuc_chart(inv)
 
 
 if __name__ == '__main__':

@@ -30,13 +30,14 @@ class meshtally:
         self.ctype = None
 
     def __str__(self):
-        info = ("\n Number of voxels: " + str(self.number_voxels()) +
-                " \n Number of bins in: \n x-dimension- " +
-                str(len(self.x_mids)) + " \n y-dimension- " +
-                str(len(self.y_mids)) + "\n z-dimension- " +
-                str(len(self.z_mids)) + "\n voxel volume: " +
-                str(self.voxel_uniform_volume()) + " cm squared")
-        return info
+        parts = []
+        parts.append(f"Number of voxels: {self.number_voxels()}")
+        parts.append("Number of bins in:")
+        parts.append(f"  x-dimension: {len(self.x_mids)}")
+        parts.append(f"  y-dimension: {len(self.y_mids)}")
+        parts.append(f"  z-dimension: {len(self.z_mids)}")
+        parts.append(f"voxel volume: {self.voxel_uniform_volume()} cm^3")
+        return "\n".join(parts)
 
     def number_voxels(self):
         """
@@ -213,7 +214,7 @@ def plot_slice(mesh, value, plane, lmin, lmax, err=False, fname=None, erg=None,
     slice_obj = extract_slice(mesh, value, plane, erg, time)
     fig = plt.figure()
     ax = fig.add_subplot(211)
-    title = plane + " Slice at " + str(value) + " of mesh " + str(mesh.idnum)
+    title = f"{plane} Slice at {value} of mesh {mesh.idnum}"
     ax = create_plot(slice_obj, slice_obj.values, title, ax, lmin, lmax)
 
     if err:

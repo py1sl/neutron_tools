@@ -4,7 +4,46 @@ uesful utilities for common output options
 import neut_utilities as ut
 import logging as ntlogger
 
+def wrap_tokens(prefix, tokens, max_len=80, cont_prefix='     '):
+    """ wraps a list of tokens into lines with a given prefix and max length """
+    # normalize cont_prefix to ensure a separating space is present
+    if cont_prefix and not cont_prefix.endswith(' '):
+        cont_prefix = cont_prefix + ' '
 
+    lines = []
+    current = str(prefix) + ' '
+
+    # handle None or empty tokens gracefully
+    if not tokens:
+        return [current.rstrip()]
+
+    for tok in tokens:
+        tok = str(tok).strip()
+        if tok == '':
+            # skip empty tokens
+            continue
+
+        # raise an error if a single token is longer than max_len
+        if len(tok) > max_len:
+            raise ValueError(f"Token length {len(tok)} exceeds max_len {max_len}: {tok}")
+
+        # if adding this token would exceed max_len, start a continuation line
+        if len(current) + len(tok) + 1 > max_len:
+            lines.append(current.rstrip())
+            current = cont_prefix + tok
+        else:
+            if current.endswith(' '):
+                current += tok
+            else:
+                current += ' ' + tok
+
+    # append the last line if non-empty
+    if current.strip():
+        lines.append(current.rstrip())
+
+    return lines
+
+    
 def output_points(x_vals, y_vals, z_vals, data_val=None, outpath="lost"):
     """ outputs points in .3d format """
 
@@ -45,7 +84,7 @@ def output_points(x_vals, y_vals, z_vals, data_val=None, outpath="lost"):
 
 def html_output(mc_object, fname):
     """produces html output of file """
-    # TODO refactor this to be more generic
+    # TODO refactor this to work with a template system
 
     hlines = []
     hlines.append("<!DOCTYPE html><HTML><HEAD>")
@@ -53,73 +92,59 @@ def html_output(mc_object, fname):
     hlines.append("<meta name=\"viewport\" content=\"width=device-width\">")
     hlines.append("</HEAD>")
 
-    hlines.append("<title>" + mc_object.file_name + "</title>")
+    hlines.append(f"<title>{mc_object.file_name}</title>")
 
     hlines.append("<body>")
-    hlines.append("<H1>" + mc_object.file_name + "</H1>")
-    hlines.append("Date run: " + mc_object.date)
-    hlines.append("Time run: " + mc_object.start_time)
-    hlines.append("Rendevous: " + str(mc_object.num_rendevous))
-    hlines.append("Number of warnings: " + str(len(mc_object.warnings)))
+    hlines.append(f"<H1>{mc_object.file_name}</H1>")
+    hlines.append(f"Date run: {mc_object.date}")
+    hlines.append(f"Time run: {mc_object.start_time}")
+    hlines.append(f"Rendevous: {mc_object.num_rendevous}")
+    hlines.append(f"Number of warnings: {len(mc_object.warnings)}")
 
     # add tally specific data
     for tdat in mc_object.tally_data:
-        hlines.append("<p><H2> Tally Number: " + str(tdat.number) + "</H2>")
-        hlines.append("Particle: " + tdat.particle)
+        hlines.append(f"<p><H2> Tally Number: {tdat.number}</H2>")
+        hlines.append(f"Particle: {tdat.particle}")
 
         if tdat.eng:
-            hlines.append("Number Energy Bins: " + str(len(tdat.eng)))
+            hlines.append(f"Number Energy Bins: {len(tdat.eng)}")
         if tdat.times:
-            hlines.append("Number Time Bins: " + str(len(tdat.times)))
+            hlines.append(f"Number Time Bins: {len(tdat.times)}")
 
         if tdat.stat_tests:
             hlines.append("Statistical test results")
-
-            stat_string = "<table><tr><th>Test</th><th>Result</th></tr>"
-            stat_string += "<tr><td>" + "Mean behaviour" + \
-                "</td> <td>" + tdat.stat_tests[0] + "</td></tr>"
-            stat_string += "<tr><td>" + "Rel err value" + \
-                "</td> <td>" + tdat.stat_tests[1] + "</td></tr>"
-            stat_string += "<tr><td>" + "rel err behavior" + \
-                "</td> <td>" + tdat.stat_tests[2] + "</td></tr>"
-            stat_string += "<tr><td>" + "rel err rate" + \
-                "</td> <td>" + tdat.stat_tests[3] + "</td></tr>"
-            stat_string += "<tr><td>" + "Variance value" + \
-                "</td> <td>" + tdat.stat_tests[4] + "</td></tr>"
-            stat_string += "<tr><td>" + "Variance behavior" + \
-                "</td> <td>" + tdat.stat_tests[5] + "</td></tr>"
-            stat_string += "<tr><td>" + "Variance rate" + \
-                "</td> <td>" + tdat.stat_tests[6] + "</td></tr>"
-            stat_string += "<tr><td>" + "FOM value constant" + \
-                "</td> <td>" + tdat.stat_tests[7] + "</td></tr>"
-            stat_string += "<tr><td>" + "FOM behavior random" + \
-                "</td> <td>" + tdat.stat_tests[8] + "</td></tr>"
-            stat_string += "<tr><td>" + "PDF slope" + \
-                "</td> <td>" + tdat.stat_tests[9] + "</td></tr>"
-            stat_string += "</table>"
-            hlines.append(stat_string)
-
+            stat_rows = [
+                ("Mean behaviour", tdat.stat_tests[0]),
+                ("Rel err value", tdat.stat_tests[1]),
+                ("rel err behavior", tdat.stat_tests[2]),
+                ("rel err rate", tdat.stat_tests[3]),
+                ("Variance value", tdat.stat_tests[4]),
+                ("Variance behavior", tdat.stat_tests[5]),
+                ("Variance rate", tdat.stat_tests[6]),
+                ("FOM value constant", tdat.stat_tests[7]),
+                ("FOM behavior random", tdat.stat_tests[8]),
+                ("PDF slope", tdat.stat_tests[9]),
+            ]
+            stat_lines = ["<table><tr><th>Test</th><th>Result</th></tr>"]
+            for name, val in stat_rows:
+                stat_lines.append(f"<tr><td>{name}</td><td>{val}</td></tr>")
+            stat_lines.append("</table>")
+            hlines.append("\n".join(stat_lines))
         else:
             hlines.append("Warning Statistical test data not found")
 
         # add tally type specific data
         if tdat.tally_type == "4":
-            hlines.append("Number Cells: " + str(len(tdat.cells)))
+            hlines.append(f"Number Cells: {len(tdat.cells)}")
             cell_string = "".join(tdat.cells)
-            hlines.append("Cells: " + cell_string)
-            hlines.append("Volumes: " + "".join(tdat.vols))
+            hlines.append(f"Cells: {cell_string}")
+            hlines.append(f"Volumes: {''.join(tdat.vols)}")
             # add result plots
             if tdat.eng and len(tdat.cells) == 1:
-                pname = "tally_" + str(tdat.number) + \
-                    "_" + str(tdat.cells[0]) + ".png"
-                title = tdat.particle + \
-                    " Spectra for cell " + str(tdat.cells[0])
+                pname = f"tally_{tdat.number}_{tdat.cells[0]}.png"
+                title = f"{tdat.particle} Spectra for cell {tdat.cells[0]}"
                 # plot_spectra(tdat, pname, title, sp="neutron")
-
-                hlines.append(
-                    "<img src=" +
-                    pname +
-                    " alt=\"simulated spectrum\">")
+                hlines.append(f"<img src={pname} alt=\"simulated spectrum\">")
             else:
                 print("no energy bins or more than one cell")
 
@@ -135,41 +160,36 @@ def html_output(mc_object, fname):
 
 def html_f4_tab_out(data, fname):
     """ produces f4 tally data as html table output """
-    # this might be redundant in future it is not very flexible
     if not isinstance(data, list):
         data = [data]
-
-    strTable = "<html><table><tr><th>Tally Number</th><th>CellNumber"
-    strTable = strTable + "</th><th>Result</th><th>Relative error</th></tr>"
+    header = "<html><table><tr><th>Tally Number</th><th>CellNumber</th><th>Result</th><th>Relative error</th></tr>"
+    rows = []
     for tall in data:
         for i, cell in enumerate(tall.cells):
-            strTable = strTable + "<tr><td>" + str(tall.number) + "</td>"
-            strTable = strTable + "<td>" + str(tall.cells[i]) + "</td>"
-            strTable = strTable + "<td>" + str(tall.result[i]) + "</td>"
-            strTable = strTable + "<td>" + str(tall.err[i]) + "</td>"
-            strTable = strTable + "</tr>"
+            row_parts = [
+                f"<tr><td>{tall.number}</td>",
+                f"<td>{tall.cells[i]}</td>",
+                f"<td>{tall.result[i]}</td>",
+                f"<td>{tall.err[i]}</td></tr>",
+            ]
+            rows.append("".join(row_parts))
 
-    strTable = strTable + "</table></html>"
+    strTable = header + "\n" + "\n".join(rows) + "\n</table></html>"
 
-    hs = open(fname, 'w')
-    hs.write(strTable)
+    with open(fname, 'w') as hs:
+        hs.write(strTable)
     ntlogger.info("produced html file: %s", fname)
 
 
 def csv_out(data, fname):
     """ produces  tally data as csv output   """
-    # refactor to be more generic
     if not isinstance(data, list):
         data = [data]
 
     lines = []
     for tall in data:
         for i, cell in enumerate(tall.cells):
-            ltext = str(tall.number) + ", "
-            ltext = ltext + str(tall.cells[i]) + ", "
-            ltext = ltext + str(tall.result[i]) + ", "
-            ltext = ltext + str(tall.err[i])
-            lines.append(ltext)
+            lines.append(f"{tall.number}, {tall.cells[i]}, {tall.result[i]}, {tall.err[i]}")
 
     ut.write_lines(fname, lines)
     ntlogger.info("produced csv file: %s", fname)
