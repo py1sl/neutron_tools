@@ -13,6 +13,7 @@ class NeutronToolsLogger:
     """Centralized logging config for neutron tools"""
     
     def __init__(self) -> None:
+        """Initialise the NeutronToolsLogger with a default debug-level logger."""
         self.logger = logging.getLogger('nt_logger')
         self.logger.setLevel(logging.DEBUG)
 

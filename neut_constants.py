@@ -127,6 +127,7 @@ def cm2_to_barn(val):
 
 
 def Z_dict():
+    """Return a dict mapping element symbols to their atomic number Z."""
     zdict = {
         "H": 1,
         "He": 2,

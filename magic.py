@@ -11,10 +11,16 @@ import numpy as np
 
 
 def generate_header(output_data):
+    """Generate the header section of the weight window file.
+    Returns output_data unchanged; intended to be extended.
+    """
     return output_data
 
 
 def generate_mesh_header(mesh, output_data):
+    """Generate the per-mesh header section of the weight window file.
+    Returns output_data unchanged; intended to be extended.
+    """
     return output_data
 
 

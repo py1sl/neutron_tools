@@ -14,16 +14,16 @@ class history():
     """
 
     def __init__(self):
+        """Initialise a history with an empty event list."""
         self.nps = 1
-        self.events = []
 
 
 class event():
     """ event class """
 
     def __init__(self):
+        """Initialise an event with default position, direction, and particle fields."""
         self.x = 0
-        self.y = 0
         self.z = 0
         self.type = ""
         self.u = 0
@@ -36,6 +36,7 @@ class event():
         self.time = 0
 
     def __eq__(self, other):
+        """Return True if this event is equal to other by comparing all fields."""
         if not isinstance(other, event):
             return NotImplementedError
         same = True

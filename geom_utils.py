@@ -9,12 +9,18 @@ import logging
 
 
 def check_plane_exists(n):
+    """Raise ValueError if the plane normal vector n is all zeros.
+    A zero normal vector means the plane does not exist.
+    """
     if np.all(n == 0):
         raise ValueError(
             'At least one plane has all zero coefficients and so does not exist.')
 
 
 def check_parallel_planes(n1, n2):
+    """Return True if planes with normals n1 and n2 are parallel or identical.
+    Compares unit normals of both planes.
+    """
     n1_unit = n1 / np.linalg.norm(n1)
     n2_unit = n2 / np.linalg.norm(n2)
     if np.array_equal(n1_unit, n2_unit):
@@ -325,6 +331,9 @@ def pythag_h(l1, l2):
 
 
 def check_positive(x):
+    """Raise ValueError if x is negative.
+    Used to validate inputs that must be non-negative.
+    """
     if x < 0:
         raise ValueError('Invalid input. Ensure input is positive.')
 

@@ -16,8 +16,8 @@ mpl.use('Agg')
 class meshtally:
     """Mesh tally object data"""
     def __init__(self):
+        """Initialise a meshtally with empty bounds and data lists."""
         self.idnum = None
-        self.ptype = None
         self.x_bounds = []
         self.y_bounds = []
         self.z_bounds = []
@@ -30,6 +30,7 @@ class meshtally:
         self.ctype = None
 
     def __str__(self):
+        """Return a human-readable summary of the mesh tally dimensions."""
         parts = []
         parts.append(f"Number of voxels: {self.number_voxels()}")
         parts.append("Number of bins in:")
@@ -86,6 +87,7 @@ class meshtally:
 class slice_object:
     """Slice object containing data info"""
     def __init__(self):
+        """Initialise a slice_object with empty value and axis mid-point lists."""
         self.values = []
         self.errors = []
         self.axis_mids = None

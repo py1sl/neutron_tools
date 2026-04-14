@@ -15,6 +15,7 @@ import fispact_fluxes_writer as ffw
 class usr_inputs:
     """ input from usr read from json file """
     def __init__(self):
+        """Initialise usr_inputs with default None values for all file paths."""
         self.mc_input = None
         self.mc_ouput = None
         self.mc_gamma_input = None

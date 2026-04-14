@@ -3,6 +3,7 @@ import neut_utilities as ut
 
 class XSDir:
     def __init__(self):
+        """Initialise an XSDir with empty data path and empty dictionaries."""
         self.file_path = None
         self.datapath = None
         self.awr = {}
@@ -10,6 +11,7 @@ class XSDir:
         self.thermal_scattering = {}
 
     def __str__(self):
+        """Return a human-readable summary of the XSDir contents."""
         return (
             f"Filename: {self.file_path}\n"
             f"Datapath: {self.datapath}\n"
@@ -102,6 +104,7 @@ class XSDir:
 
 
 def read_xsdir(fpath):
+    """Read and return an XSDir object parsed from the given file path."""
     xsdir_file = XSDir.from_file(fpath)
     return xsdir_file
 

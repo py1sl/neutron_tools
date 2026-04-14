@@ -51,6 +51,9 @@ class FispactTimeStep():
     """ data for an individual time step can be heating or cooling """
 
     def __init__(self):
+        """Initialise a FispactTimeStep with default values.
+        All activity and heating fields are set to zero.
+        """
         self.step_num = 1
         self.step_length = 0
         self.flux_amp = 0

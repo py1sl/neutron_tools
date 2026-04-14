@@ -9,6 +9,7 @@ class mcnp_input():
     """ """
 
     def __init__(self):
+        """Initialise an mcnp_input with all fields set to None or default values."""
         self.cells = None
         self.mat_num_list = None
         self.materials = None
@@ -27,6 +28,7 @@ class mcnp_input():
         self.is_ptrac = False
 
     def __str__(self):
+        """Return a human-readable summary of the MCNP input file."""
         print_list = []
         print_list.append(f"File: {self.file_path}")
         print_list.append(f"Mode: {self.mode}")
@@ -44,6 +46,7 @@ class mcnp_input():
 class mcnp_surface():
     """ class representing a MCNP surface definition """
     def __init__(self):
+        """Initialise an mcnp_surface with all fields set to None or default values."""
         self.number = None
         self.surf_type = None
         self.params = []
@@ -52,6 +55,7 @@ class mcnp_surface():
         self.comment = None
 
     def __str__(self):
+        """Return a human-readable summary of the surface definition."""
         print_list = []
         print_list.append(f"Surface number: {self.number}")
         print_list.append(f"Surface type: {self.surf_type}")
@@ -68,6 +72,7 @@ class mcnp_cell():
     """ """
 
     def __init__(self):
+        """Initialise an mcnp_cell with empty geometry and material fields."""
         self.number = ""
         self.mat = ""
         self.density = None
@@ -78,6 +83,7 @@ class mcnp_cell():
         self.cell_comment = []
 
     def __str__(self):
+        """Return a human-readable summary of the cell definition."""
         print_list = []
         print_list.append(f"Cell number: {self.number}")
         print_list.append(f"Cell material: {self.mat}")
@@ -94,6 +100,7 @@ class mcnp_cell():
 class mcnp_material():
     """ class representing a MCNP materials definition """
     def __init__(self):
+        """Initialise an mcnp_material with default composition fields."""
         self.number = None
         self.is_by_weight = True
         self.num_nuclides = 0
@@ -103,6 +110,7 @@ class mcnp_material():
         self.mx_lines = None
 
     def __str__(self):
+        """Return a human-readable summary of the material definition."""
         print_list = []
         print_list.append(f"Material number: {self.number}")
         print_list.append(f"Number of Nuclides: {self.num_nuclides}")
@@ -116,6 +124,7 @@ class mcnp_material():
 class mcnp_tally():
     """MCNP tally input """
     def __init__(self):
+        """Initialise an mcnp_tally with default tally fields."""
         self.number = None
         self.tal_type = None
         self.data = None
@@ -126,6 +135,7 @@ class mcnp_tally():
         self.has_fc_comment = False
 
     def __str__(self):
+        """Return a human-readable summary of the tally definition."""
         print_list = []
         print_list.append(f"Tally number: {self.number}")
         print_list.append(f"Tally card: {self.data}")

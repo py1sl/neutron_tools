@@ -37,6 +37,7 @@ class MCNP_tally_data():
     """ generic tally object for data common to all tally types """
 
     def __init__(self):
+        """Initialise MCNP_tally_data with default values for a generic tally."""
         # general data all tallies have
         self.number = 1
         self.tally_type = 1
@@ -55,8 +56,8 @@ class MCNP_type5_tally(MCNP_tally_data):
     """ specific tally object for a type 5 point detector tally """
 
     def __init__(self):
+        """Initialise a type 5 point detector tally with spatial coordinates."""
         MCNP_tally_data.__init__(self)
-        # for type 5 tallies
         self.x = None
         self.y = None
         self.z = None
@@ -70,6 +71,7 @@ class MCNP_type5_tally(MCNP_tally_data):
         self.misses = None
 
     def __str__(self):
+        """Return a human-readable summary of the type 5 tally."""
         print_list = []
         print_list.append(f"Tally number: {self.number}")
         print_list.append(f"Particle: {self.particle}")
@@ -92,26 +94,19 @@ class MCNP_surface_tally(MCNP_tally_data):
     """ specific tally object for a type 1 or 2 surface tally"""
 
     def __init__(self):
+        """Initialise a surface tally (type 1 or 2) with surface and area fields."""
         MCNP_tally_data.__init__(self)
-        # for type 1 or 2
         self.surfaces = None
         self.areas = None
         self.ang_bins = None
 
     def __str__(self):
+        """Return a human-readable summary of the surface tally."""
         print_list = []
         print_list.append(f"Tally number: {self.number}")
         print_list.append(f"Particle: {self.particle}")
         print_list.append(f"Number of Surfaces: {len(self.surfaces)}")
         if self.eng is not None:
-            print_list.append("Energy Bins: True")
-        else:
-            print_list.append("Energy Bins: False")
-        if self.times is not None:
-            print_list.append("Time Bins: True")
-        else:
-            print_list.append("Time Bins: False")
-        if self.ang_bins is not None:
             print_list.append("Angular Bins: True")
         else:
             print_list.append("Angular Bins: False")
@@ -122,12 +117,13 @@ class MCNP_cell_tally(MCNP_tally_data):
     """ specific tally object for a type 4 cell tally"""
 
     def __init__(self):
+        """Initialise a cell tally (type 4) with cell and volume fields."""
         MCNP_tally_data.__init__(self)
-        # for type 4
         self.cells = None
         self.vols = None
 
     def __str__(self):
+        """Return a human-readable summary of the cell tally."""
         print_list = []
         print_list.append(f"Tally number: {self.number}")
         print_list.append(f"Particle: {self.particle}")
@@ -147,11 +143,12 @@ class MCNP_pulse_tally(MCNP_tally_data):
     """ specific tally object for a type 8 pulse height tally"""
 
     def __init__(self):
+        """Initialise a pulse height tally (type 8) with cell fields."""
         MCNP_tally_data.__init__(self)
-        # for type 8
         self.cells = None
 
     def __str__(self):
+        """Return a human-readable summary of the pulse height tally."""
         print_list = []
         print_list.append(f"Tally number: {self.number}")
         print_list.append(f"Particle: {self.particle}")
@@ -171,12 +168,14 @@ class MCNP_summary_data():
     """ data for the summary table """
 
     def __init__(self):
+        """Initialise MCNP_summary_data with default particle and NPS values."""
         self.number = 1
         self.summary_type = 1
         self.nps = 1
         self.particle = "Neutron"
 
     def __str__(self):
+        """Return a human-readable summary of the summary table data."""
         print_list = []
         print_list.append(f"NPS: {self.nps}")
         print_list.append(f"Particle: {self.particle}")
