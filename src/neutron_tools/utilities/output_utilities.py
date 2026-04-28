@@ -1,5 +1,5 @@
 """
-uesful utilities for common output options
+useful utilities for common output options
 """
 from neutron_tools.utilities import neut_utilities as ut
 import logging as ntlogger
