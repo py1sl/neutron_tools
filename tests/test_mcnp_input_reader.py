@@ -1,6 +1,6 @@
 import unittest
 import os
-import mcnp_input_reader
+from neutron_tools.mcnp import mcnp_input_reader
 
 
 class cell_card_tests(unittest.TestCase):

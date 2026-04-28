@@ -5,8 +5,8 @@ from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import neut_utilities as ut
-import neut_constants
+from neutron_tools.utilities import neut_utilities as ut
+from neutron_tools.utilities import neut_constants
 matplotlib.use('agg')
 
 

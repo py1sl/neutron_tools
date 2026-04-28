@@ -10,7 +10,7 @@ import datetime
 import argparse
 import logging as ntlogger
 
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 mpl.use('Agg')
 
 

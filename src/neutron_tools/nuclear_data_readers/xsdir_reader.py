@@ -1,5 +1,5 @@
 import argparse
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 
 class XSDir:
     def __init__(self):

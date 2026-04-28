@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, mock_open
-import lost_points
+from neutron_tools.mcnp import lost_points
 
 
 if __name__ == '__main__':

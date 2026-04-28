@@ -3,8 +3,8 @@ from unittest.mock import patch, mock_open
 import logging
 import pandas as pd
 import numpy as np
-import mcnp_output_reader
-import neut_utilities as ut
+from neutron_tools.mcnp import mcnp_output_reader
+from neutron_tools.utilities import neut_utilities as ut
 import os
 
 
@@ -765,7 +765,7 @@ class writelines_test_case(unittest.TestCase):
         open_mock = mock_open()
         logger = logging.getLogger()
         logger.level = logging.DEBUG
-        with patch("neut_utilities.open", open_mock, create=True):
+        with patch("neutron_tools.utilities.neut_utilities.open", open_mock, create=True):
             mcnp_output_reader.print_tally_lines_to_file(["hello", "world"],
                                                          "output", 1)
 

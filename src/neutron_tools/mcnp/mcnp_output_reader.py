@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import re
 from collections import defaultdict
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 
 
 class MCNPOutput():

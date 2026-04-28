@@ -7,7 +7,7 @@ Functions for writing fispact fluxes files
 import argparse
 import numpy as np
 import logging as ntlogger
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 
 
 def get_group_pos(groups, energy):

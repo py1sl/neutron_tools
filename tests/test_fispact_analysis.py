@@ -1,8 +1,8 @@
 import unittest
 from unittest.mock import patch, mock_open, call
 import os
-import fispact_analysis as fa
-import fispact_output_reader as fo
+from neutron_tools.fispact import fispact_analysis as fa
+from neutron_tools.fispact import fispact_output_reader as fo
 import pandas as pd
 
 

@@ -5,7 +5,7 @@ Reads MCNP ptrac output file
 import argparse
 import logging as ntlogger
 # import numpy as np
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 
 
 class history():

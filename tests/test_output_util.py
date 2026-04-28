@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, mock_open, call
-import mcnp_output_reader as mor
-import output_utilities
+from neutron_tools.mcnp import mcnp_output_reader as mor
+from neutron_tools.utilities import output_utilities
 import os
 
 class wrap_tokens_test_case(unittest.TestCase):
@@ -43,7 +43,7 @@ class wrap_tokens_test_case(unittest.TestCase):
 class points_test_case(unittest.TestCase):
     """ tests ofile reduce function"""
 
-    @patch("output_utilities.ut.write_lines")
+    @patch("neutron_tools.utilities.output_utilities.ut.write_lines")
     def test_with_data_val(self, mock_write_lines):
         x_vals = [1, 2]
         y_vals = [3, 4]
@@ -57,7 +57,7 @@ class points_test_case(unittest.TestCase):
         ]
         mock_write_lines.assert_called_with("test.3d", expected_output)
 
-    @patch("output_utilities.ut.write_lines")
+    @patch("neutron_tools.utilities.output_utilities.ut.write_lines")
     def test_without_data_val(self, mock_write_lines):
         x_vals = [1, 2]
         y_vals = [3, 4]
@@ -99,7 +99,7 @@ class csv_test_case(unittest.TestCase):
         for tn in single.tally_data:
             if tn.number == 4:
                 data = tn
-        with patch("neut_utilities.open", open_mock, create=True):
+        with patch("neutron_tools.utilities.neut_utilities.open", open_mock, create=True):
             output_utilities.csv_out(data, "output.txt")
 
         open_mock.assert_called_with("output.txt", "w")

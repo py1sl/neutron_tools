@@ -2,7 +2,7 @@
 Reads the output file and gets a list of the co-ordinates of the lost particles
 """
 import argparse
-import output_utilities as o_ut
+from neutron_tools.utilities import output_utilities as o_ut
 
 
 def output_lost_points(path, outpath="lost"):

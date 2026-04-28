@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 import os
-import xsdir_reader
+from neutron_tools.nuclear_data_readers import xsdir_reader
 
 
 class xsdir_init_test_case(unittest.TestCase):

@@ -5,11 +5,11 @@ import os
 import shutil
 from pathlib import Path
 
-import mcnp_output_reader as mor
-import mcnp_input_reader as mir
-import fispact_output_reader as fisor
-import neut_utilities as ut
-import fispact_fluxes_writer as ffw
+from neutron_tools.mcnp import mcnp_output_reader as mor
+from neutron_tools.mcnp import mcnp_input_reader as mir
+from neutron_tools.fispact import fispact_output_reader as fisor
+from neutron_tools.utilities import neut_utilities as ut
+from neutron_tools.fispact import fispact_fluxes_writer as ffw
 
 
 class usr_inputs:

@@ -5,8 +5,8 @@ S Lilley
 Sept 2020
 """
 import argparse
-import neut_utilities as ut
-import meshtal_analysis as ma
+from neutron_tools.utilities import neut_utilities as ut
+from neutron_tools.mcnp import meshtal_analysis as ma
 import numpy as np
 
 

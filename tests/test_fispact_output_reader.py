@@ -1,8 +1,8 @@
 import unittest
 import os
 import pandas as pd
-import fispact_output_reader as fo
-import neut_utilities as ut
+from neutron_tools.fispact import fispact_output_reader as fo
+from neutron_tools.utilities import neut_utilities as ut
 
 
 class version_test_case(unittest.TestCase):

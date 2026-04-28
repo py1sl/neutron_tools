@@ -5,7 +5,7 @@ S Lilley
 March 2019
 """
 import argparse
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 import os
 
 

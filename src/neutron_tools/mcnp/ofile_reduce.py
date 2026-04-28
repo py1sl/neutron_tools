@@ -7,7 +7,7 @@ March 2019
 """
 import sys
 import argparse
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 import logging
 
 

@@ -5,7 +5,7 @@ S Lilley
 october 2021
 """
 import argparse
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 import pandas as pd
 import os
 

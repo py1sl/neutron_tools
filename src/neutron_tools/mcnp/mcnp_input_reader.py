@@ -2,7 +2,7 @@
 MCNP input file reader
 """
 import argparse
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 
 
 class mcnp_input():

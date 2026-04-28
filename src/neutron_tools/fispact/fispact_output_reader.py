@@ -18,7 +18,7 @@ extracting data, processing the data
 
 """
 import argparse
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 import numpy as np
 import pandas as pd
 import re

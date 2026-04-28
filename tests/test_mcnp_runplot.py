@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import patch, mock_open, call
 import os
-import mcnp_run_plot as mrp
+from neutron_tools.mcnp import mcnp_run_plot as mrp
 
 
 class plotting_tests(unittest.TestCase):

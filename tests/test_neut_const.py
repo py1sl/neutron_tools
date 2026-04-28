@@ -1,5 +1,5 @@
 import unittest
-import neut_constants as nc
+from neutron_tools.utilities import neut_constants as nc
 
 
 class constants_test_case(unittest.TestCase):

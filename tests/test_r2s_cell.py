@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, mock_open
-import r2s_cell
+from neutron_tools.mcnp import r2s_cell
 
 
 class json_read_test_case(unittest.TestCase):

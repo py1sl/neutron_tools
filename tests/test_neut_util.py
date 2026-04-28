@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 from unittest.mock import patch, mock_open
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 import os
 import logging
 from datetime import datetime
@@ -28,7 +28,7 @@ class writelines_test_case(unittest.TestCase):
 
     def test_write_lines(self):
         open_mock = mock_open()
-        with patch("neut_utilities.open", open_mock, create=True):
+        with patch("neutron_tools.utilities.neut_utilities.open", open_mock, create=True):
             ut.write_lines("output.txt", ["hello", "world"])
 
         open_mock.assert_called_with("output.txt", "w")

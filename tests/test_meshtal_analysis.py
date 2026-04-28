@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import meshtal_analysis as ma
+from neutron_tools.mcnp import meshtal_analysis as ma
 import unittest
 import os
 

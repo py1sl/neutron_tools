@@ -1,5 +1,5 @@
 import unittest
-import fispact_input_reader
+from neutron_tools.fispact import fispact_input_reader
 import os
 
 

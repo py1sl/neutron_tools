@@ -1,7 +1,7 @@
 """
 uesful utilities for common output options
 """
-import neut_utilities as ut
+from neutron_tools.utilities import neut_utilities as ut
 import logging as ntlogger
 
 def wrap_tokens(prefix, tokens, max_len=80, cont_prefix='     '):

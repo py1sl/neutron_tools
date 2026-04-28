@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-import fispact_printlib_reader
+from neutron_tools.fispact import fispact_printlib_reader
 
 
 class data_frame_test_case(unittest.TestCase):

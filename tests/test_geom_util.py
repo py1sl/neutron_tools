@@ -1,5 +1,5 @@
 import unittest
-import geom_utils
+from neutron_tools.utilities import geom_utils
 import numpy as np
 
 

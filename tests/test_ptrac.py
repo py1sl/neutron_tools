@@ -1,8 +1,8 @@
 import unittest
 import os
 # from unittest.mock import patch, mock_open
-import mcnp_ptrac_reader as mpr
-import neut_utilities as ut
+from neutron_tools.mcnp import mcnp_ptrac_reader as mpr
+from neutron_tools.utilities import neut_utilities as ut
 
 
 class header_test_case(unittest.TestCase):
