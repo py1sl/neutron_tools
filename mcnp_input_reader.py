@@ -142,17 +142,21 @@ class mcnp_tally():
 
 def long_line_index(lines):
     """ find index of lines longer than 80 characters
-        ignores full comment lines and inline comment lines
+        ignores full comment lines and the comment portion of inline comment lines
     """
     long_lines = []
     for i, line in enumerate(lines):
+        # Strip trailing newline characters before measuring.
+        line = line.rstrip("\r\n")
+        # Skip full-line comments.
+        if line.lower().startswith("c "):
+            continue
+        # Truncate at inline comment marker so only card content is measured.
+        dollar_pos = line.find("$")
+        if dollar_pos != -1:
+            line = line[:dollar_pos]
         if len(line) > 79:
-            if line.lower().startswith("c "):
-                continue
-            elif " $" in line:
-                continue
-            else:
-                long_lines.append(i)
+            long_lines.append(i)
     if len(long_lines) == 0:
         return None
     else:
