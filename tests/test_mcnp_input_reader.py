@@ -237,11 +237,10 @@ class surface_card_tests(unittest.TestCase):
         self.assertTrue(True)
         self.assertFalse(False)
 
+class tally_card_tests(unittest.TestCase):
+    """ test for reading the tallies part of input file"""
 
-class data_card_tests(unittest.TestCase):
-    """ test for reading the data part of input file"""
-
-    def test_get_tal_nums(self):
+    def test_get_tally_numbers(self):
         """ """
         test_list = ["f1",
                      "F10",
@@ -253,6 +252,72 @@ class data_card_tests(unittest.TestCase):
         self.assertEqual(tnums[0], 1)    # test for lower case f
         self.assertEqual(tnums[1], 10)   # test for upper case f
         self.assertEqual(len(tnums), 2)  # check nothing else added
+
+    def test_valid_tally_type(self):
+        """ """
+        self.assertTrue(mcnp_input_reader.is_valid_tally_type("1"))
+        self.assertTrue(mcnp_input_reader.is_valid_tally_type("2"))
+        self.assertTrue(mcnp_input_reader.is_valid_tally_type("4"))
+        self.assertTrue(mcnp_input_reader.is_valid_tally_type("5"))
+        self.assertTrue(mcnp_input_reader.is_valid_tally_type("6"))
+        self.assertTrue(mcnp_input_reader.is_valid_tally_type("8"))
+        self.assertFalse(mcnp_input_reader.is_valid_tally_type("9"))
+        self.assertFalse(mcnp_input_reader.is_valid_tally_type("a"))
+
+    def test_read_tally(self):
+        # single line tally
+        lines = ["f1:n 1 2 "]
+        tally = mcnp_input_reader.process_tally_line(lines[0], 1)
+        self.assertEqual(tally.number, 1)
+        self.assertEqual(tally.tal_type, "1")
+        self.assertEqual(tally.particles, "n")
+        self.assertEqual(tally.surfaces, ["1", "2"])
+
+        # single line tally - longer number
+        lines = ["f221:n 1 2 "]
+        tally = mcnp_input_reader.process_tally_line(lines[0], 221)
+        self.assertEqual(tally.number, 221)
+        self.assertEqual(tally.tal_type, "1")
+        self.assertEqual(tally.particles, "n")
+
+        # single line tally type 4
+        lines = ["f24:p 1 2 "]
+        tally = mcnp_input_reader.process_tally_line(lines[0], 24)
+        self.assertEqual(tally.number, 24)
+        self.assertEqual(tally.tal_type, "4")
+        self.assertEqual(tally.particles, "p")
+        self.assertEqual(tally.cells, ["1", "2"])
+
+        # single line tally type 5
+        lines = ["f45:n 1 2 3 10 "]
+        tally = mcnp_input_reader.process_tally_line(lines[0], 45)
+        self.assertEqual(tally.number, 45)
+        self.assertEqual(tally.tal_type, "5")
+        self.assertEqual(tally.particles, "n")
+        self.assertEqual(tally.x, "1")
+        self.assertEqual(tally.y, "2")
+        self.assertEqual(tally.z, "3")
+        self.assertEqual(tally.r1, "10")
+
+        # single line tally type 8
+        lines = ["f28:p 1 2 "]
+        tally = mcnp_input_reader.process_tally_line(lines[0], 28)
+        self.assertEqual(tally.number, 28)
+        self.assertEqual(tally.tal_type, "8")
+        self.assertEqual(tally.particles, "p")
+        self.assertEqual(tally.cells, ["1", "2"])
+
+         # single line tally with brackets
+        lines = ["f2:p (1 2) "]
+        tally = mcnp_input_reader.process_tally_line(lines[0], 2)
+        self.assertEqual(tally.number, 2)
+        self.assertEqual(tally.tal_type, "2")
+        self.assertEqual(tally.particles, "p")
+        self.assertEqual(tally.surfaces, ["(1 2)"])
+
+
+class data_card_tests(unittest.TestCase):
+    """ test for reading the data part of input file"""
 
     def test_get_mode(self):
         """ """
@@ -302,7 +367,7 @@ class line_tests(unittest.TestCase):
         # test not inline comment
         test_line = "no comment"
         line = mcnp_input_reader.get_inline_comment(test_line)
-        self.assertEqual(line, test_line)
+        self.assertEqual(line, None)
 
         # test inline comment
         test_line = " 1 1 $ test"

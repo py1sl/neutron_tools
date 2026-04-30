@@ -118,12 +118,18 @@ class mcnp_tally():
     def __init__(self):
         self.number = None
         self.tal_type = None
+        self.particles = None
         self.data = None
         self.has_ebins = False
+        self.ebins = None
         self.has_tbins = False
+        self.tbins = None
         self.has_fm = False
-        self.has_sd_card = False
-        self.has_fc_comment = False
+        self.fm = None
+        self.has_sd = False
+        self.sd = None
+        self.has_fc = False
+        self.fc = None
 
     def __str__(self):
         print_list = []
@@ -138,6 +144,45 @@ class mcnp_tally():
             print_list.append("Is modified by a flux modifed card")
 
         return "\n".join(print_list)
+
+
+class mcnp_type_sur_tally(mcnp_tally):
+    """ specific tally object for a type 1 or 2 surface tally """
+
+    def __init__(self):
+        mcnp_tally.__init__(self)
+        # for type 1 or 2 tallies
+        self.surfaces = []
+
+
+class mcnp_type_cell_tally(mcnp_tally):
+    """ specific tally object for a type 4 or 6 cell tally """
+
+    def __init__(self):
+        mcnp_tally.__init__(self)
+        # for type 4 or 6 tallies
+        self.cells = []
+
+
+class mcnp_type5_tally(mcnp_tally):
+    """ specific tally object for a type 5 point detector tally """
+
+    def __init__(self):
+        mcnp_tally.__init__(self)
+        # for type 5 tallies
+        self.x = None
+        self.y = None
+        self.z = None
+        self.r1 = None
+
+
+class mcnp_type8_tally(mcnp_tally):
+    """ specific tally object for a type 8 pulse height tally """
+
+    def __init__(self):
+        mcnp_tally.__init__(self)
+        # for type 8 tallies 
+        self.cells = []
 
 
 def long_line_index(lines):
@@ -180,6 +225,10 @@ def is_mode_valid(mode):
     """
     # todo : particle list should live somewhere else
     particle_list = ["n", "p", "h", "e", "|", "q", "u", "v", "!"]
+    
+    if mode is None:
+        return False
+
     for particle in mode:
         if particle.lower() not in particle_list:
             return False
@@ -220,7 +269,7 @@ def get_tally_numbers(lines):
     return tal_nums
 
 
-def is_surface_type_valid(surface):
+def is_surface_type_valid(surface_type):
     """ check surface is a valid mcnp type"""
     surface_types = ("p", "px", "py", "pz", "cx", "cy", "cz",
                      "s", "so", "c/x", "c/y", "c/z", "gq", "sq",
@@ -228,9 +277,9 @@ def is_surface_type_valid(surface):
                      "k/y", "k/z", "tx", "ty", "tz")
     macro_types = ("rpp", "rcc", "box", "sph", "wed", "rec", "ell",
                    "hex", "arb", "trc", "rhp")
-    if surface in surface_types:
+    if surface_type in surface_types:
         return True
-    elif surface in macro_types:
+    elif surface_type in macro_types:
         return True
 
     return False
@@ -238,12 +287,19 @@ def is_surface_type_valid(surface):
 
 def check_plane(surface):
     """ check entries on plane surface are valid """
-    return True
-
+    if surface.surf_type in ("px", "py", "pz"):
+        if len(surface.params) != 1:
+            raise ValueError(f"Plane surface {surface.number} has incorrect number of parameters")
+    
 
 def check_sphere(surface):
     """ check entries on sphere surface are valid"""
-    return True
+    if surface.type == "s":
+        if len(surface.params) != 4:
+            raise ValueError(f"Sphere surface {surface.number} has incorrect number of parameters")
+    elif surface.type == "so":
+        if len(surface.params) != 1:
+            raise ValueError(f"Sphere surface {surface.number} has incorrect number of parameters")
 
 
 def check_cylinder(surface):
@@ -278,6 +334,8 @@ def split_blocs(lines):
     """ split into the cell, surf and data blocks """
 
     blank_count, blank_loc = find_blank_lines(lines)
+    if blank_count < 2:
+        raise ValueError("Not enough blank lines to split into cell, surface and data blocks")
     cell_bloc = lines[:blank_loc[1]]
     surf_bloc = lines[blank_loc[1]:blank_loc[2]]
     data_bloc = lines[blank_loc[2]:]
@@ -432,9 +490,11 @@ def remove_inline_comment(line):
 
 
 def get_inline_comment(line):
-    """ get the inline comment """
+    """ get the inline comment or return None if no inline comment """
     if has_inline_comment(line):
         line = line.split("$")[1]
+    else:
+        line = None
     return line
 
 
@@ -445,30 +505,7 @@ def has_inline_comment(line):
 
 def read_material_lines(mat_num, lines):
     """ extracts the block of lines used for a given material """
-    material_lines = []
-    in_mat = False
-
-    for line in lines:
-        line = line.lower()
-
-        # check if line is a continuation of material
-        if in_mat:
-            if is_continue_line(line):
-                line = remove_inline_comment(line)
-                material_lines.append(line)
-            # check for full line comments
-            elif line.startswith("c "):
-                continue
-            # find end of material
-            elif line and not is_continue_line(line):
-                break
-        # find material lines
-        if len(line) > 1 and line[0] == "m" and line[1].isdigit():
-            mnum = line.split(" ")[0][1:]
-            if mnum == str(mat_num):
-                in_mat = True
-                line = remove_inline_comment(line)
-                material_lines.append(line)
+    material_lines = get_prefixed_lines(lines, "m", mat_num)
 
     material = " ".join(material_lines)
     material = ut.string_cleaner(material)
@@ -590,52 +627,108 @@ def get_prefixed_lines(lines, prefix, mnum):
     return pref_lines
 
 
+def gather_bracketed_sections(line):
+    """split a line into sections based on brackets"""
+    sections = []
+    current_section = ""
+    bracket_level = 0
+
+    for char in line:
+        if char in "(":
+            if bracket_level == 0 and current_section:
+                sections.append(current_section.strip())
+                current_section = ""
+            bracket_level += 1
+            current_section += char
+        elif char in ")":
+            current_section += char
+            bracket_level -= 1
+            if bracket_level == 0:
+                sections.append(current_section.strip())
+                current_section = ""
+        else:
+            current_section += char
+
+    if current_section.strip():
+        sections.append(current_section.strip())
+
+    return sections
+
+
 def is_continue_line(line):
     """checks if line has 5 spaces at start """
     return line.startswith(" " * 5)
 
 
+def is_valid_tally_type(tal_type):
+    """ checks if tally type is valid """
+    valid_types = ("1", "2", "4", "5", "6", "8")
+    return tal_type in valid_types
+
+
+def select_tally_class(tal_type):
+    """ selects the correct tally class to use based on the tally type """
+    if tal_type in ("1", "2"):
+        return mcnp_type_sur_tally()
+    elif tal_type in ("4", "6"):
+        return mcnp_type_cell_tally()
+    elif tal_type == "5":
+        return mcnp_type5_tally()
+    elif tal_type == "8":
+        return mcnp_type8_tally()
+    else:
+        return mcnp_tally()
+
+
 def process_tally_line(tal_line, tal_num):
     """ process a tally line into a tally object """
-    tally = mcnp_tally()
+
+    # check tally line is valid
+    if tal_line is None or not tal_line.strip():
+        raise ValueError("Tally line is empty or None")
+    if not tal_line.lower().startswith(f"f{tal_num}"):
+        raise ValueError(f"Tally line does not start with f{tal_num}")
+    if ":" not in tal_line:
+        raise ValueError("Tally line does not contain ':' to separate particle type")
+    
+    # get tally type
+    tal_line = tal_line.lower().strip()
+    tal_front = tal_line.split(" ")[0]
+    tal_type = tal_front.split(":")[0][-1]
+    if not is_valid_tally_type(tal_type):
+        raise ValueError(f"Tally type {tal_type} not recognised as valid MCNP tally type")
+    
+    # create tally object based on tally type
+    tally = select_tally_class(tal_type)
     tally.number = tal_num
     tally.data = tal_line
-
-    # get tally type
-    tal_type = tal_line.split(" ")[0]
-    tal_type = tal_type.split(":")[0][1:]
     tally.tal_type = tal_type
+    tally.particles = tal_front.split(":")[1]
+
+    # extract surfaces or cells or location based on tally type
+    tal_params = tal_line.split(" ")[1:]
+    if tal_type in ("1", "2"):  
+        if "(" in tal_line:
+            tally.surfaces = gather_bracketed_sections(" ".join(tal_params))
+        else:            
+            tally.surfaces = tal_params
+    elif tal_type in ("4", "6", "8"):    
+        if "(" in tal_line:
+            tally.cells = gather_bracketed_sections(" ".join(tal_params))
+        else:            
+            tally.cells = tal_params
+    elif tal_type == "5":
+        tally.x = tal_params[0]
+        tally.y = tal_params[1]
+        tally.z = tal_params[2]
+        tally.r1 = tal_params[3]
 
     return tally
 
 
 def read_tally_lines(tal_num, lines):
     """ extracts the block of lines used for a given tally """
-    tally_lines = []
-    in_tal = False
-
-    for line in lines:
-        line = line.lower()
-
-        # check if line is a continuation of tally
-        if in_tal:
-            if is_continue_line(line):
-                line = remove_inline_comment(line)
-                tally_lines.append(line)
-            # check for full line comments
-            elif line.startswith("c "):
-                continue
-            # find end of tally
-            elif line and not is_continue_line(line):
-                break
-        # find tally lines
-        if len(line) > 1 and line[0] == "f" and line[1].isdigit():
-            tnum = line.split(" ")[0][1:]
-            tnum = tnum.split(":")[0]
-            if tnum == str(tal_num):
-                in_tal = True
-                line = remove_inline_comment(line)
-                tally_lines.append(line)
+    tally_lines = get_prefixed_lines(lines, "f", tal_num)
 
     tally = " ".join(tally_lines)
     tally = ut.string_cleaner(tally)
@@ -648,6 +741,18 @@ def read_tally_lines(tal_num, lines):
     tally.has_fm = is_card_present(lines, f"fm{tal_num} ")
     tally.has_sd = is_card_present(lines, f"sd{tal_num} ")
     tally.has_fc = is_card_present(lines, f"fc{tal_num} ")
+
+    if tally.has_ebins:
+        tally.ebins = get_card_lines(lines, f"e{tal_num} ")
+    if tally.has_tbins:
+        tally.tbins = get_card_lines(lines, f"t{tal_num} ")
+    if tally.has_fm:
+        tally.fm = get_card_lines(lines, f"fm{tal_num} ")
+    if tally.has_sd:
+        tally.sd = get_card_lines(lines, f"sd{tal_num} ")
+    if tally.has_fc:
+        tally.fc = get_card_lines(lines, f"fc{tal_num} ")
+
 
     return tally
 
