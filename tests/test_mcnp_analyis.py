@@ -1,6 +1,7 @@
 import unittest
 from unittest.mock import patch, mock_open, call, MagicMock
 import copy
+import pandas as pd
 from neutron_tools.mcnp import mcnp_analysis as ma
 from neutron_tools.mcnp import mcnp_output_reader as mor
 from neutron_tools.utilities import output_utilities

@@ -392,8 +392,10 @@ def process_time_bin_only(lines):
     Returns
     -------
     pd.DataFrame
-        DataFrame with columns ``time`` (str bin edges as read from the
-        file, e.g. ``"total"``), ``result`` (float), ``rel_err`` (float).
+        DataFrame with columns ``time`` (bin edges as read from the
+        file; most entries are numeric strings, the final entry may be
+        the literal string ``"total"``), ``result`` (float),
+        ``rel_err`` (float).
     """
     time_bins = []
     errs = []
@@ -454,7 +456,7 @@ def eng_time_get_eng_bins(data):
 
 
 def process_energy_lines(erg_lines):
-    """ process the results section for a tally with only energy bins.
+    """ Process the results section for a tally with only energy bins.
 
     Returns
     -------
