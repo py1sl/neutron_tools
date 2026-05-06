@@ -150,11 +150,12 @@ class tally_processing_tests(unittest.TestCase):
         expected_results = [1.5, 2.5, 3.5]
         expected_errs = [0.01, 0.02, 0.03]
 
-        time_bins, results, errs = mcnp_output_reader.process_time_bin_only(lines)
+        df = mcnp_output_reader.process_time_bin_only(lines)
 
-        self.assertEqual(time_bins, expected_time_bins)
-        self.assertEqual(results, expected_results)
-        self.assertEqual(errs, expected_errs)
+        self.assertIsInstance(df, pd.DataFrame)
+        self.assertEqual(df["time"].tolist(), expected_time_bins)
+        self.assertEqual(df["result"].tolist(), expected_results)
+        self.assertEqual(df["rel_err"].tolist(), expected_errs)
 
     def test_process_eng_time_get_time_bins(self):
         "testing function to get the time bins when a tally has energy and time bins"
@@ -188,7 +189,7 @@ class tally_processing_tests(unittest.TestCase):
         self.assertEqual(tbins, expected)
 
     def test_process_energy_lines(self):
-        """ tests the ection of the code that processes lines for tallies with only energy bins """
+        """ tests the section of the code that processes lines for tallies with only energy bins """
         lines = [
             "1.0 0.0 0.0 10.0 0.1",
             "2.0 0.0 0.0 20.0 0.05",
@@ -198,11 +199,13 @@ class tally_processing_tests(unittest.TestCase):
         expected_res = [10.0, 20.0, 30.0]
         expected_rel_err = [0.1, 0.05, 0.03]
 
-        erg, res, rel_err = mcnp_output_reader.process_energy_lines(lines)
+        df = mcnp_output_reader.process_energy_lines(lines)
 
-        self.assertEqual(erg, expected_erg)
-        self.assertEqual(res, expected_res)
-        self.assertEqual(rel_err, expected_rel_err)
+        self.assertIsInstance(df, pd.DataFrame)
+        self.assertListEqual(list(df.columns), ["energy", "result", "rel_err"])
+        self.assertEqual(df["energy"].tolist(), expected_erg)
+        self.assertEqual(df["result"].tolist(), expected_res)
+        self.assertEqual(df["rel_err"].tolist(), expected_rel_err)
 
     def test_convert_et_tally_to_df(self):
         """ """
@@ -240,10 +243,12 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
+                self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), 1)
-                self.assertEqual(len(tn.err), 1)
-                self.assertEqual(tn.result[0], 1.16486E+00)
-                self.assertEqual(tn.err[0], 0.0006)
+                df = list(tn.result.values())[0]
+                self.assertIsInstance(df, pd.DataFrame)
+                self.assertAlmostEqual(df["result"].iloc[0], 1.16486E+00)
+                self.assertAlmostEqual(df["rel_err"].iloc[0], 0.0006)
 
     def test_ebined_t1_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
@@ -259,7 +264,11 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
                 self.assertIsInstance(tn.result, dict)
-                self.assertIsInstance(tn.totals, dict)
+                # After 1a: totals are folded into the DataFrame as a "total" row
+                first_df = list(tn.result.values())[0]
+                self.assertIsInstance(first_df, pd.DataFrame)
+                total_rows = first_df[first_df["energy"] == "total"]
+                self.assertEqual(len(total_rows), 1)
 
     def test_tbinned_t1_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
@@ -274,10 +283,13 @@ class tally_type1_tests(unittest.TestCase):
                 self.assertEqual(len(tn.times), 14)
                 self.assertEqual(tn.times[-1], "total")
                 self.assertEqual(tn.user_bins, None)
-                self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[-1], 2.44655e-1)
-                self.assertEqual(tn.err[-1], 0.0039)
+                self.assertIsInstance(tn.result, dict)
+                self.assertEqual(len(tn.result), 1)
+                surf_df = list(tn.result.values())[0]
+                self.assertIsInstance(surf_df, pd.DataFrame)
+                self.assertEqual(len(surf_df), 14)
+                self.assertAlmostEqual(surf_df.iloc[-1]["result"], 2.44655e-1)
+                self.assertAlmostEqual(surf_df.iloc[-1]["rel_err"], 0.0039)
 
 
 class tally_type2_tests(unittest.TestCase):
@@ -297,10 +309,12 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.ang_bins, None)
                 self.assertEqual(len(tn.surfaces), 1)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
+                self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), 1)
-                self.assertEqual(len(tn.err), 1)
-                self.assertEqual(tn.result[0], 4.31795E-03)
-                self.assertEqual(tn.err[0], 0.0015)
+                df = list(tn.result.values())[0]
+                self.assertIsInstance(df, pd.DataFrame)
+                self.assertAlmostEqual(df["result"].iloc[0], 4.31795E-03)
+                self.assertAlmostEqual(df["rel_err"].iloc[0], 0.0015)
 
     def test_multiple_value_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple.io')
@@ -316,8 +330,8 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.ang_bins, None)
                 self.assertEqual(len(tn.surfaces), 6)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
+                self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), len(tn.surfaces))
-                self.assertEqual(len(tn.err), len(tn.surfaces))
 
     def test_ebined_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
@@ -333,10 +347,12 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
                 self.assertIsInstance(tn.result, dict)
-                self.assertIsInstance(tn.totals, dict)
                 self.assertEqual(len(tn.surfaces), 1)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
                 self.assertEqual(len(tn.result), len(tn.surfaces))
+                # total row is folded into each DataFrame
+                first_df = list(tn.result.values())[0]
+                self.assertEqual(len(first_df[first_df["energy"] == "total"]), 1)
 
     def test_multiple_ebined_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_erg.io')
@@ -352,10 +368,12 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(tn.ang_bins, None)
                 self.assertIsInstance(tn.result, dict)
-                self.assertIsInstance(tn.totals, dict)
                 self.assertEqual(len(tn.surfaces), 6)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
                 self.assertEqual(len(tn.result), len(tn.surfaces))
+                # total row is folded into each DataFrame
+                first_df = list(tn.result.values())[0]
+                self.assertEqual(len(first_df[first_df["energy"] == "total"]), 1)
 
     def test_etbinned_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_et.io')
@@ -391,7 +409,7 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(len(tn.surfaces), 6)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
                 self.assertEqual(len(tn.result), len(tn.surfaces))
-               
+
     def test_tbinned_t2_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_t.io')
         single = mcnp_output_reader.read_output_file(path)
@@ -405,10 +423,13 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(len(tn.times), 14)
                 self.assertEqual(tn.times[-1], "total")
                 self.assertEqual(tn.user_bins, None)
-                self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[-1], 2.69842E-04)
-                self.assertEqual(tn.err[-1], 0.0054)
+                self.assertIsInstance(tn.result, dict)
+                self.assertEqual(len(tn.result), 1)
+                surf_df = list(tn.result.values())[0]
+                self.assertIsInstance(surf_df, pd.DataFrame)
+                self.assertEqual(len(surf_df), 14)
+                self.assertAlmostEqual(surf_df.iloc[-1]["result"], 2.69842E-04)
+                self.assertAlmostEqual(surf_df.iloc[-1]["rel_err"], 0.0054)
                 self.assertEqual(len(tn.surfaces), 1)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
 
@@ -425,12 +446,11 @@ class tally_type2_tests(unittest.TestCase):
                 self.assertEqual(len(tn.times), 14)
                 self.assertEqual(tn.times[-1], "total")
                 self.assertEqual(tn.user_bins, None)
+                self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), 6)
-                self.assertEqual(len(tn.err), 6)
                 self.assertEqual(len(tn.surfaces), 6)
                 self.assertEqual(len(tn.surfaces), len(tn.areas))
                 self.assertEqual(len(tn.result), len(tn.surfaces))
-                self.assertEqual(len(tn.result), len(tn.err))
 
 
 class tally_type4_tests(unittest.TestCase):
@@ -448,10 +468,12 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.eng, None)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
-                self.assertEqual(len(tn.err), 1)
+                self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), 1)
-                self.assertEqual(tn.result[0], 1.91076E-03)
-                self.assertEqual(tn.err[0], 0.0006)
+                df = list(tn.result.values())[0]
+                self.assertIsInstance(df, pd.DataFrame)
+                self.assertAlmostEqual(df["result"].iloc[0], 1.91076E-03)
+                self.assertAlmostEqual(df["rel_err"].iloc[0], 0.0006)
                 self.assertEqual(tn.cells, ['2'])
                 self.assertEqual(tn.vols, ['3.66519E+03'])
 
@@ -470,12 +492,14 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.cells, ['2', '3', '4', '5', '6'])
                 self.assertEqual(len(tn.vols), len(tn.cells))
                 self.assertEqual(len(tn.vols), 5)
-                self.assertEqual(len(tn.result), len(tn.err))
-                self.assertEqual(len(tn.result), len(tn.vols))
-                self.assertEqual(tn.result[0], 2.19878E-03)
-                self.assertEqual(tn.err[0], 0.0006)
-                self.assertEqual(tn.result[-1], 3.60573E-06)
-                self.assertEqual(tn.err[-1], 0.0043)
+                self.assertIsInstance(tn.result, dict)
+                self.assertEqual(len(tn.result), len(tn.cells))
+                first_df = tn.result[int(tn.cells[0])]
+                last_df = tn.result[int(tn.cells[-1])]
+                self.assertAlmostEqual(first_df["result"].iloc[0], 2.19878E-03)
+                self.assertAlmostEqual(first_df["rel_err"].iloc[0], 0.0006)
+                self.assertAlmostEqual(last_df["result"].iloc[0], 3.60573E-06)
+                self.assertAlmostEqual(last_df["rel_err"].iloc[0], 0.0043)
 
     def test_ebined_t4_tally(self):
         """ test case - f4 tally with a single cell with energy bins """
@@ -493,7 +517,9 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.cells, ['2'])
                 self.assertEqual(tn.vols, ['3.66519E+03'])
                 self.assertIsInstance(tn.result, dict)
-                self.assertIsInstance(tn.totals, dict)
+                # total row is folded into each DataFrame
+                first_df = list(tn.result.values())[0]
+                self.assertEqual(len(first_df[first_df["energy"] == "total"]), 1)
 
     def test_multiple_value_ebined_t4_tally(self):
         """ test case - f4 tally with a multiple cells each with energy bins """
@@ -511,11 +537,12 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.cells, ['2', '3', '4', '5', '6'])
                 self.assertEqual(len(tn.vols), len(tn.cells))
                 self.assertEqual(len(tn.vols), 5)
-                self.assertEqual(len(tn.result), len(tn.vols))
                 self.assertIsInstance(tn.result, dict)
-                self.assertIsInstance(tn.totals, dict)
-                self.assertEqual(list(tn.totals.keys()), [int(s) for s in tn.cells])
+                self.assertEqual(len(tn.result), len(tn.vols))
                 self.assertEqual(list(tn.result.keys()), [int(s) for s in tn.cells])
+                # total row is folded into each DataFrame
+                first_df = tn.result[int(tn.cells[0])]
+                self.assertEqual(len(first_df[first_df["energy"] == "total"]), 1)
 
     def test_etbinned_t4_tally(self):
         """ test case - f4 tally with a single cell with energy and time bins """
@@ -533,8 +560,10 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.cells), 1)
                 self.assertEqual(len(tn.vols), len(tn.cells))
+                self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), len(tn.cells))
-                self.assertEqual(len(tn.result), len(tn.err))
+                self.assertIsInstance(tn.err, dict)
+                self.assertEqual(len(tn.err), len(tn.cells))
 
     def test_multiple_value_etbinned_t4_tally(self):
         """ test case - f4 tally with multiple cells with energy and time bins """
@@ -549,9 +578,10 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.cells, ['2', '3', '4', '5', '6'])
                 self.assertEqual(len(tn.vols), len(tn.cells))
                 self.assertEqual(len(tn.vols), 5)
-                self.assertEqual(len(tn.vols), len(tn.result))
+                self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), len(tn.cells))
-                self.assertEqual(len(tn.result), len(tn.err))
+                self.assertIsInstance(tn.err, dict)
+                self.assertEqual(len(tn.err), len(tn.cells))
 
     def test_tbinned_t4_tally(self):
         """ test case - f4 tally with a single cell with times bins """
@@ -568,12 +598,13 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.times[-1], "total")
                 self.assertEqual(tn.user_bins, None)
                 self.assertEqual(len(tn.vols), len(tn.cells))
-                self.assertEqual(len(tn.result[0]), 14)
-                self.assertEqual(len(tn.err[0]), 14)
-                self.assertEqual(len(tn.cells), len(tn.result))
-                self.assertEqual(len(tn.cells), len(tn.err))
-                self.assertAlmostEqual(tn.result[0][-1], 1.70644e-03, places=7)
-                self.assertEqual(tn.err[0][-1], 0.0008)
+                self.assertIsInstance(tn.result, dict)
+                self.assertEqual(len(tn.result), len(tn.cells))
+                cell_df = list(tn.result.values())[0]
+                self.assertIsInstance(cell_df, pd.DataFrame)
+                self.assertEqual(len(cell_df), 14)
+                self.assertAlmostEqual(cell_df.iloc[-1]["result"], 1.70644e-03, places=7)
+                self.assertAlmostEqual(cell_df.iloc[-1]["rel_err"], 0.0008)
 
     def test_multiple_value_tbinned_t4_tally(self):
         """ test case - f4 tally with multiple cells with time bins """
@@ -590,9 +621,11 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(tn.cells, ['2', '3', '4', '5', '6'])
                 self.assertEqual(len(tn.vols), len(tn.cells))
                 self.assertEqual(len(tn.vols), 5)
-                self.assertEqual(len(tn.cells), len(tn.result))
-                self.assertEqual(len(tn.cells), len(tn.err))
-                self.assertEqual(len(tn.result[0]), len(tn.err[0]))
+                self.assertIsInstance(tn.result, dict)
+                self.assertEqual(len(tn.result), len(tn.cells))
+                # each cell gives a DataFrame with time rows
+                first_cell_df = list(tn.result.values())[0]
+                self.assertIsInstance(first_cell_df, pd.DataFrame)
 
 
 class tally_type5_tests(unittest.TestCase):
@@ -609,10 +642,12 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.eng, None)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
+                self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), 1)
-                self.assertEqual(len(tn.err), 1)
-                self.assertEqual(tn.result[0], 3.42950E-04)
-                self.assertEqual(tn.err[0], 0.0025)
+                df = list(tn.result.values())[0]
+                self.assertIsInstance(df, pd.DataFrame)
+                self.assertAlmostEqual(df["result"].iloc[0], 3.42950E-04)
+                self.assertAlmostEqual(df["rel_err"].iloc[0], 0.0025)
                 self.assertEqual(tn.x, 15)
                 self.assertEqual(tn.x, 15.0)
                 self.assertEqual(tn.y, 0.00)
@@ -640,9 +675,11 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(len(tn.eng), 14)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
-                self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[0], 1.20831E-05)
+                self.assertIsInstance(tn.result, dict)
+                self.assertEqual(len(tn.result), 1)
+                df = list(tn.result.values())[0]
+                self.assertIsInstance(df, pd.DataFrame)
+                self.assertAlmostEqual(df["result"].iloc[0], 1.20831E-05)
                 self.assertEqual(tn.x, 15)
                 self.assertEqual(tn.y, 0.00)
                 self.assertEqual(tn.z, 0.00)
@@ -656,7 +693,7 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.misses["underflow in transmission"], 39376)
                 self.assertEqual(tn.misses["hit a zero-importance cell"], 0)
                 self.assertEqual(tn.misses["energy cutoff"], 0)
-                
+
     def test_etbined_t5_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_et.io')
         single = mcnp_output_reader.read_output_file(path)
@@ -665,22 +702,19 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.tally_type, '5')
                 self.assertEqual(tn.particle, "photons")
                 self.assertEqual(tn.nps, 1000000)
-                # self.assertNotEqual(tn.eng, None)
                 self.assertEqual(len(tn.eng), 14)
                 self.assertEqual(len(tn.times), 14)
                 self.assertEqual(tn.user_bins, None)
-                self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.err), 14)
+                self.assertIsInstance(tn.result, dict)
+                self.assertEqual(len(tn.result), 1)
+                res_df = list(tn.result.values())[0]
+                self.assertIsInstance(res_df, pd.DataFrame)
+                self.assertEqual(res_df.shape[0], 14)  # 14 energy rows
+                self.assertEqual(res_df.shape[1], 14)  # 14 time columns
                 self.assertEqual(tn.x, 15)
                 self.assertEqual(tn.y, 0.00)
                 self.assertEqual(tn.z, 0.00)
-                df = pd.DataFrame(tn.result[:,:-1], index=tn.eng, columns=tn.times)
-                df['Total'] = df.sum(axis=1)
-                total_row = df.sum(numeric_only=True)
-                total_row.name = 'Total'  # Optional row label
 
-                df = pd.concat([df, pd.DataFrame([total_row])])
-                df.to_csv("output.csv")              
 
 class tally_type6_tests(unittest.TestCase):
     """ tests for type 6 tally """
@@ -696,10 +730,12 @@ class tally_type6_tests(unittest.TestCase):
                 self.assertEqual(tn.eng, None)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
+                self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), 1)
-                self.assertEqual(len(tn.err), 1)
-                self.assertEqual(tn.result[0], 4.30567E-05)
-                self.assertEqual(tn.err[0], 0.0002)
+                df = list(tn.result.values())[0]
+                self.assertIsInstance(df, pd.DataFrame)
+                self.assertAlmostEqual(df["result"].iloc[0], 4.30567E-05)
+                self.assertAlmostEqual(df["rel_err"].iloc[0], 0.0002)
                 self.assertEqual(tn.cells, ['2'])
                 self.assertEqual(tn.vols, ['9.89602E+03'])
 
@@ -716,7 +752,9 @@ class tally_type6_tests(unittest.TestCase):
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
                 self.assertIsInstance(tn.result, dict)
-                self.assertIsInstance(tn.totals, dict)
+                # total row folded into DataFrame
+                first_df = list(tn.result.values())[0]
+                self.assertEqual(len(first_df[first_df["energy"] == "total"]), 1)
                 self.assertEqual(tn.vols, ['9.89602E+03'])
 
 
@@ -738,10 +776,12 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(tn.eng, None)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
+                self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), 1)
-                self.assertEqual(len(tn.err), 1)
-                self.assertEqual(tn.result[0], 1.00000E+00)
-                self.assertEqual(tn.err[0], 0.00)
+                df = list(tn.result.values())[0]
+                self.assertIsInstance(df, pd.DataFrame)
+                self.assertAlmostEqual(df["result"].iloc[0], 1.00000E+00)
+                self.assertAlmostEqual(df["rel_err"].iloc[0], 0.00)
 
     def test_ebined_t8_tally(self):
         for tn in self.single.tally_data:
@@ -753,9 +793,11 @@ class tally_type8_tests(unittest.TestCase):
                 self.assertEqual(len(tn.eng), 14)
                 self.assertEqual(tn.times, None)
                 self.assertEqual(tn.user_bins, None)
-                self.assertEqual(len(tn.result), 14)
-                self.assertEqual(len(tn.err), 14)
-                self.assertEqual(tn.result[0], 5.16461E-01)
+                self.assertIsInstance(tn.result, dict)
+                self.assertEqual(len(tn.result), 1)
+                df = list(tn.result.values())[0]
+                self.assertIsInstance(df, pd.DataFrame)
+                self.assertAlmostEqual(df["result"].iloc[0], 5.16461E-01)
 
 
 class writelines_test_case(unittest.TestCase):

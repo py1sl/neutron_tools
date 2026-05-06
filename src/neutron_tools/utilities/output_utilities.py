@@ -165,12 +165,16 @@ def html_f4_tab_out(data, fname):
     header = "<html><table><tr><th>Tally Number</th><th>CellNumber</th><th>Result</th><th>Relative error</th></tr>"
     rows = []
     for tall in data:
-        for i, cell in enumerate(tall.cells):
+        for cell in tall.cells:
+            cell_id = int(cell)
+            df = tall.result[cell_id]
+            result_val = df["result"].iloc[0]
+            rel_err_val = df["rel_err"].iloc[0]
             row_parts = [
                 f"<tr><td>{tall.number}</td>",
-                f"<td>{tall.cells[i]}</td>",
-                f"<td>{tall.result[i]}</td>",
-                f"<td>{tall.err[i]}</td></tr>",
+                f"<td>{cell}</td>",
+                f"<td>{result_val}</td>",
+                f"<td>{rel_err_val}</td></tr>",
             ]
             rows.append("".join(row_parts))
 
@@ -188,8 +192,12 @@ def csv_out(data, fname):
 
     lines = []
     for tall in data:
-        for i, cell in enumerate(tall.cells):
-            lines.append(f"{tall.number}, {tall.cells[i]}, {tall.result[i]}, {tall.err[i]}")
+        for cell in tall.cells:
+            cell_id = int(cell)
+            df = tall.result[cell_id]
+            result_val = df["result"].iloc[0]
+            rel_err_val = df["rel_err"].iloc[0]
+            lines.append(f"{tall.number}, {cell}, {result_val}, {rel_err_val}")
 
     ut.write_lines(fname, lines)
     ntlogger.info("produced csv file: %s", fname)

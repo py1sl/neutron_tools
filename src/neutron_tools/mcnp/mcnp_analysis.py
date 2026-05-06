@@ -3,7 +3,7 @@ import matplotlib
 # import matplotlib.colors as colors
 import matplotlib.pyplot as plt
 import numpy as np
-# import pandas as pd
+import pandas as pd
 import logging as ntlogger
 
 from neutron_tools.utilities import neut_utilities as ut
@@ -53,36 +53,60 @@ def calc_mid_points(bounds):
     return mids
 
 
-def find_peak_time(target_energy, energy_arr, time_arr, ET_results):
+def _unpack_et_df(et_input):
+    """Extract (energy_arr, time_arr, value_matrix) from an E×T DataFrame.
+
+    Parameters
+    ----------
+    et_input : pd.DataFrame
+        The ``value_df`` returned by :func:`process_e_t_userbin`, with energy
+        as row index and time bin boundaries as column names.
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray, np.ndarray]
+        ``(energy_arr, time_arr, value_matrix)``
+    """
+    if isinstance(et_input, pd.DataFrame):
+        energy_arr = et_input.index.to_numpy(dtype=float)
+        time_arr = et_input.columns.to_numpy(dtype=float)
+        value_matrix = et_input.values
+    else:
+        raise TypeError(
+            "et_input must be a pd.DataFrame with energy as index and time as columns"
+        )
+    return energy_arr, time_arr, value_matrix
+
+
+def find_peak_time(target_energy, ET_results):
     """Find the time at which maximum flux occurs for a given energy.
-    
+
     Parameters
     ----------
     target_energy : float
         The target energy value to find the peak for.
-    energy_arr : array-like
-        Array of energy bin centers.
-    time_arr : array-like
-        Array of time bin centers (in shakes).
-    ET_results : ndarray
-        2D array of results with shape (n_energies, n_times).
-    
+    ET_results : pd.DataFrame
+        E×T DataFrame returned by :func:`process_e_t_userbin`, with energy
+        as row index and time bin boundaries as column names.
+
     Returns
     -------
     float
-        Time value (in shakes, same units as input time_arr) at which peak flux occurs.
+        Time value at which peak flux occurs.
     """
+    energy_arr, time_arr, value_matrix = _unpack_et_df(ET_results)
+
     # Find index of closest energy
     erg_index = np.argmin(np.abs(energy_arr - target_energy))
-    
+
     # Get flux slice for this energy
-    flux_slice = ET_results[erg_index, :]
-    
+    flux_slice = value_matrix[erg_index, :]
+
     # Find peak within valid time array bounds
     valid_flux = flux_slice[:len(time_arr)]
     peak_index = np.argmax(valid_flux)
     peak_time = time_arr[peak_index]
-    
+
     return peak_time
 
 
@@ -101,8 +125,9 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
         if not hasattr(d, 'eng'):
             raise ValueError("Invalid MCNP tally does not have energy bins.")
 
-        for obj_id, results in d.result.items():
-            splot = plt.step(np.asarray(d.eng),  results["result"], label=obj_id)
+        for obj_id, df in d.result.items():
+            df_plot = df[df["energy"] != "total"]
+            splot = plt.step(np.asarray(d.eng), df_plot["result"], label=obj_id)
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
 
@@ -128,36 +153,40 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
                 if len(d.ang_bins) > 1:
                     print("not implemented yet - plotting spectra, angle and multiple surfaces")
                     raise NotImplementedError
-                for surf, data in d.result.items():
-                    y_vals = data["result"]/bw
+                for surf, df in d.result.items():
+                    df_plot = df[df["energy"] != "total"]
+                    y_vals = df_plot["result"].values / bw
                     splot = plt.step(np.asarray(d.eng),  y_vals, label=surf)
 
             else:
                 if len(d.ang_bins) > 1:
-                    for ang in d.result:
-                        y_vals = np.asarray(ang)/bw
+                    for ang_df in d.result:
+                        y_vals = ang_df["result"].values / bw
                         splot = plt.step(np.asarray(d.eng),  y_vals)
                         legend = d.ang_bins
                 else:
-                    for surf, data in d.result.items():
-                        y_vals = data["result"]/bw
+                    for surf, df in d.result.items():
+                        df_plot = df[df["energy"] != "total"]
+                        y_vals = df_plot["result"].values / bw
                         splot = plt.step(np.asarray(d.eng),  y_vals, label=surf)
                     plt.legend()
 
         elif d.tally_type == '2':
-            for surf, data in d.result.items():
-                y_vals = data["result"]/bw
+            for surf, df in d.result.items():
+                df_plot = df[df["energy"] != "total"]
+                y_vals = df_plot["result"].values / bw
                 splot = plt.step(np.asarray(d.eng),  y_vals, label=surf)
             plt.legend()
 
         elif d.tally_type == '4':
-            for cell, data in d.result.items():
-                y_vals = data["result"]/bw
+            for cell, df in d.result.items():
+                df_plot = df[df["energy"] != "total"]
+                y_vals = df_plot["result"].values / bw
                 splot = plt.step(np.asarray(d.eng),  y_vals, label=cell)
             plt.legend()
 
         else:
-            y_vals = np.asarray(d.result) / bw
+            y_vals = d.result["result"].values / bw
             splot = plt.step(np.asarray(d.eng), y_vals)
 
         if err is True:
@@ -189,7 +218,9 @@ def plot_spectra_ratio(data1, data2, fname, title):
     plt.ylabel("ratio")
     plt.xscale('log')
 
-    ratio = np.asarray(data1.result[0]) / np.asarray(data2.result[0])
+    res1 = next(iter(data1.result.values()))["result"].values
+    res2 = next(iter(data2.result.values()))["result"].values
+    ratio = res1 / res2
 
     plt.plot(data1.eng, ratio)
     plt.savefig(fname)
@@ -211,13 +242,25 @@ def plot_run_comp(data, err, fname, title, xlab="Run #",
     ntlogger.info("produced figure: %s", fname)
 
 
-def plot_ET_heatmap(energy_arr, time_arr, ET_results, fname, normalise_factor=1):
-    """ plot an energy time heat map from a tally with energy and time bins """
+def plot_ET_heatmap(ET_results, fname, normalise_factor=1):
+    """ plot an energy time heat map from a tally with energy and time bins.
 
-    # set up to do log ignoring o bins
-    ET_results_safe = np.where(ET_results > 0, ET_results, np.nan)
-    ET_results_safe = normalise(ET_results_safe, normalise_factor)
-    log_values = np.log10(ET_results_safe)
+    Parameters
+    ----------
+    ET_results : pd.DataFrame
+        E×T DataFrame returned by :func:`process_e_t_userbin`, with energy
+        as row index and time bin boundaries as column names.
+    fname : str
+        Filename to save the plot.
+    normalise_factor : float, optional
+        Normalisation factor applied to the flux values.
+    """
+    energy_arr, time_arr, ET_matrix = _unpack_et_df(ET_results)
+
+    # set up to do log ignoring 0 bins
+    ET_safe = np.where(ET_matrix > 0, ET_matrix, np.nan)
+    ET_safe = normalise(ET_safe, normalise_factor)
+    log_values = np.log10(ET_safe)
 
     # convert shakes to microS
     time_arr = neut_constants.shake_to_ms(time_arr)
@@ -226,13 +269,13 @@ def plot_ET_heatmap(energy_arr, time_arr, ET_results, fname, normalise_factor=1)
     plt.figure(figsize=(12, 6))
     pcm = plt.pcolormesh(time_arr, energy_arr, log_values[:-1, :-2], shading='auto', cmap='viridis')
     plt.colorbar(pcm, label='log10(flux)')
-    
+
     # Add shaded region for 2-10Å energy range
     # Convert wavelengths to energy: E(MeV) = (81.81 / λ²(Å²)) / 1e9
     energy_10A = (81.81 / (10.0 ** 2)) / 1e9  # Lower energy bound (longer wavelength)
     energy_2A = (81.81 / (2.0 ** 2)) / 1e9    # Upper energy bound (shorter wavelength)
     plt.axhspan(energy_10A, energy_2A, alpha=0.15, color='red', label='2-10Å')
-    
+
     plt.xscale('linear')
     plt.yscale('log')
     plt.xlabel(r'Time ($\mu$S)')
@@ -244,13 +287,27 @@ def plot_ET_heatmap(energy_arr, time_arr, ET_results, fname, normalise_factor=1)
     ntlogger.info("produced figure: %s", fname)
 
 
-def time_slice(target_time, energy_arr, time_arr, ET_results, fname, normalise_factor=1):
+def time_slice(target_time, ET_results, fname, normalise_factor=1):
     """ Extract and plot an energy spectrum at a given time from a
-        tally with energy and time bins
+        tally with energy and time bins.
+
+    Parameters
+    ----------
+    target_time : float
+        Target time (shakes) for which to extract the energy spectrum.
+    ET_results : pd.DataFrame
+        E×T DataFrame returned by :func:`process_e_t_userbin`, with energy
+        as row index and time bin boundaries as column names.
+    fname : str
+        Filename to save the plot.
+    normalise_factor : float, optional
+        Normalisation factor applied to the flux values.
     """
+    energy_arr, time_arr, ET_matrix = _unpack_et_df(ET_results)
+
     # Find index of closest time
     time_index = np.argmin(np.abs(time_arr - target_time))
-    flux_slice = ET_results[:, time_index]
+    flux_slice = ET_matrix[:, time_index]
     flux_slice = normalise(flux_slice, normalise_factor)
 
     # Plot
@@ -265,21 +322,18 @@ def time_slice(target_time, energy_arr, time_arr, ET_results, fname, normalise_f
     ntlogger.info("produced figure: %s", fname)
 
 
-def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_time=None, max_time=None, wl=True, window=50, normalise_factor=1, plot_total=True, xscale='log'):
+def energy_slice(target_energy, ET_results, fname, min_time=None, max_time=None, wl=True, window=50, normalise_factor=1, plot_total=True, xscale='log'):
     """ Extract and plot time distributions for a given energy or multiple energies from a
-        tally with energy and time bins
-        
+        tally with energy and time bins.
+
         Parameters
         ----------
         target_energy : float, list, or array-like
             The target energy value(s) to extract. Can be a single energy (float) or
             multiple energies (list or array).
-        energy_arr : array-like
-            Array of energy bin centers
-        time_arr : array-like
-            Array of time bin centers
-        ET_results : ndarray
-            2D array of results with shape (n_energies, n_times)
+        ET_results : pd.DataFrame
+            E×T DataFrame returned by :func:`process_e_t_userbin`, with energy
+            as row index and time bin boundaries as column names.
         fname : str
             Filename to save the plot
         min_time : float, optional
@@ -297,84 +351,86 @@ def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_tim
         xscale : str, optional
             X-axis scale type: 'log' for logarithmic, 'linear' for linear. Default is 'log'.
     """
+    energy_arr, time_arr, ET_matrix = _unpack_et_df(ET_results)
+
     # Convert target_energy to array if it's a scalar
     target_energies = np.atleast_1d(target_energy)
-    
+
     # Find indices of closest energies and convert time array once
     erg_indices = []
     for te in target_energies:
         erg_index = np.argmin(np.abs(energy_arr - te))
         erg_indices.append(erg_index)
         print(f"Energy: {te}, index: {erg_index}")
-    
+
     # Convert shakes to microS
     time_arr_converted = neut_constants.shake_to_ms(time_arr)
-    
+
     # Calculate total flux (sum across all energies)
-    total_flux = np.sum(ET_results, axis=0)
+    total_flux = np.sum(ET_matrix, axis=0)
     total_flux = normalise(total_flux, normalise_factor)
-    
+
     # Plot
     plt.figure(figsize=(8, 5))
-    
+
     # Collect all peaks to determine overall time limits if not specified
     all_peaks = []
     all_peak_times = []
     all_peak_values = []
-    
+
     for erg_index, te in zip(erg_indices, target_energies):
-        flux_slice = ET_results[erg_index, :]
+        flux_slice = ET_matrix[erg_index, :]
         flux_slice = normalise(flux_slice, normalise_factor)
-        
+
         # focus on the peak - ensure peak is within time array bounds
         # Limit search to the range that matches time_arr_converted length
         valid_flux = flux_slice[:len(time_arr_converted)]
         peak_index = np.argmax(valid_flux)
         peak_value = valid_flux[peak_index]
-        
+
         all_peaks.append(peak_index)
         all_peak_values.append(peak_value)
-        
+
         # Store the actual peak time value
         peak_time = time_arr_converted[peak_index]
         all_peak_times.append(peak_time)
-               
+
         # Create label with either wavelength or energy
         if wl:
             wave_length = np.sqrt(81.81 / (energy_arr[erg_index])/1e9)
             label = f'λ = {round(wave_length, 2)} Å'
         else:
             label = f'E = {energy_arr[erg_index]:.2e} MeV'
-        
-        plt.plot(time_arr_converted, flux_slice[:-1], marker='o', label=label)
-    
+
+        plt.plot(time_arr_converted, flux_slice, marker='o', label=label)
+
     # Plot total flux if requested
     if plot_total:
-        plt.plot(time_arr_converted, total_flux[:-1], marker='s', linewidth=2, 
+        plt.plot(time_arr_converted, total_flux, marker='s', linewidth=2,
                  label='Total flux', color='black', alpha=0.7)
-    
+
     plt.xscale(xscale)
     plt.xlabel(r'Time ($\mu$S)')
     plt.ylabel('Flux')
-    
+
     # Determine time limits (centered on peak with window around it)
     if min_time is None or max_time is None:
         if len(all_peaks) > 0:
             # Use median of peak indices to handle multiple energies
             median_peak_idx = int(np.median(all_peaks))
             median_peak_idx = np.clip(median_peak_idx, 0, len(time_arr_converted) - 1)
-            
+
             # Define window in terms of indices, not time
             min_idx = max(0, median_peak_idx - window)
             max_idx = min(len(time_arr_converted) - 1, median_peak_idx + window)
-            
+
             if min_time is None:
                 min_time = time_arr_converted[min_idx]
             if max_time is None:
                 max_time = time_arr_converted[max_idx]
-               
+
     plt.xlim(min_time, max_time)
-    
+
     # Set y-axis limits based on peak values
     if plot_total:
         # Use total flux at the median peak location
@@ -384,9 +440,9 @@ def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_tim
     else:
         # Use maximum of individual energy peaks
         y_max = max(all_peak_values) * 1.05
-    
+
     plt.ylim(0, y_max)
-    
+
     if len(erg_indices) > 1:
         plt.title('Flux vs time at multiple energies')
         plt.legend()
@@ -399,10 +455,9 @@ def energy_slice(target_energy, energy_arr, time_arr, ET_results, fname, min_tim
             plt.title(f'Flux vs time at energy = {energy_arr[erg_index]:.2e} MeV')
         if plot_total:
             plt.legend()
-    
+
     plt.tight_layout()
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
-
 
 

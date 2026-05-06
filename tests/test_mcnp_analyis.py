@@ -88,10 +88,14 @@ class plotting_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_spec_ratio_plot(self, mock_show, mock_savefig):
+        import pandas as pd
         for tn in self.single.tally_data:
             if tn.number == 4:
                 data = copy.deepcopy(tn)
-                data.result = [[1, 2, 3, 4, 5, 6], [1]]
+                data.result = {
+                    0: pd.DataFrame({"result": [1, 2, 3, 4, 5, 6],
+                                     "rel_err": [0.01]*6})
+                }
                 data.eng = [10, 20, 30, 40, 50, 60]
         fname = "test"
         ma.plot_spectra_ratio(data, data, fname, "")
@@ -130,6 +134,7 @@ class calc_bin_width_errors_test(unittest.TestCase):
 
 def _make_surface_tally(tally_type, eng, result_dict, surfaces=None, ang_bins=None):
     """ helper to build a mock tally-like object """
+    import pandas as pd
     t = MagicMock()
     t.tally_type = tally_type
     t.eng = eng
@@ -142,6 +147,16 @@ def _make_surface_tally(tally_type, eng, result_dict, surfaces=None, ang_bins=No
     return t
 
 
+def _eng_df(eng, values):
+    """Build a minimal energy-binned DataFrame for use in mock tallies."""
+    import pandas as pd
+    return pd.DataFrame({
+        "energy": eng,
+        "result": values,
+        "rel_err": [0.01] * len(eng),
+    })
+
+
 class plot_spectra_additional_test_cases(unittest.TestCase):
     """ additional tests for plot_spectra covering more tally type branches """
 
@@ -149,7 +164,7 @@ class plot_spectra_additional_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_spectra_type2(self, mock_show, mock_savefig):
         eng = [0.1, 0.5, 1.0, 2.0]
-        result = {1: {"result": np.array([1e-3, 2e-3, 3e-3, 4e-3])}}
+        result = {1: _eng_df(eng, [1e-3, 2e-3, 3e-3, 4e-3])}
         tally = _make_surface_tally('2', eng, result, surfaces=['1'])
         ma.plot_spectra(tally, "out.png", "test")
         mock_savefig.assert_called_once_with("out.png")
@@ -157,11 +172,15 @@ class plot_spectra_additional_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
     def test_spectra_type_else(self, mock_show, mock_savefig):
+        import pandas as pd
         eng = [0.1, 0.5, 1.0, 2.0]
         tally = MagicMock()
         tally.tally_type = 'X'
         tally.eng = eng
-        tally.result = np.array([1e-3, 2e-3, 3e-3, 4e-3])
+        tally.result = pd.DataFrame({
+            "result": [1e-3, 2e-3, 3e-3, 4e-3],
+            "rel_err": [0.01, 0.01, 0.01, 0.01],
+        })
         tally.err = [0.01, 0.01, 0.01, 0.01]
         ma.plot_spectra(tally, "out.png", "test")
         mock_savefig.assert_called_once_with("out.png")
@@ -170,7 +189,7 @@ class plot_spectra_additional_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_spectra_type1_single_surface_no_ang_bins(self, mock_show, mock_savefig):
         eng = [0.1, 0.5, 1.0, 2.0]
-        result = {1: {"result": np.array([1e-3, 2e-3, 3e-3, 4e-3])}}
+        result = {1: _eng_df(eng, [1e-3, 2e-3, 3e-3, 4e-3])}
         tally = _make_surface_tally('1', eng, result, surfaces=['1'], ang_bins=[1])
         ma.plot_spectra(tally, "out.png", "test")
         mock_savefig.assert_called_once_with("out.png")
@@ -180,8 +199,8 @@ class plot_spectra_additional_test_cases(unittest.TestCase):
     def test_spectra_type1_multiple_surfaces(self, mock_show, mock_savefig):
         eng = [0.1, 0.5, 1.0, 2.0]
         result = {
-            1: {"result": np.array([1e-3, 2e-3, 3e-3, 4e-3])},
-            2: {"result": np.array([0.5e-3, 1e-3, 1.5e-3, 2e-3])},
+            1: _eng_df(eng, [1e-3, 2e-3, 3e-3, 4e-3]),
+            2: _eng_df(eng, [0.5e-3, 1e-3, 1.5e-3, 2e-3]),
         }
         tally = _make_surface_tally('1', eng, result, surfaces=['1', '2'], ang_bins=[1])
         ma.plot_spectra(tally, "out.png", "test")
@@ -191,7 +210,7 @@ class plot_spectra_additional_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_spectra_xlow_set(self, mock_show, mock_savefig):
         eng = [0.1, 0.5, 1.0, 2.0]
-        result = {1: {"result": np.array([1e-3, 2e-3, 3e-3, 4e-3])}}
+        result = {1: _eng_df(eng, [1e-3, 2e-3, 3e-3, 4e-3])}
         tally = _make_surface_tally('2', eng, result, surfaces=['1'])
         ma.plot_spectra(tally, "out.png", "test", xlow=0.1)
         mock_savefig.assert_called_once_with("out.png")
@@ -200,7 +219,7 @@ class plot_spectra_additional_test_cases(unittest.TestCase):
     @patch("matplotlib.pyplot.show")
     def test_spectra_with_legend(self, mock_show, mock_savefig):
         eng = [0.1, 0.5, 1.0, 2.0]
-        result = {1: {"result": np.array([1e-3, 2e-3, 3e-3, 4e-3])}}
+        result = {1: _eng_df(eng, [1e-3, 2e-3, 3e-3, 4e-3])}
         tally = _make_surface_tally('2', eng, result, surfaces=['1'])
         ma.plot_spectra(tally, "out.png", "test", legend=["surf 1"])
         mock_savefig.assert_called_once_with("out.png")
@@ -209,12 +228,16 @@ class plot_spectra_additional_test_cases(unittest.TestCase):
 class plot_ET_heatmap_test(unittest.TestCase):
     """ tests for plot_ET_heatmap """
 
+    @patch("matplotlib.pyplot.pcolormesh")
+    @patch("matplotlib.pyplot.colorbar")
     @patch("matplotlib.pyplot.savefig")
-    def test_et_heatmap(self, mock_savefig):
+    def test_et_heatmap(self, mock_savefig, mock_colorbar, mock_pcolormesh):
+        import pandas as pd
         energy_arr = np.array([0.1, 0.5, 1.0, 2.0, 5.0])
         time_arr = np.array([10.0, 20.0, 30.0])
-        ET_results = np.random.rand(5, 4)
-        ma.plot_ET_heatmap(energy_arr, time_arr, ET_results, "heatmap.png")
+        et_df = pd.DataFrame(np.random.rand(5, 3) + 1e-10,
+                             index=energy_arr, columns=time_arr)
+        ma.plot_ET_heatmap(et_df, "heatmap.png")
         mock_savefig.assert_called_once_with("heatmap.png")
 
 
@@ -223,10 +246,11 @@ class time_slice_test(unittest.TestCase):
 
     @patch("matplotlib.pyplot.savefig")
     def test_time_slice(self, mock_savefig):
+        import pandas as pd
         energy_arr = np.array([0.1, 0.5, 1.0, 2.0])
         time_arr = np.array([10.0, 20.0, 30.0])
-        ET_results = np.random.rand(4, 3)
-        ma.time_slice(15.0, energy_arr, time_arr, ET_results, "slice.png")
+        et_df = pd.DataFrame(np.random.rand(4, 3), index=energy_arr, columns=time_arr)
+        ma.time_slice(15.0, et_df, "slice.png")
         mock_savefig.assert_called_once_with("slice.png")
 
 
@@ -235,18 +259,20 @@ class energy_slice_test(unittest.TestCase):
 
     @patch("matplotlib.pyplot.savefig")
     def test_energy_slice(self, mock_savefig):
+        import pandas as pd
         energy_arr = np.array([0.1, 0.5, 1.0, 2.0])
         time_arr = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
-        ET_results = np.random.rand(4, 6)
-        ma.energy_slice(0.5, energy_arr, time_arr, ET_results, "eslice.png")
+        et_df = pd.DataFrame(np.random.rand(4, 5), index=energy_arr, columns=time_arr)
+        ma.energy_slice(0.5, et_df, "eslice.png")
         mock_savefig.assert_called_once_with("eslice.png")
 
     @patch("matplotlib.pyplot.savefig")
     def test_energy_slice_with_time_limits(self, mock_savefig):
+        import pandas as pd
         energy_arr = np.array([0.1, 0.5, 1.0, 2.0])
         time_arr = np.array([10.0, 20.0, 30.0, 40.0, 50.0])
-        ET_results = np.random.rand(4, 6)
-        ma.energy_slice(0.5, energy_arr, time_arr, ET_results, "eslice.png",
+        et_df = pd.DataFrame(np.random.rand(4, 5), index=energy_arr, columns=time_arr)
+        ma.energy_slice(0.5, et_df, "eslice.png",
                         min_time=5, max_time=45, wl=False)
         mock_savefig.assert_called_once_with("eslice.png")
 
@@ -310,11 +336,14 @@ class html_f4_tab_out_test(unittest.TestCase):
     """ tests for html_f4_tab_out """
 
     def test_html_f4_tab_single_tally(self):
+        import pandas as pd
         tally = MagicMock()
         tally.number = 4
         tally.cells = ['2', '3']
-        tally.result = [1.0e-3, 2.0e-3]
-        tally.err = [0.01, 0.02]
+        tally.result = {
+            2: pd.DataFrame({"result": [1.0e-3], "rel_err": [0.01]}),
+            3: pd.DataFrame({"result": [2.0e-3], "rel_err": [0.02]}),
+        }
 
         fname = "/tmp/test_f4_tab_out.html"
         output_utilities.html_f4_tab_out(tally, fname)
@@ -326,17 +355,16 @@ class html_f4_tab_out_test(unittest.TestCase):
         self.assertIn("CellNumber", content)
 
     def test_html_f4_tab_list_input(self):
+        import pandas as pd
         tally1 = MagicMock()
         tally1.number = 4
         tally1.cells = ['2']
-        tally1.result = [1.0e-3]
-        tally1.err = [0.01]
+        tally1.result = {2: pd.DataFrame({"result": [1.0e-3], "rel_err": [0.01]})}
 
         tally2 = MagicMock()
         tally2.number = 6
         tally2.cells = ['2']
-        tally2.result = [2.0e-3]
-        tally2.err = [0.02]
+        tally2.result = {2: pd.DataFrame({"result": [2.0e-3], "rel_err": [0.02]})}
 
         fname = "/tmp/test_f4_tab_out_list.html"
         output_utilities.html_f4_tab_out([tally1, tally2], fname)
