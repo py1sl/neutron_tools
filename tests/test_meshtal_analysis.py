@@ -146,6 +146,9 @@ class add_mesh_test(unittest.TestCase):
         with self.assertRaises(ValueError):
             ma.add_mesh(mesh1_test, mesh2_test)
 
+        with self.assertRaises(ValueError):
+            _ = mesh1_test + mesh2_test
+
     def test_add_mesh(self):
 
         mesh3_test = ma.meshtally()
@@ -180,6 +183,27 @@ class add_mesh_test(unittest.TestCase):
                          0.025778627023100853)
         self.assertEqual(new_mesh_test.e_bounds, mesh3_test.e_bounds)
 
+        # test __add__ operator produces the same result
+        op_result = mesh3_test + mesh4_test
+        self.assertEqual(op_result.x_bounds, (-8.9, -9.1))
+        self.assertEqual(op_result.data['value'].iloc[0],
+                         1.3895760275772773e-06)
+        self.assertEqual(op_result.e_bounds, mesh3_test.e_bounds)
+
+        # test __iadd__
+        mesh3_copy = ma.meshtally()
+        mesh3_copy.ctype = "6col_e"
+        mesh3_copy.data = [['1.000E+36', '-9.0', '-9.0', '1.4',
+                            '7.329430e-07', '0.017765']]
+        mesh3_copy.data = ma.convert_to_df(mesh3_copy)
+        mesh3_copy.x_bounds = (-8.9, -9.1)
+        mesh3_copy.y_bounds = (-8.9, -9.1)
+        mesh3_copy.z_bounds = (1.3, 1.5)
+        mesh3_copy.e_bounds = (1.0e-3, 1e36)
+        mesh3_copy += mesh4_test
+        self.assertEqual(mesh3_copy.data['value'].iloc[0],
+                         1.3895760275772773e-06)
+
     def test_add_mesh_time(self):
 
         mesh3_test = ma.meshtally()
@@ -204,6 +228,42 @@ class add_mesh_test(unittest.TestCase):
 
         self.assertEqual(new_mesh_test.t_bounds, mesh3_test.t_bounds)
 
+        # test __add__ operator
+        op_result = mesh3_test + mesh4_test
+        self.assertEqual(op_result.t_bounds, mesh3_test.t_bounds)
+
+    def test_add_mesh_5col(self):
+        """Test that adding two 5col meshes works (bug fix: no NameError for col)."""
+        mesh_a = ma.meshtally()
+        mesh_a.ctype = "5col"
+        mesh_a.data = [['-9.0', '-9.0', '1.4', '7.329430e-07', '0.017765']]
+        mesh_a.data = ma.convert_to_df(mesh_a)
+        mesh_a.x_bounds = (-8.9, -9.1)
+        mesh_a.y_bounds = (-8.9, -9.1)
+        mesh_a.z_bounds = (1.3, 1.5)
+
+        mesh_b = ma.meshtally()
+        mesh_b.ctype = "5col"
+        mesh_b.data = [['-9.0', '-9.0', '1.4', '6.566330e-07', '0.018680']]
+        mesh_b.data = ma.convert_to_df(mesh_b)
+        mesh_b.x_bounds = (-8.9, -9.1)
+        mesh_b.y_bounds = (-8.9, -9.1)
+        mesh_b.z_bounds = (1.3, 1.5)
+
+        result = mesh_a + mesh_b
+        self.assertEqual(result.ctype, "5col")
+        self.assertAlmostEqual(result.data['value'].iloc[0],
+                               1.3895760275772773e-06)
+        self.assertAlmostEqual(result.data['rel_err'].iloc[0],
+                               0.025778627023100853)
+        self.assertNotIn('Energy', result.data.columns)
+        self.assertNotIn('Time', result.data.columns)
+
+        # also works via add_mesh wrapper
+        result2 = ma.add_mesh(mesh_a, mesh_b)
+        self.assertAlmostEqual(result2.data['value'].iloc[0],
+                               1.3895760275772773e-06)
+
     def test_add_mesh_file(self):
 
         mesh = ma.read_meshtally_file(path)[0]
@@ -212,6 +272,11 @@ class add_mesh_test(unittest.TestCase):
         self.assertEqual(new_mesh_test.y_bounds, mesh.y_bounds)
         self.assertEqual(new_mesh_test.z_bounds, mesh.z_bounds)
         self.assertEqual(new_mesh_test.data['value'].iloc[0],
+                         2 * mesh.data['value'].iloc[0])
+
+        # test __add__ operator with file data
+        op_result = mesh + mesh
+        self.assertEqual(op_result.data['value'].iloc[0],
                          2 * mesh.data['value'].iloc[0])
 
 

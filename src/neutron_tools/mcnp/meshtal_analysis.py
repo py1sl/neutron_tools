@@ -50,6 +50,76 @@ class meshtally:
         num_z = len(self.z_mids)
         return (num_x * num_y * num_z)
 
+    def __add__(self, other):
+        """Add two meshtally objects with matching bounds.
+
+        Fluxes are summed and relative errors are combined in quadrature.
+
+        Args:
+            other (meshtally): mesh tally to add
+
+        Returns:
+            meshtally: new mesh tally with combined values
+        """
+        if ((self.x_bounds != other.x_bounds) or
+                (self.y_bounds != other.y_bounds) or
+                (self.z_bounds != other.z_bounds)):
+            raise ValueError('position bounds not equal')
+        if self.ctype != other.ctype:
+            raise ValueError('column types are not equal')
+        if self.ctype == "6col_e" and self.e_bounds != other.e_bounds:
+            raise ValueError('energy bounds not equal')
+        if self.ctype == "6col_t" and self.t_bounds != other.t_bounds:
+            raise ValueError('time bounds are not equal')
+
+        new_val = self.data['value'] + other.data['value']
+        new_err = np.sqrt(self.data['rel_err']**2 + other.data['rel_err']**2)
+
+        new_mesh = meshtally()
+        new_mesh.ctype = self.ctype
+        new_mesh.x_bounds = self.x_bounds
+        new_mesh.y_bounds = self.y_bounds
+        new_mesh.z_bounds = self.z_bounds
+        new_mesh.x_mids = calc_mid_points(self.x_bounds)
+        new_mesh.y_mids = calc_mid_points(self.y_bounds)
+        new_mesh.z_mids = calc_mid_points(self.z_bounds)
+
+        if self.ctype == "6col_e":
+            cols = ("Energy", "x", "y", "z", "value", "rel_err")
+            new_mesh.data = pd.DataFrame(columns=cols)
+            new_mesh.data['Energy'] = self.data['Energy'].values
+            new_mesh.e_bounds = self.e_bounds
+        elif self.ctype == "6col_t":
+            cols = ("Time", "x", "y", "z", "value", "rel_err")
+            new_mesh.data = pd.DataFrame(columns=cols)
+            new_mesh.data['Time'] = self.data['Time'].values
+            new_mesh.t_bounds = self.t_bounds
+        else:
+            cols = ("x", "y", "z", "value", "rel_err")
+            new_mesh.data = pd.DataFrame(columns=cols)
+
+        new_mesh.data['x'] = self.data['x'].values
+        new_mesh.data['y'] = self.data['y'].values
+        new_mesh.data['z'] = self.data['z'].values
+        new_mesh.data['value'] = new_val.values
+        new_mesh.data['rel_err'] = new_err.values
+
+        return new_mesh
+
+    def __iadd__(self, other):
+        """Augmented addition (+=): combines this mesh with another.
+
+        Returns a new meshtally rather than modifying in place, consistent
+        with how immutable-style data objects behave in Python.
+
+        Args:
+            other (meshtally): mesh tally to add
+
+        Returns:
+            meshtally: new mesh tally with combined values
+        """
+        return self.__add__(other)
+
     def voxel_uniform_volume(self):
         """ Member Function of meshtally. check uniform and finds volume
         from distance to adjacent vertex.
@@ -343,55 +413,10 @@ def calculate_lower_mesh_vals(mesh1):
 
 def add_mesh(mesh1, mesh2):
     """ checks if boundaries of two meshes are equal
-        and adds their values and errors
+        and adds their values and errors.
+        Delegates to meshtally.__add__.
     """
-    # needs refactoring for different column number
-    if ((mesh1.x_bounds != mesh2.x_bounds) or
-            (mesh1.y_bounds != mesh2.y_bounds) or
-            (mesh1.z_bounds != mesh2.z_bounds)):
-        raise ValueError(f' position bounds not equal')
-    if mesh1.ctype == "6col_e":
-        col = "Energy"
-        if (mesh1.e_bounds != mesh2.e_bounds):
-            raise ValueError(f' energy bounds not equal')
-    if mesh1.ctype == "6col_t":
-        col = "Time"
-        if (mesh1.t_bounds != mesh2.t_bounds):
-            raise ValueError(f'time bounds are not equal')
-    if mesh1.ctype != mesh2.ctype:
-        raise ValueError(f'column types are not equal')
-
-    else:
-        new_val = mesh1.data['value'] + mesh2.data['value']
-        new_err = np.sqrt((mesh1.data['rel_err'])**2 +
-                          (mesh2.data['rel_err'])**2)
-
-        new_mesh = meshtally()
-        cols = (col, "x", "y", "z", "value", "rel_err")
-        new_mesh.data = pd.DataFrame(columns=cols)
-        new_mesh.ctype = mesh1.ctype
-        new_mesh.x_bounds = mesh1.x_bounds
-        new_mesh.y_bounds = mesh1.y_bounds
-        new_mesh.z_bounds = mesh1.z_bounds
-
-        new_mesh.x_mids = calc_mid_points(mesh1.x_bounds)
-        new_mesh.y_mids = calc_mid_points(mesh1.y_bounds)
-        new_mesh.z_mids = calc_mid_points(mesh1.z_bounds)
-        new_mesh.data['value'] = new_val
-        new_mesh.data['rel_err'] = new_err
-
-        if mesh1.ctype == "6col_e":
-            new_mesh.data['Energy'] = mesh1.data['Energy']
-            new_mesh.e_bounds = mesh1.e_bounds
-        elif mesh1.ctype == "6col_t":
-            new_mesh.data["Time"] = mesh1.data["Time"]
-            new_mesh.t_bounds = mesh1.t_bounds
-
-        new_mesh.data['x'] = mesh1.data['x']
-        new_mesh.data['y'] = mesh1.data['y']
-        new_mesh.data['z'] = mesh1.data['z']
-
-        return new_mesh
+    return mesh1 + mesh2
 
 
 # TODO: need to deal with energy bins
