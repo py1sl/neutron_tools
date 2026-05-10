@@ -479,6 +479,37 @@ class slice_tests(unittest.TestCase):
         self.assertEqual(slices.slice_i[0], -9.0)
         self.assertEqual(slices.slice_j[0], -9.0)
 
+    def test_extract_slice_errors_match_values(self):
+        """Verify that the errors array is filtered on the i-axis (not j-axis).
+
+        The bug was that slice_obj.errors used data[j_ind] == i instead of
+        data[i_ind] == i, causing wrong relative-error values in the slice.
+        """
+        mesh = ma.read_meshtally_file(path)[0]
+        slice_obj = ma.extract_slice(mesh, 1.0, "XY", erg=1e36)
+
+        # shapes must match: (len(slice_j), len(slice_i))
+        self.assertEqual(slice_obj.values.shape, slice_obj.errors.shape)
+        self.assertEqual(slice_obj.values.shape,
+                         (len(slice_obj.slice_j), len(slice_obj.slice_i)))
+
+        # Errors must be non-negative and within [0, 1] for a valid mesh
+        self.assertTrue((slice_obj.errors >= 0).all())
+        self.assertTrue((slice_obj.errors <= 1).all())
+
+        # Cross-check: manually pick a known point and compare
+        # The first x_mid is -9.0, and first y_mid at z~1 should match
+        # extract_slice values[col=0] with values where x == x_mids[0]
+        data = mesh.data
+        data = data[data["Energy"] == 1e36]
+        z_slice = ma.find_nearest_mid(1.0, mesh.z_mids)
+        data = data[data["z"] == z_slice]
+        x0 = mesh.x_mids[0]
+        expected_err = data.loc[data["x"] == x0]["rel_err"].values
+        actual_err = slice_obj.errors[:, 0]
+        for exp, act in zip(expected_err, actual_err):
+            self.assertAlmostEqual(float(exp), float(act), places=7)
+
 
 if __name__ == '__main__':
     unittest.main()

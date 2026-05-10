@@ -247,7 +247,7 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
     # create a 2d array of just values matching corresponding axis
     for i in slice_obj.slice_i:
         slice_obj.values.append((data.loc[data[i_ind] == i]['value']))
-        slice_obj.errors.append((data.loc[data[j_ind] == i]['rel_err']))
+        slice_obj.errors.append((data.loc[data[i_ind] == i]['rel_err']))
 
     slice_obj.values = np.array(slice_obj.values).T
     slice_obj.errors = np.array(slice_obj.errors).T
