@@ -3,7 +3,6 @@
 mesh tally tools
 
 """
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import colors
 import numpy as np
@@ -48,7 +47,7 @@ class meshtally:
         num_y = len(self.y_mids)
         num_z = len(self.z_mids)
         return (num_x * num_y * num_z)
-    
+
     def calculate_upper_mesh_vals(self):
         """ adds the absolute max value based on the relative error """
         maxvals = self.data["value"] + (
@@ -246,7 +245,7 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
         slice_obj.j_lab = "Z co-ord (cm)"
     else:
         # Catch plane not recognised
-        raise ValueError(f"Plane not recognised format : XZ, XY, YZ")
+        raise ValueError("Plane not recognised format : XZ, XY, YZ")
 
     # find closest mid point
     slice_obj.value = find_nearest_mid(value, slice_obj.axis_mids)
@@ -450,7 +449,7 @@ def check_uniform(bounds):
 
 
 def count_zeros(mesh):
-    """ counts number of voxels with a zero value"""   
+    """ counts number of voxels with a zero value"""
     count = int((mesh.data["value"] == 0.0).sum())
     return count
 
