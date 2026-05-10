@@ -206,8 +206,11 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
 
     For energy- or time-binned meshes the *erg* or *time* keyword must be
     supplied so that ``filter_energy_time`` reduces the data to a single bin
-    before pivoting.  If the filtered data still contains duplicate
-    (i_ind, j_ind) pairs a ``ValueError`` will be raised by ``pivot``.
+    before pivoting.  Pass the desired energy or time midpoint value, e.g.
+    ``extract_slice(mesh, 0, "XY", erg=1e36)`` for the total energy bin.
+    If the filtered data still contains duplicate (i_ind, j_ind) pairs a
+    ``ValueError`` will be raised by ``pivot``; this indicates the energy/time
+    filter did not reduce the data to a single bin.
     """
     data = mesh.data
     slice_obj = slice_object()
