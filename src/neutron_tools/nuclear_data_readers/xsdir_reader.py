@@ -7,7 +7,6 @@ class XSDir:
         self.datapath = None
         self.awr = {}
         self.directory = {}
-        self.thermal_scattering = {}
 
     def __str__(self):
         return (
@@ -15,8 +14,46 @@ class XSDir:
             f"Datapath: {self.datapath}\n"
             f"Number of AWR entries: {len(self.awr)}\n"
             f"Number of directory entries: {len(self.directory)}"
-            f"Number of TSL entries: {len(self.thermal_scattering)}"
         )
+    
+    def is_nuclide_in_directory(self, nuclide_key):
+        """Check if a nuclide is in the directory regardless of library."""
+        nuclide = nuclide_key.split(".")[0]
+        for key in self.directory.keys():
+            if key.split(".")[0] == nuclide:
+                return True
+        return False
+    
+    def get_all_nuclide_entries(self, nuclide_key):
+        """Get all entries for a nuclide regardless of library."""
+        nuclide = nuclide_key.split(".")[0]
+        entries = []
+        for key, value in self.directory.items():
+            if key.split(".")[0] == nuclide:
+                entries.append((key, value))
+        return entries
+
+    def is_nuclide_in_directory_and_library(self, nuclide_key):
+        """Check if a nuclide with a specific library is in the directory."""
+        return nuclide_key in self.directory
+    
+    def get_nuclide_with_type(self, zaid, lib_type="c"):
+        """Get all entries for a nuclide with a specific library type."""
+        found_entries = []
+        for key, entry in self.directory.items():
+            if key.startswith(zaid) and key.endswith(lib_type):
+                found_entries.append((key, entry))
+        if found_entries:
+            return found_entries
+        return None
+    
+    def get_all_library_entries(self, lib=".70c"):
+        """Get all entries for a specific library."""
+        entries = []
+        for key, entry in self.directory.items():
+            if key.endswith(lib):
+                entries.append((key, entry))
+        return entries
 
     @classmethod
     def from_file(cls, fpath):
@@ -31,8 +68,7 @@ class XSDir:
         # Parse sections
         xs.awr = cls._process_awr(lines)
         xs.directory = cls._process_directory(lines)
-        xs.thermal_scattering = cls._process_thermal(lines)
-
+  
         return xs
 
     @staticmethod
@@ -79,26 +115,6 @@ class XSDir:
                 isotope = parts[0]
                 directory[isotope] = parts[1:]
         return directory
-
-    @staticmethod
-    def _process_thermal(lines):
-        """Parse thermal scattering data section if present."""
-        thermal = {}
-        in_thermal = False
-        for line in lines:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            if line.startswith("thermal_scattering_data") or line.startswith("sab"):
-                in_thermal = True
-                continue
-            if in_thermal:
-                parts = line.split()
-                if len(parts) < 2:
-                    continue
-                entry = parts[0]
-                thermal[entry] = parts[1:]
-        return thermal
 
 
 def read_xsdir(fpath):

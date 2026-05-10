@@ -14,7 +14,6 @@ class xsdir_init_test_case(unittest.TestCase):
         self.assertIsNone(xs.datapath)
         self.assertEqual(xs.awr, {})
         self.assertEqual(xs.directory, {})
-        self.assertEqual(xs.thermal_scattering, {})
 
 
 class xsdir_str_test_case(unittest.TestCase):
@@ -30,7 +29,6 @@ class xsdir_str_test_case(unittest.TestCase):
         self.assertIn("Datapath: /data/path", str_repr)
         self.assertIn("Number of AWR entries: 0", str_repr)
         self.assertIn("Number of directory entries: 0", str_repr)
-        self.assertIn("Number of TSL entries: 0", str_repr)
 
 
 class process_datapath_test_case(unittest.TestCase):
@@ -146,50 +144,60 @@ class process_directory_test_case(unittest.TestCase):
         self.assertEqual(len(result), 0)
 
 
-class process_thermal_test_case(unittest.TestCase):
-    """Tests for _process_thermal static method"""
-    
-    def test_thermal_basic(self):
-        """Test parsing thermal scattering section"""
-        lines = [
-            "thermal_scattering_data\n",
-            "h-h2o.20t 1.0000 tsl-file 0 1 1234\n",
-            "h-zrh.20t 1.0000 tsl-file2 0 1 2345\n"
-        ]
-        result = xsdir_reader.XSDir._process_thermal(lines)
-        self.assertEqual(len(result), 2)
-        self.assertIn("h-h2o.20t", result)
-        self.assertEqual(result["h-h2o.20t"][0], "1.0000")
-    
-    def test_thermal_sab_keyword(self):
-        """Test parsing with 'sab' keyword"""
-        lines = [
-            "sab\n",
-            "h-h2o.20t 1.0000 tsl-file\n"
-        ]
-        result = xsdir_reader.XSDir._process_thermal(lines)
-        self.assertEqual(len(result), 1)
-        self.assertIn("h-h2o.20t", result)
-    
-    def test_thermal_with_comments(self):
-        """Test thermal parsing with comment lines"""
-        lines = [
-            "thermal_scattering_data\n",
-            "# This is a comment\n",
-            "h-h2o.20t 1.0000 tsl-file\n",
-            "  # Another comment\n",
-            "h-zrh.20t 1.0000 tsl-file2\n"
-        ]
-        result = xsdir_reader.XSDir._process_thermal(lines)
-        self.assertEqual(len(result), 2)
-    
-    def test_thermal_empty(self):
-        """Test with no thermal section"""
-        lines = [
-            "no thermal section here\n"
-        ]
-        result = xsdir_reader.XSDir._process_thermal(lines)
-        self.assertEqual(len(result), 0)
+class directory_lookup_test_case(unittest.TestCase):
+    """Tests for XSDir directory lookup and check helper methods"""
+
+    def setUp(self):
+        self.xs = xsdir_reader.XSDir()
+        self.xs.directory = {
+            "1001.70c": ["1.0078", "h1_70c.endf", "0", "1", "12345", "67890"],
+            "1001.80c": ["1.0078", "h1_80c.endf", "0", "1", "22345", "77890"],
+            "1001.24t": ["1.0000", "h1_24t.tsl", "0", "1", "32345", "87890"],
+            "8016.70c": ["15.9949", "o16_70c.endf", "0", "1", "42345", "97890"],
+            "92235.70c": ["233.0248", "u235_70c.endf", "0", "1", "52345", "17890"],
+        }
+
+    def test_is_nuclide_in_directory_true_with_any_library(self):
+        self.assertTrue(self.xs.is_nuclide_in_directory("1001"))
+        self.assertTrue(self.xs.is_nuclide_in_directory("1001.71c"))
+
+    def test_is_nuclide_in_directory_false_when_missing(self):
+        self.assertFalse(self.xs.is_nuclide_in_directory("26056"))
+
+    def test_get_all_nuclide_entries_returns_all_matches(self):
+        entries = self.xs.get_all_nuclide_entries("1001")
+        self.assertEqual(len(entries), 3)
+        keys = {entry[0] for entry in entries}
+        self.assertEqual(keys, {"1001.70c", "1001.80c", "1001.24t"})
+
+    def test_get_all_nuclide_entries_returns_empty_when_missing(self):
+        entries = self.xs.get_all_nuclide_entries("26056")
+        self.assertEqual(entries, [])
+
+    def test_is_nuclide_in_directory_and_library_true_and_false(self):
+        self.assertTrue(self.xs.is_nuclide_in_directory_and_library("1001.80c"))
+        self.assertFalse(self.xs.is_nuclide_in_directory_and_library("1001.99c"))
+
+    def test_get_nuclide_with_type_returns_matching_suffix(self):
+        entries = self.xs.get_nuclide_with_type("1001", "c")
+        self.assertIsNotNone(entries)
+        self.assertEqual(len(entries), 2)
+        keys = {entry[0] for entry in entries}
+        self.assertEqual(keys, {"1001.70c", "1001.80c"})
+
+    def test_get_nuclide_with_type_returns_none_when_no_matches(self):
+        entries = self.xs.get_nuclide_with_type("1001", "m")
+        self.assertIsNone(entries)
+
+    def test_get_all_library_entries_filters_by_library(self):
+        entries = self.xs.get_all_library_entries(".70c")
+        self.assertEqual(len(entries), 3)
+        keys = {entry[0] for entry in entries}
+        self.assertEqual(keys, {"1001.70c", "8016.70c", "92235.70c"})
+
+    def test_get_all_library_entries_returns_empty_for_missing_library(self):
+        entries = self.xs.get_all_library_entries(".99c")
+        self.assertEqual(entries, [])
 
 
 class from_file_test_case(unittest.TestCase):
@@ -235,11 +243,7 @@ h-zrh.20t 1.0000 zrh.tsl 0 1 56789
             self.assertGreaterEqual(len(xs.directory), 3)
             self.assertIn("1001.80c", xs.directory)
             self.assertEqual(xs.directory["1001.80c"][0], "1.0078")
-            
-            # Check thermal
-            self.assertEqual(len(xs.thermal_scattering), 2)
-            self.assertIn("h-h2o.20t", xs.thermal_scattering)
-            
+            self.assertEqual(xs.directory["1001.80c"][1], "h1.endf")         
         finally:
             os.remove(temp_file_path)
     
@@ -258,7 +262,7 @@ directory
             self.assertEqual(xs.datapath, "/data")
             self.assertEqual(len(xs.directory), 1)
             self.assertEqual(len(xs.awr), 0)
-            self.assertEqual(len(xs.thermal_scattering), 0)
+
         finally:
             os.remove(temp_file_path)
 
