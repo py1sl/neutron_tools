@@ -202,7 +202,13 @@ def filter_energy_time(data, erg=None, time=None):
 # TODO: need to generalize to any axis
 # plot slice calls extract slice
 def extract_slice(mesh, value, plane, erg=None, time=None):
-    """ from a given plane will find the slice of a mesh"""
+    """ From a given plane will find the slice of a mesh.
+
+    For energy- or time-binned meshes the *erg* or *time* keyword must be
+    supplied so that ``filter_energy_time`` reduces the data to a single bin
+    before pivoting.  If the filtered data still contains duplicate
+    (i_ind, j_ind) pairs a ``ValueError`` will be raised by ``pivot``.
+    """
     data = mesh.data
     slice_obj = slice_object()
     # filter by energy/time if needed
