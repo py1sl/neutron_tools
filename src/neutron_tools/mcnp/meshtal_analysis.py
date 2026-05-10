@@ -244,13 +244,9 @@ def extract_slice(mesh, value, plane, erg=None, time=None):
 
     # filter to just the values in the plane
     data = data[data[v_ind] == slice_obj.value]
-    # create a 2d array of just values matching corresponding axis
-    for i in slice_obj.slice_i:
-        slice_obj.values.append((data.loc[data[i_ind] == i]['value']))
-        slice_obj.errors.append((data.loc[data[i_ind] == i]['rel_err']))
-
-    slice_obj.values = np.array(slice_obj.values).T
-    slice_obj.errors = np.array(slice_obj.errors).T
+    # pivot to 2D arrays: rows = j_ind, columns = i_ind (matches pcolormesh convention)
+    slice_obj.values = data.pivot(index=j_ind, columns=i_ind, values='value').to_numpy()
+    slice_obj.errors = data.pivot(index=j_ind, columns=i_ind, values='rel_err').to_numpy()
 
     return slice_obj
 
