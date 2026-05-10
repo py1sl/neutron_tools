@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 from neutron_tools.mcnp import meshtal_analysis as ma
 import unittest
 import os
@@ -32,7 +29,7 @@ class calc_mid_points_test(unittest.TestCase):
 
 class convert_to_df_test(unittest.TestCase):
 
-    def test_count_zeros_6col(self):
+    def test_df_convert_6col(self):
         meshtally_test = ma.meshtally()
         meshtally_test.ctype = "6col_e"
         meshtally_test.data = [['1.00', '3.00', '-2.00', '5.00', '0.00',
@@ -46,7 +43,7 @@ class convert_to_df_test(unittest.TestCase):
         self.assertEqual(meshtally_test.data['z'].iloc[0], 5.00)
         self.assertEqual(meshtally_test.data['rel_err'].iloc[0], 1.00)
 
-    def test_count_zeros_5col(self):
+    def test_df_convert_5col(self):
         meshtally_test = ma.meshtally()
         meshtally_test.ctype = "5col"
         meshtally_test.data = [['3.00', '-2.00', '5.00', '0.00',
@@ -405,7 +402,7 @@ class upper_vals_test(unittest.TestCase):
 
     def test_upper_vals_file(self):
         mesh = ma.read_meshtally_file(path)[0]
-        mesh = ma.calculate_upper_mesh_vals(mesh)
+        mesh = mesh.calculate_upper_mesh_vals()
         value = mesh.data["max_vals"].iloc[0]
         self.assertAlmostEqual(value, 6.50278e-7)
 
@@ -414,7 +411,7 @@ class lower_vals_test(unittest.TestCase):
 
     def test_lower_vals_file(self):
         mesh = ma.read_meshtally_file(path)[0]
-        mesh = ma.calculate_lower_mesh_vals(mesh)
+        mesh = mesh.calculate_lower_mesh_vals()
         value = mesh.data["min_vals"].iloc[0]
         self.assertAlmostEqual(value, 6.2608e-7)
 
@@ -423,7 +420,7 @@ class err_hist_tests(unittest.TestCase):
 
     def test_err_hist(self):
         mesh = ma.read_meshtally_file(path)[0]
-        plot = ma.rel_err_hist(mesh.data)
+        plot = ma.rel_err_hist(mesh.data, fname="out.png")
         # x_plot, y_plot = plot.get_xydata().T
         self.assertEqual(plot.get_xlabel(), "Relative error")
         self.assertEqual(plot.get_ylabel(), "Number of voxels")
@@ -476,7 +473,7 @@ class slice_tests(unittest.TestCase):
         value = 1
         plane = "XY"
         slices = ma.plot_slice(mesh, value, plane, lmin=1e-15, lmax=1e-3,
-                               erg=1e36)
+                               erg=1e36, fname="out.png")
         self.assertEqual(slices.i_lab, "X co-ord (cm)")
         self.assertEqual(slices.j_lab, "Y co-ord (cm)")
         self.assertEqual(slices.slice_i[0], -9.0)
