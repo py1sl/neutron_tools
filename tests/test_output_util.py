@@ -22,7 +22,7 @@ class wrap_tokens_test_case(unittest.TestCase):
         result = output_utilities.wrap_tokens(prefix, tokens, max_len)
         expected = ["PREFIX"]
         self.assertEqual(result, expected)
-    
+
     def test_empty_tokens(self):
         prefix = "PREFIX"
         tokens = ["", "   ", "\t"]

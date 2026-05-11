@@ -181,7 +181,7 @@ class mcnp_type8_tally(mcnp_tally):
 
     def __init__(self):
         mcnp_tally.__init__(self)
-        # for type 8 tallies 
+        # for type 8 tallies
         self.cells = []
 
 
@@ -225,7 +225,7 @@ def is_mode_valid(mode):
     """
     # todo : particle list should live somewhere else
     particle_list = ["n", "p", "h", "e", "|", "q", "u", "v", "!"]
-    
+
     if mode is None:
         return False
 
@@ -290,7 +290,7 @@ def check_plane(surface):
     if surface.surf_type in ("px", "py", "pz"):
         if len(surface.params) != 1:
             raise ValueError(f"Plane surface {surface.number} has incorrect number of parameters")
-    
+
 
 def check_sphere(surface):
     """ check entries on sphere surface are valid"""
@@ -690,14 +690,14 @@ def process_tally_line(tal_line, tal_num):
         raise ValueError(f"Tally line does not start with f{tal_num}")
     if ":" not in tal_line:
         raise ValueError("Tally line does not contain ':' to separate particle type")
-    
+
     # get tally type
     tal_line = tal_line.lower().strip()
     tal_front = tal_line.split(" ")[0]
     tal_type = tal_front.split(":")[0][-1]
     if not is_valid_tally_type(tal_type):
         raise ValueError(f"Tally type {tal_type} not recognised as valid MCNP tally type")
-    
+
     # create tally object based on tally type
     tally = select_tally_class(tal_type)
     tally.number = tal_num
@@ -707,15 +707,15 @@ def process_tally_line(tal_line, tal_num):
 
     # extract surfaces or cells or location based on tally type
     tal_params = tal_line.split(" ")[1:]
-    if tal_type in ("1", "2"):  
+    if tal_type in ("1", "2"):
         if "(" in tal_line:
             tally.surfaces = gather_bracketed_sections(" ".join(tal_params))
-        else:            
+        else:
             tally.surfaces = tal_params
-    elif tal_type in ("4", "6", "8"):    
+    elif tal_type in ("4", "6", "8"):
         if "(" in tal_line:
             tally.cells = gather_bracketed_sections(" ".join(tal_params))
-        else:            
+        else:
             tally.cells = tal_params
     elif tal_type == "5":
         tally.x = tal_params[0]

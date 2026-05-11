@@ -43,7 +43,7 @@ def wrap_tokens(prefix, tokens, max_len=80, cont_prefix='     '):
 
     return lines
 
-    
+
 def output_points(x_vals, y_vals, z_vals, data_val=None, outpath="lost"):
     """ outputs points in .3d format """
 

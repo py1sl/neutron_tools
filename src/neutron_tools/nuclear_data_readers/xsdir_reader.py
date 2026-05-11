@@ -15,7 +15,7 @@ class XSDir:
             f"Number of AWR entries: {len(self.awr)}\n"
             f"Number of directory entries: {len(self.directory)}"
         )
-    
+
     def is_nuclide_in_directory(self, nuclide_key):
         """Check if a nuclide is in the directory regardless of library."""
         nuclide = nuclide_key.split(".")[0]
@@ -23,7 +23,7 @@ class XSDir:
             if key.split(".")[0] == nuclide:
                 return True
         return False
-    
+
     def get_all_nuclide_entries(self, nuclide_key):
         """Get all entries for a nuclide regardless of library."""
         nuclide = nuclide_key.split(".")[0]
@@ -36,7 +36,7 @@ class XSDir:
     def is_nuclide_in_directory_and_library(self, nuclide_key):
         """Check if a nuclide with a specific library is in the directory."""
         return nuclide_key in self.directory
-    
+
     def get_nuclide_with_type(self, zaid, lib_type="c"):
         """Get all entries for a nuclide with a specific library type."""
         found_entries = []
@@ -46,7 +46,7 @@ class XSDir:
         if found_entries:
             return found_entries
         return None
-    
+
     def get_all_library_entries(self, lib=".70c"):
         """Get all entries for a specific library."""
         entries = []
@@ -68,7 +68,7 @@ class XSDir:
         # Parse sections
         xs.awr = cls._process_awr(lines)
         xs.directory = cls._process_directory(lines)
-  
+
         return xs
 
     @staticmethod
@@ -93,7 +93,7 @@ class XSDir:
                 continue
             if in_awr:
                 if line.startswith("directory"):
-                    break 
+                    break
                 parts = line.split()
                 if len(parts) >= 3:
                     awr_data[parts[1]] = float(parts[2])

@@ -32,10 +32,10 @@ def read_fispact_printlib(fpath):
     """  processes a fispact printlib file """
     if not os.path.exists(fpath):
         raise FileNotFoundError(f"FISPACT printlib file not found: {fpath}")
-    
+
     if not os.path.isfile(fpath):
         raise ValueError(f"Path is not a file: {fpath}")
-    
+
     averages = []
     nucs = []
     particle = []

@@ -15,7 +15,7 @@ class getlines_test_case(unittest.TestCase):
         with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
             temp_file.writelines(sample_lines)
             temp_file_path = temp_file.name
-        
+
         try:
             lines = ut.get_lines(temp_file_path)
             self.assertEqual(len(lines), 3)
@@ -243,7 +243,7 @@ class replace_tab_with_space_test_case(unittest.TestCase):
         result = ut.replace_tab_with_space(line, num_spaces=5)
         self.assertEqual(result, expected)
 
-        
+
 class ensure_dir_exists_test_case(unittest.TestCase):
     """test for the function """
     def test_ensure_dir_exists(self):

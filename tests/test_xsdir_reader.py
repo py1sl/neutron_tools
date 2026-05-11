@@ -6,7 +6,7 @@ from neutron_tools.nuclear_data_readers import xsdir_reader
 
 class xsdir_init_test_case(unittest.TestCase):
     """Tests for XSDir initialization"""
-    
+
     def test_init(self):
         """Test XSDir object initialization"""
         xs = xsdir_reader.XSDir()
@@ -18,7 +18,7 @@ class xsdir_init_test_case(unittest.TestCase):
 
 class xsdir_str_test_case(unittest.TestCase):
     """Tests for XSDir __str__ method"""
-    
+
     def test_str_empty(self):
         """Test __str__ with empty XSDir object"""
         xs = xsdir_reader.XSDir()
@@ -33,7 +33,7 @@ class xsdir_str_test_case(unittest.TestCase):
 
 class process_datapath_test_case(unittest.TestCase):
     """Tests for _process_datapath static method"""
-    
+
     def test_datapath_simple(self):
         """Test extracting simple datapath"""
         lines = [
@@ -43,7 +43,7 @@ class process_datapath_test_case(unittest.TestCase):
         ]
         result = xsdir_reader.XSDir._process_datapath(lines)
         self.assertEqual(result, "/path/to/data")
-    
+
     def test_datapath_with_spaces(self):
         """Test extracting datapath with spaces"""
         lines = [
@@ -51,7 +51,7 @@ class process_datapath_test_case(unittest.TestCase):
         ]
         result = xsdir_reader.XSDir._process_datapath(lines)
         self.assertEqual(result, "/path/with/spaces")
-    
+
     def test_datapath_mixed_case(self):
         """Test extracting datapath with mixed case"""
         lines = [
@@ -59,7 +59,7 @@ class process_datapath_test_case(unittest.TestCase):
         ]
         result = xsdir_reader.XSDir._process_datapath(lines)
         self.assertEqual(result, "/upper/case/path")
-    
+
     def test_datapath_not_found(self):
         """Test when datapath is not present"""
         lines = [
@@ -72,7 +72,7 @@ class process_datapath_test_case(unittest.TestCase):
 
 class process_awr_test_case(unittest.TestCase):
     """Tests for _process_awr static method"""
-    
+
     def test_awr_basic(self):
         """Test parsing basic AWR section"""
         lines = [
@@ -85,7 +85,7 @@ class process_awr_test_case(unittest.TestCase):
         self.assertEqual(len(result), 2)
         self.assertEqual(result["H-1"], 1.007825)
         self.assertEqual(result["He-4"], 4.002603)
-    
+
     def test_awr_empty(self):
         """Test with no AWR section"""
         lines = [
@@ -94,7 +94,7 @@ class process_awr_test_case(unittest.TestCase):
         ]
         result = xsdir_reader.XSDir._process_awr(lines)
         self.assertEqual(len(result), 0)
-    
+
     def test_awr_with_extra_columns(self):
         """Test AWR parsing with extra columns"""
         lines = [
@@ -108,7 +108,7 @@ class process_awr_test_case(unittest.TestCase):
 
 class process_directory_test_case(unittest.TestCase):
     """Tests for _process_directory static method"""
-    
+
     def test_directory_basic(self):
         """Test parsing basic directory section"""
         lines = [
@@ -121,7 +121,7 @@ class process_directory_test_case(unittest.TestCase):
         self.assertIn("1001.80c", result)
         self.assertEqual(result["1001.80c"][0], "1.0000")
         self.assertEqual(result["1001.80c"][1], "filename")
-    
+
     def test_directory_empty_lines(self):
         """Test directory parsing with empty lines"""
         lines = [
@@ -133,7 +133,7 @@ class process_directory_test_case(unittest.TestCase):
         ]
         result = xsdir_reader.XSDir._process_directory(lines)
         self.assertEqual(len(result), 2)
-    
+
     def test_directory_no_section(self):
         """Test when directory section is not present"""
         lines = [
@@ -202,7 +202,7 @@ class directory_lookup_test_case(unittest.TestCase):
 
 class from_file_test_case(unittest.TestCase):
     """Tests for from_file class method"""
-    
+
     def test_from_file_complete(self):
         """Test reading a complete xsdir file"""
         xsdir_content = """datapath=/nuclear/data/path
@@ -221,32 +221,32 @@ h-zrh.20t 1.0000 zrh.tsl 0 1 56789
         with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.xsdir') as temp_file:
             temp_file.write(xsdir_content)
             temp_file_path = temp_file.name
-        
+
         try:
             xs = xsdir_reader.XSDir.from_file(temp_file_path)
-            
+
             # Check file path
             self.assertEqual(xs.file_path, temp_file_path)
-            
+
             # Check datapath
             self.assertEqual(xs.datapath, "/nuclear/data/path")
-            
+
             # Check AWR
             self.assertEqual(len(xs.awr), 3)
             self.assertEqual(xs.awr["H-1"], 1.007825)
             self.assertEqual(xs.awr["He-4"], 4.002603)
             self.assertEqual(xs.awr["C-nat"], 12.0)
-            
+
             # Check directory
             # Note: directory parser continues through all lines after "directory" marker,
             # so thermal entries are also included in directory dict
             self.assertGreaterEqual(len(xs.directory), 3)
             self.assertIn("1001.80c", xs.directory)
             self.assertEqual(xs.directory["1001.80c"][0], "1.0078")
-            self.assertEqual(xs.directory["1001.80c"][1], "h1.endf")         
+            self.assertEqual(xs.directory["1001.80c"][1], "h1.endf")
         finally:
             os.remove(temp_file_path)
-    
+
     def test_from_file_minimal(self):
         """Test reading minimal xsdir file"""
         xsdir_content = """datapath=/data
@@ -256,7 +256,7 @@ directory
         with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.xsdir') as temp_file:
             temp_file.write(xsdir_content)
             temp_file_path = temp_file.name
-        
+
         try:
             xs = xsdir_reader.XSDir.from_file(temp_file_path)
             self.assertEqual(xs.datapath, "/data")
@@ -269,7 +269,7 @@ directory
 
 class read_xsdir_function_test_case(unittest.TestCase):
     """Tests for read_xsdir convenience function"""
-    
+
     def test_read_xsdir(self):
         """Test read_xsdir function"""
         xsdir_content = """datapath=/test/path
@@ -279,7 +279,7 @@ directory
         with tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.xsdir') as temp_file:
             temp_file.write(xsdir_content)
             temp_file_path = temp_file.name
-        
+
         try:
             xs = xsdir_reader.read_xsdir(temp_file_path)
             self.assertIsInstance(xs, xsdir_reader.XSDir)

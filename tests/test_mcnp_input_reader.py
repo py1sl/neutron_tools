@@ -187,7 +187,7 @@ class surface_card_tests(unittest.TestCase):
         self.assertTrue(surface.params, ["1.0"])
         self.assertTrue(surface.transform, 2)
         self.assertTrue(surface.has_transform)
-        
+
     # test multi line surface card
     def test_multi_line_surface(self):
         self.assertTrue(True)
@@ -545,7 +545,7 @@ class MaterialTests(unittest.TestCase):
         mat = mcnp_input_reader.process_material_keyword(test_line, mat)
         self.assertEqual(mat.keywords["plib"], ".70u")
         self.assertEqual(mat.keywords["test_key"], "test_value")
-        
+
 
 
 class CardAndPrefixTests(unittest.TestCase):

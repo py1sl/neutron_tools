@@ -11,7 +11,7 @@ from datetime import datetime
 
 class NeutronToolsLogger:
     """Centralized logging config for neutron tools"""
-    
+
     def __init__(self) -> None:
         self.logger = logging.getLogger('nt_logger')
         self.logger.setLevel(logging.DEBUG)
@@ -35,7 +35,7 @@ class NeutronToolsLogger:
         Returns:
             Configured logger instance
         """
-        self.logger.handlers.clear()  
+        self.logger.handlers.clear()
 
         formatter = logging.Formatter(log_format)
 
@@ -49,7 +49,7 @@ class NeutronToolsLogger:
             if log_file == 'auto':
                 date_str = datetime.now().strftime('%Y%m%d')
                 log_file = f'nt_{date_str}.log'
-            
+
             file_handler = logging.handlers.RotatingFileHandler(
                 log_file,
                 maxBytes=10*1024*1024,  # 10MB

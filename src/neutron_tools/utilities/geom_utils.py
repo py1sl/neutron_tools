@@ -25,15 +25,15 @@ def check_parallel_planes(n1, n2):
 
 
 def check_identical_planes(n1, d1, n2, d2):
-    """ check if planes are identical by checking if their normals are parallel 
+    """ check if planes are identical by checking if their normals are parallel
         and they have the same offset
     """
     if check_parallel_planes(n1, n2) and np.isclose(d1, d2):
         return True
     else:
         return False
-   
-    
+
+
 def check_near_parallel_planes(n1, n2, tol=1e-6):
     """ check if planes are near parallel by checking if their normals are near parallel"""
     n1_unit = n1 / np.linalg.norm(n1)
@@ -45,17 +45,17 @@ def check_near_parallel_planes(n1, n2, tol=1e-6):
 
 
 def check_near_identical_planes(n1, d1, n2, d2, normal_tol=1e-6, offset_tol=1e-5):
-    """ check if planes are near identical by checking if their normals are near parallel 
+    """ check if planes are near identical by checking if their normals are near parallel
         and they have near offsets
     """
     if check_near_parallel_planes(n1, n2, tol=normal_tol) and np.isclose(d1, d2, atol=offset_tol):
         return True
     else:
         return False
-    
+
 
 def check_plane_opposite_normals(n1, d1, n2, d2, normal_tol=1e-6, offset_tol=1e-5):
-    """ check if planes have opposite normals by checking if their normals are near parallel 
+    """ check if planes have opposite normals by checking if their normals are near parallel
         and they have near offsets but opposite signs
     """
     n1_unit = n1 / np.linalg.norm(n1)

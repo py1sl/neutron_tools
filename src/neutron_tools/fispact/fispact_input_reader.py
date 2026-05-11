@@ -28,15 +28,15 @@ def read_fispact_input(fpath):
     """  processes a fispact input file """
     if not os.path.exists(fpath):
         raise FileNotFoundError(f"FISPACT input file not found: {fpath}")
-    
+
     if not os.path.isfile(fpath):
         raise ValueError(f"Path is not a file: {fpath}")
-    
+
     try:
         ifile = ut.get_lines(fpath)
     except Exception as e:
         raise IOError(f"Failed to read FISPACT input file {fpath}: {e}") from e
-    
+
     return ifile
 
 
