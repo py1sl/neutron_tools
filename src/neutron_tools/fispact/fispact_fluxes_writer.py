@@ -5,12 +5,19 @@ Functions for writing fispact fluxes files
 @author: S Lilley
 """
 import argparse
-import numpy as np
 import logging as ntlogger
+from typing import Sequence, Tuple, Union
+
+import numpy as np
+
 from neutron_tools.utilities import neut_utilities as ut
 
 
-def get_group_pos(groups, energy):
+EnergyLike = Union[float, int, str]
+GroupBounds = Union[Sequence[float], np.ndarray]
+
+
+def get_group_pos(groups: GroupBounds, energy: EnergyLike) -> int:
     """ finds the energy bin number for a given energy
         input is the group energy boundaries and the energy
         output is the position in the list of the bin in which that energy sits
@@ -43,7 +50,7 @@ def get_group_pos(groups, energy):
         return -1
 
 
-def get_group_struct(gs):
+def get_group_struct(gs: str) -> Union[Tuple[float, ...], bool]:
     """ returns a named group structure bin boundaries """
 
     gs_162 = (1.0000E+9, 9.6000E+8, 9.2000E+8, 8.8000E+8, 8.4000E+8, 8.0000E+8,
@@ -203,7 +210,7 @@ def get_group_struct(gs):
         return False
 
 
-def create_fluxes_data(groups, epos):
+def create_fluxes_data(groups: GroupBounds, epos: int) -> np.ndarray:
     """ produces a list representing a fluxes file
         with a single 1 in the correct energy bin
         all other bins are set to zero
@@ -230,7 +237,9 @@ def create_fluxes_data(groups, epos):
     return flux_data
 
 
-def convert_mcnp_spect_to_fispact_fluxes_format(mcnp_spect):
+def convert_mcnp_spect_to_fispact_fluxes_format(
+    mcnp_spect: GroupBounds,
+) -> np.ndarray:
     """ takes a list assumed to be ordered low to high energy
         inverts to fispact fluxes format high to low energy
         adds a power line
@@ -252,7 +261,7 @@ def convert_mcnp_spect_to_fispact_fluxes_format(mcnp_spect):
     return fispact_spect
 
 
-def check_upper_bound(groups, energy):
+def check_upper_bound(groups: GroupBounds, energy: EnergyLike) -> bool:
     """ checks energy is not beyond the upper energy of the group structure """
     if not isinstance(groups, (list, tuple, np.ndarray)) or len(groups) == 0:
         raise ValueError("groups must be a non-empty array-like object")
@@ -270,7 +279,7 @@ def check_upper_bound(groups, energy):
         return True
 
 
-def write_fluxes_file(opath, data):
+def write_fluxes_file(opath: str, data: GroupBounds) -> None:
     """ writes the data to a file """
     if not isinstance(data, (list, tuple, np.ndarray)) or len(data) == 0:
         raise ValueError("data must be a non-empty array-like object")
@@ -282,7 +291,7 @@ def write_fluxes_file(opath, data):
         raise IOError(f"Failed to write fluxes file to {opath}: {e}") from e
 
 
-def check_group_struct(gs):
+def check_group_struct(gs: str) -> bool:
     """ checks if the requested group structure is a valid fispact group structure
     """
     structures = ("709", "162")

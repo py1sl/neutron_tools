@@ -5,12 +5,14 @@ S Lilley
 october 2021
 """
 import argparse
-from neutron_tools.utilities import neut_utilities as ut
-import pandas as pd
 import os
 
+import pandas as pd
 
-def energy_filter(data, energy):
+from neutron_tools.utilities import neut_utilities as ut
+
+
+def energy_filter(data: pd.DataFrame, energy: float) -> pd.DataFrame:
     """ filter emission lines based on energy """
     if not isinstance(data, pd.DataFrame):
         raise ValueError("data must be a pandas DataFrame")
@@ -19,7 +21,7 @@ def energy_filter(data, energy):
     return data[data["energy_ev"] > energy]
 
 
-def particle_filter(data, particle):
+def particle_filter(data: pd.DataFrame, particle: str) -> pd.DataFrame:
     """ filter emission lines based on emission particle """
     if not isinstance(data, pd.DataFrame):
         raise ValueError("data must be a pandas DataFrame")
@@ -28,14 +30,14 @@ def particle_filter(data, particle):
     return data[data["particle"] == particle]
 
 
-def read_fispact_printlib(fpath):
+def read_fispact_printlib(fpath: str) -> pd.DataFrame:
     """  processes a fispact printlib file """
     if not os.path.exists(fpath):
         raise FileNotFoundError(f"FISPACT printlib file not found: {fpath}")
-    
+
     if not os.path.isfile(fpath):
         raise ValueError(f"Path is not a file: {fpath}")
-    
+
     averages = []
     nucs = []
     particle = []
@@ -43,16 +45,23 @@ def read_fispact_printlib(fpath):
     intensity = []
     in_discrete = False
     in_average = False
+    cur_nuc = ""
+    discrete_lines_df = pd.DataFrame(
+        columns=["nuclide", "particle", "energy_ev", "intensity"]
+    )
 
     try:
-        with open(fpath, 'r') as plf:
+        with open(fpath, "r") as plf:
             for line in plf:
                 if "fispact run time" in line:
-                    discrete_lines_df = pd.DataFrame()
-                    discrete_lines_df["nuclide"] = nucs
-                    discrete_lines_df["particle"] = particle
-                    discrete_lines_df["energy_ev"] = energy
-                    discrete_lines_df["intensity"] = intensity
+                    discrete_lines_df = pd.DataFrame(
+                        {
+                            "nuclide": nucs,
+                            "particle": particle,
+                            "energy_ev": energy,
+                            "intensity": intensity,
+                        }
+                    )
                     break
                 elif in_discrete:
                     if ("Type" not in line) and ("no spectral data" not in line):

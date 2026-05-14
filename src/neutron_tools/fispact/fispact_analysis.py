@@ -1,16 +1,24 @@
 import logging
 import matplotlib
 import os
+from typing import List, Optional, Sequence, Tuple
+
 from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from neutron_tools.utilities import neut_utilities as ut
+from matplotlib.lines import Line2D
+
+from neutron_tools.fispact.fispact_output_reader import FispactOutput, FispactTimeStep
 from neutron_tools.utilities import neut_constants
+from neutron_tools.utilities import neut_utilities as ut
+
 matplotlib.use('agg')
 
 
-def reduce_to_non_zero(values, time_values):
+def reduce_to_non_zero(
+    values: Sequence[float], time_values: Sequence[float]
+) -> Tuple[Sequence[float], Sequence[float]]:
     """ reduce to only positive no zero values for parameter and time
         this is useful to then make sensible graphs for short half lives
     """
@@ -24,7 +32,7 @@ def reduce_to_non_zero(values, time_values):
     return values, time_values
 
 
-def is_nuc_present(inv, nuc):
+def is_nuc_present(inv: pd.DataFrame, nuc: str) -> bool:
     """ checks if a nuclide is in an inventory"""
     if not isinstance(inv, pd.DataFrame):
         raise ValueError("inv must be a pandas DataFrame")
@@ -33,7 +41,7 @@ def is_nuc_present(inv, nuc):
     return nuc in inv["nuclide"].unique()
 
 
-def remove_stable(inv):
+def remove_stable(inv: pd.DataFrame) -> pd.DataFrame:
     """ removes stable isotopes from inventory listing"""
     if not isinstance(inv, pd.DataFrame):
         raise ValueError("inv must be a pandas DataFrame")
@@ -42,7 +50,7 @@ def remove_stable(inv):
     return inv[inv["act"] > 0.0]
 
 
-def filter_emits_gamma(inv):
+def filter_emits_gamma(inv: pd.DataFrame) -> pd.DataFrame:
     """ remove stable or pure alpha or pure beta emitters  """
     if not isinstance(inv, pd.DataFrame):
         raise ValueError("inv must be a pandas DataFrame")
@@ -51,7 +59,7 @@ def filter_emits_gamma(inv):
     return inv[inv["g_energy"] > 0.0]
 
 
-def filter_emits_beta(inv):
+def filter_emits_beta(inv: pd.DataFrame) -> pd.DataFrame:
     """ remove stable or pure alpha or pure gamma emitters  """
     if not isinstance(inv, pd.DataFrame):
         raise ValueError("inv must be a pandas DataFrame")
@@ -60,7 +68,7 @@ def filter_emits_beta(inv):
     return inv[inv["b_energy"] > 0.0]
 
 
-def filter_emits_alpha(inv):
+def filter_emits_alpha(inv: pd.DataFrame) -> pd.DataFrame:
     """ remove stable or pure beta or pure gamma emitters  """
     if not isinstance(inv, pd.DataFrame):
         raise ValueError("inv must be a pandas DataFrame")
@@ -69,7 +77,7 @@ def filter_emits_alpha(inv):
     return inv[inv["a_energy"] > 0.0]
 
 
-def output_mcnp_mat(inv, lib=".70c"):
+def output_mcnp_mat(inv: pd.DataFrame, lib: str = ".70c") -> pd.DataFrame:
     """ convert the fispact inventory into an MCNP material
         note: metastables are converted to ground state
     """
@@ -89,7 +97,7 @@ def output_mcnp_mat(inv, lib=".70c"):
     return matdf
 
 
-def check_time_units(t_units):
+def check_time_units(t_units: str) -> str:
     """ convert time units to column heading, allowing sensible input """
     # correct for sensible time unit requests, otherwise just use t_units
     # if it is not a valid column name that will be picked up by the dataframe
@@ -107,7 +115,7 @@ def check_time_units(t_units):
     return t_units
 
 
-def read_OOS(oos_path="data/t1.txt"):
+def read_OOS(oos_path: str = "data/t1.txt") -> pd.DataFrame:
     """ read the external data file with a tab seperated list of nuclides and the
         out of scope value for that nuclide
         returns a pandas dataframe with the data
@@ -119,7 +127,9 @@ def read_OOS(oos_path="data/t1.txt"):
     return OOS_df
 
 
-def check_nuclide_oos(nuclide, nuc_act, oos_data, mass=1000):
+def check_nuclide_oos(
+    nuclide: str, nuc_act: float, oos_data: pd.DataFrame, mass: float = 1000
+) -> bool:
     """ checks if a nuclide is in the OOS data and compares if the activity is above that value
         returns true if activity is lower than the OOS value
         returns false if above the OOS value
@@ -139,7 +149,7 @@ def check_nuclide_oos(nuclide, nuc_act, oos_data, mass=1000):
         return True
 
 
-def check_inventory_oos(inv, oos_path="data/t1.txt"):
+def check_inventory_oos(inv: pd.DataFrame, oos_path: str = "data/t1.txt") -> bool:
     """ checks all nuclides in an inventory
         returns true if all nuclides are below the OOS value
         returns false if any nuclide is above the OOS value
@@ -151,16 +161,12 @@ def check_inventory_oos(inv, oos_path="data/t1.txt"):
 
     # Check if any of the result values are False
     if not oos_result.all():
-
-        # Get the index of the first False value - for future output options
-        first_false_index = oos_result.idxmin()
-
         return False
     else:
         return True
 
 
-def get_not_oos_nuclides(inv, oos_path="data/t1.txt"):
+def get_not_oos_nuclides(inv: pd.DataFrame, oos_path: str = "data/t1.txt") -> pd.DataFrame:
     """ """
     oos_data = read_OOS(oos_path)
     inv = remove_stable(inv)
@@ -170,7 +176,9 @@ def get_not_oos_nuclides(inv, oos_path="data/t1.txt"):
     return inv
 
 
-def find_when_oos(ts_data, oos_path="data/t1.txt"):
+def find_when_oos(
+    ts_data: Sequence[FispactTimeStep], oos_path: str = "data/t1.txt"
+) -> Optional[int]:
     """ checks all times steps to find first one which is OOS
         returns the time step number
     """
@@ -181,14 +189,23 @@ def find_when_oos(ts_data, oos_path="data/t1.txt"):
             return ts.step_num
 
 
-def cooling_ts_data(fout):
+def cooling_ts_data(fout: FispactOutput) -> List[FispactTimeStep]:
     """ """
     ts_data = fout.timestep_data[fout.cooling_step_index:]
     return ts_data
 
 
-def plot_summary(sum_dat, column="act", offset=0, fname=None,
-                 vlines=None, hlines=None, x_units="time_hours", y_units=None, cooling=False):
+def plot_summary(
+    sum_dat: pd.DataFrame,
+    column: str = "act",
+    offset: float = 0,
+    fname: Optional[str] = None,
+    vlines: Optional[Sequence[float]] = None,
+    hlines: Optional[Sequence[float]] = None,
+    x_units: str = "time_hours",
+    y_units: Optional[str] = None,
+    cooling: bool = False,
+) -> List[Line2D]:
     """ plots any of the columns from the data frame as a function of time
     (included: activity, dose rate, heat output, ingestion dose, inhalation dose,
     tritium activity)"""
@@ -264,7 +281,7 @@ def plot_summary(sum_dat, column="act", offset=0, fname=None,
     return plot
 
 
-def plot_spectra(timestep, fname=None):
+def plot_spectra(timestep: FispactTimeStep, fname: Optional[str] = None) -> None:
     """ plots the group wise gamma emission spectra """
     plt.clf()
     plt.xlabel("Energy (MeV)")
@@ -288,7 +305,13 @@ def plot_spectra(timestep, fname=None):
         plt.show()
 
 
-def plot_pie(dom_data, title, param="act", fname=None, thres=1.0):
+def plot_pie(
+    dom_data: pd.DataFrame,
+    title: str,
+    param: str = "act",
+    fname: Optional[str] = None,
+    thres: float = 1.0,
+) -> None:
     """ """
 
     # check valid param
@@ -320,7 +343,13 @@ def plot_pie(dom_data, title, param="act", fname=None, thres=1.0):
         plt.show()
 
 
-def plot_nuc_cont(fout, nuc_list, param="act", fname=None, total=False):
+def plot_nuc_cont(
+    fout: FispactOutput,
+    nuc_list: Sequence[str],
+    param: str = "act",
+    fname: Optional[str] = None,
+    total: bool = False,
+) -> List[Line2D]:
     """  plots all nuclides in nuclist over all times steps"""
     if not hasattr(fout, 'timestep_data') or not hasattr(fout, 'sumdat'):
         raise ValueError("fout must be a FispactOutput object with timestep_data and sumdat attributes")
@@ -369,7 +398,13 @@ def plot_nuc_cont(fout, nuc_list, param="act", fname=None, total=False):
     return plot
 
 
-def plot_nuc_chart(inv_dat, prop="act", fname=None, arange=None, zrange=None):
+def plot_nuc_chart(
+    inv_dat: pd.DataFrame,
+    prop: str = "act",
+    fname: Optional[str] = None,
+    arange: Optional[Sequence[int]] = None,
+    zrange: Optional[Sequence[int]] = None,
+) -> None:
     """ plots a table of nuclides style plot of the given parameter """
     if not isinstance(inv_dat, pd.DataFrame):
         raise ValueError("inv_dat must be a pandas DataFrame")

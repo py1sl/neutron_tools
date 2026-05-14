@@ -18,73 +18,79 @@ extracting data, processing the data
 
 """
 import argparse
-from neutron_tools.utilities import neut_utilities as ut
+import os
+import re
+from dataclasses import dataclass, field
+from typing import List, Optional, Sequence, Tuple, Union
+
 import numpy as np
 import pandas as pd
-import re
-import os
+
+from neutron_tools.utilities import neut_utilities as ut
 
 
-class FispactOutput():
+Lines = Sequence[str]
+NumericText = Union[float, str]
+
+
+@dataclass
+class FispactOutput:
     """ fispact output data"""
 
-    def __init__(self):
-        """ define data"""
-        self.file_name = ""
-        self.sumdat = []
-        self.timestep_data = []
-        self.cooling_step_index = 0
-        self.num_cool_step = 0   # number of steps after zero keyword
-        self.num_irrad_step = 0  # number of steps with flux > 0
-        self.version = ""
-        self.isFisII = False
-        self.cpu_time = 0.0
-        self.tot_irrad_time = 0.0
-        self.tot_fluence = 0.0
-        self.ave_flux = 0.0
-        self.mass_kg = 0.0
-        self.mass_g = 0.0
-        self.time_days = []
+    file_name: str = ""
+    sumdat: pd.DataFrame = field(default_factory=pd.DataFrame)
+    timestep_data: List["FispactTimeStep"] = field(default_factory=list)
+    cooling_step_index: Optional[int] = 0
+    num_cool_step: int = 0   # number of steps after zero keyword
+    num_irrad_step: float = 0  # number of steps with flux > 0
+    version: str = ""
+    isFisII: bool = False
+    cpu_time: float = 0.0
+    tot_irrad_time: float = 0.0
+    tot_fluence: float = 0.0
+    ave_flux: float = 0.0
+    mass_kg: float = 0.0
+    mass_g: float = 0.0
+    time_days: List[float] = field(default_factory=list)
 
 
-class FispactTimeStep():
+@dataclass
+class FispactTimeStep:
     """ data for an individual time step can be heating or cooling """
 
-    def __init__(self):
-        self.step_num = 1
-        self.step_length = 0
-        self.flux_amp = 0
-        self.is_cooling = False
-        self.num_nuclides = 0
-        self.alpha_act = 0     # bq
-        self.beta_act = 0      # bq
-        self.gamma_act = 0     # bq
-        self.total_act = 0     # bq
-        self.total_act_no_trit = 0   # bq
-        self.alpha_heat = 0    # kw
-        self.beta_heat = 0     # kw
-        self.gamma_heat = 0    # kw
-        self.total_heat = 0    # kw
-        self.total_heat_no_trit = 0   # kw
-        self.num_fissions = 0
-        self.neutron_flux = 0   # n/cm**2/s
-        self.initial_mass = 0   # kg
-        self.total_mass = 0     # kg
-        self.density = 0        # g/cc
-        self.actinide_burn = 0   # %
-        self.appm_h1 = 0
-        self.appm_h2 = 0
-        self.appm_h3 = 0
-        self.appm_he3 = 0
-        self.appm_he4 = 0
-
-        self.dom_data = []
-        self.inventory = []
-        self.gspec = []
-        self.composition = []
+    step_num: int = 1
+    step_length: float = 0
+    flux_amp: float = 0
+    is_cooling: bool = False
+    num_nuclides: int = 0
+    alpha_act: float = 0     # bq
+    beta_act: float = 0      # bq
+    gamma_act: float = 0     # bq
+    total_act: float = 0     # bq
+    total_act_no_trit: float = 0   # bq
+    alpha_heat: float = 0    # kw
+    beta_heat: float = 0     # kw
+    gamma_heat: float = 0    # kw
+    total_heat: float = 0    # kw
+    total_heat_no_trit: float = 0   # kw
+    num_fissions: Union[int, float, str] = 0
+    neutron_flux: float = 0   # n/cm**2/s
+    initial_mass: float = 0   # kg
+    total_mass: float = 0     # kg
+    density: float = 0        # g/cc
+    actinide_burn: float = 0   # %
+    appm_h1: NumericText = 0
+    appm_h2: NumericText = 0
+    appm_h3: NumericText = 0
+    appm_he3: NumericText = 0
+    appm_he4: NumericText = 0
+    dom_data: pd.DataFrame = field(default_factory=pd.DataFrame)
+    inventory: pd.DataFrame = field(default_factory=pd.DataFrame)
+    gspec: List[float] = field(default_factory=list)
+    composition: pd.DataFrame = field(default_factory=pd.DataFrame)
 
 
-def read_fis_out(path):
+def read_fis_out(path: str) -> FispactOutput:
     """ parse a fispact output file
         returns fo, a fispact output object
     """
@@ -139,7 +145,7 @@ def read_fis_out(path):
     return fo
 
 
-def read_time_step(lines, i):
+def read_time_step(lines: Lines, i: int) -> FispactTimeStep:
     """ reads a particular time step """
     if not isinstance(lines, (list, tuple)) or len(lines) == 0:
         raise ValueError("lines must be a non-empty list or tuple")
@@ -217,7 +223,7 @@ def read_time_step(lines, i):
     return ts
 
 
-def check_fisp_version(data):
+def check_fisp_version(data: Lines) -> str:
     """ Checks which version of fispact was used to produced data
         requires a list with each element being a line from the
         fispact output file
@@ -233,7 +239,7 @@ def check_fisp_version(data):
     return v
 
 
-def isFisII(data):
+def isFisII(data: Lines) -> bool:
     """boolean check if file is fispact-ii output """
     v = check_fisp_version(data)
     if v == "FISPACT-II":
@@ -242,7 +248,7 @@ def isFisII(data):
         return False
 
 
-def find_summary_block(data, fisII):
+def find_summary_block(data: Lines, fisII: bool) -> Tuple[int, int]:
     """
     Finds the start and end of the summary block in the data.
     """
@@ -260,7 +266,7 @@ def find_summary_block(data, fisII):
     return start_ind, end_ind
 
 
-def add_time_columns(df, base_time_col="time_years"):
+def add_time_columns(df: pd.DataFrame, base_time_col: str = "time_years") -> pd.DataFrame:
     """Add time columns in different units based on a base time column
 
     Args:
@@ -288,7 +294,7 @@ def add_time_columns(df, base_time_col="time_years"):
     return df
 
 
-def read_summary_data(data):
+def read_summary_data(data: Lines) -> pd.DataFrame:
     """ Processes the summary block at the end of the file"""
 
     fisII = isFisII(data)
@@ -365,7 +371,7 @@ def read_summary_data(data):
     return sum_data
 
 
-def retrieve_cooling_data(sum_data):
+def retrieve_cooling_data(sum_data: pd.DataFrame) -> pd.DataFrame:
     """ filters the data summary to only include data from the cooling
     phase """
     # filters to is_cooling true values
@@ -373,7 +379,7 @@ def retrieve_cooling_data(sum_data):
     return cooling_data
 
 
-def parse_dominant(data):
+def parse_dominant(data: Lines) -> pd.DataFrame:
     """parse dominant nuclides section and return a list of lists """
     if not isinstance(data, (list, tuple)) or len(data) == 0:
         raise ValueError("data must be a non-empty list or tuple")
@@ -454,7 +460,7 @@ def parse_dominant(data):
     return dom_data
 
 
-def parse_composition(data):
+def parse_composition(data: Lines) -> pd.DataFrame:
     """ parse compostions section
         returns dataframe with two columns, one with name of element,
         one with the number of atoms
@@ -489,7 +495,7 @@ def parse_composition(data):
     return composition
 
 
-def parse_spectra(data):
+def parse_spectra(data: Lines) -> List[float]:
     """ reads gamma spectra data for each timestep
         returns list of length 24 corresponding to 24 gamma energy groups
         data is in gamma/s/cc
@@ -513,7 +519,7 @@ def parse_spectra(data):
     return spectra
 
 
-def parse_inventory(data):
+def parse_inventory(data: Lines) -> pd.DataFrame:
     """ parse inventory data
         returns a list of lists with all data from the inventory
         section of the times step in order:
@@ -554,7 +560,7 @@ def parse_inventory(data):
     return inv
 
 
-def read_mass(lines):
+def read_mass(lines: Lines) -> float:
     """ find and read in the mass line """
     mass_pattern = re.compile(r"^0\s+Mass of material input\s*=\s*([0-9.Ee+-]+)\s*kg\.")
     for line in lines:
@@ -565,7 +571,7 @@ def read_mass(lines):
     return 0.0
 
 
-def find_first_cooling_index(sumdat):
+def find_first_cooling_index(sumdat: pd.DataFrame) -> Optional[int]:
     """ finds the first index  """
     result = sumdat[sumdat["is_cooling"]]
     if not result.empty:
@@ -576,7 +582,7 @@ def find_first_cooling_index(sumdat):
     return index
 
 
-def read_parameter(data, sub):
+def read_parameter(data: Lines, sub: str) -> float:
     """ finds and cleans integral values in each timestep"""
     if not isinstance(data, (list, tuple)) or len(data) == 0:
         raise ValueError("data must be a non-empty list or tuple")
