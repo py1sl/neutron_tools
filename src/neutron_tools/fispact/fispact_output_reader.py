@@ -40,7 +40,7 @@ class FispactOutput:
     file_name: str = ""
     sumdat: pd.DataFrame = field(default_factory=pd.DataFrame)
     timestep_data: List["FispactTimeStep"] = field(default_factory=list)
-    cooling_step_index: Optional[int] = None
+    cooling_step_index: Optional[int] = 0
     num_cool_step: int = 0   # number of steps after zero keyword
     num_irrad_step: int = 0  # number of steps with flux > 0
     version: str = ""
@@ -79,11 +79,11 @@ class FispactTimeStep:
     total_mass: float = 0     # kg
     density: float = 0        # g/cc
     actinide_burn: float = 0   # %
-    appm_h1: FloatOrStr = 0
-    appm_h2: FloatOrStr = 0
-    appm_h3: FloatOrStr = 0
-    appm_he3: FloatOrStr = 0
-    appm_he4: FloatOrStr = 0
+    appm_h1: FloatOrStr = 0.0
+    appm_h2: FloatOrStr = 0.0
+    appm_h3: FloatOrStr = 0.0
+    appm_he3: FloatOrStr = 0.0
+    appm_he4: FloatOrStr = 0.0
     dom_data: pd.DataFrame = field(default_factory=pd.DataFrame)
     inventory: pd.DataFrame = field(default_factory=pd.DataFrame)
     gspec: List[float] = field(default_factory=list)

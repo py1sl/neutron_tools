@@ -187,7 +187,10 @@ def find_when_oos(
 
 def cooling_ts_data(fout: FispactOutput) -> List[FispactTimeStep]:
     """ """
-    ts_data = fout.timestep_data[fout.cooling_step_index:]
+    start = fout.cooling_step_index
+    if start is None:
+        return []
+    ts_data = fout.timestep_data[start:]
     return ts_data
 
 
