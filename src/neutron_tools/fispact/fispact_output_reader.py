@@ -42,7 +42,7 @@ class FispactOutput:
     timestep_data: List["FispactTimeStep"] = field(default_factory=list)
     cooling_step_index: Optional[int] = 0
     num_cool_step: int = 0   # number of steps after zero keyword
-    num_irrad_step: float = 0  # number of steps with flux > 0
+    num_irrad_step: int = 0  # number of steps with flux > 0
     version: str = ""
     isFisII: bool = False
     cpu_time: float = 0.0
@@ -73,7 +73,7 @@ class FispactTimeStep:
     gamma_heat: float = 0    # kw
     total_heat: float = 0    # kw
     total_heat_no_trit: float = 0   # kw
-    num_fissions: Union[int, float, str] = 0
+    num_fissions: float = 0
     neutron_flux: float = 0   # n/cm**2/s
     initial_mass: float = 0   # kg
     total_mass: float = 0     # kg
@@ -115,7 +115,7 @@ def read_fis_out(path: str) -> FispactOutput:
     fo.ave_flux = read_parameter(lines, "Mean flux")
     fo.tot_irrad_time = read_parameter(lines, "Total irradiation time")
     fo.tot_fluence = read_parameter(lines, "Total fluence")
-    fo.num_irrad_step = read_parameter(lines, "Number of on-times")
+    fo.num_irrad_step = int(read_parameter(lines, "Number of on-times"))
     fo.mass_kg = read_mass(lines)
     fo.mass_g = fo.mass_kg * 1000
 
@@ -185,10 +185,7 @@ def read_time_step(lines: Lines, i: int) -> FispactTimeStep:
     ts.total_mass = float(lines[ind + 4][40:51])
     ts.neutron_flux = float(lines[ind + 5][40:51])
 
-    ts.num_fissions = lines[ind + 6][39:51]
-    # added check for E as if <=1E-100 the E is dropped
-    if "E" in ts.num_fissions:
-        ts.num_fissions = float(ts.num_fissions)
+    ts.num_fissions = float(lines[ind + 6][39:51])
 
     ts.actinide_burn = float(lines[ind + 6][90:101])
 

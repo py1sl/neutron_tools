@@ -45,10 +45,6 @@ def read_fispact_printlib(fpath: str) -> pd.DataFrame:
     intensity = []
     in_discrete = False
     in_average = False
-    cur_nuc = ""
-    discrete_lines_df = pd.DataFrame(
-        columns=["nuclide", "particle", "energy_ev", "intensity"]
-    )
 
     try:
         with open(fpath, "r") as plf:
