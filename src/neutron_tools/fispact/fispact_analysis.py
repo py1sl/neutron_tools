@@ -159,11 +159,7 @@ def check_inventory_oos(inv: pd.DataFrame, oos_path: str = "data/t1.txt") -> boo
 
     oos_result = inv.apply(lambda row: check_nuclide_oos(row['nuclide'], row['act'], oos_data), axis=1)
 
-    # Check if any of the result values are False
-    if not oos_result.all():
-        return False
-    else:
-        return True
+    return bool(oos_result.all())
 
 
 def get_not_oos_nuclides(inv: pd.DataFrame, oos_path: str = "data/t1.txt") -> pd.DataFrame:
