@@ -40,7 +40,7 @@ class FispactOutput:
     file_name: str = ""
     sumdat: pd.DataFrame = field(default_factory=pd.DataFrame)
     timestep_data: List["FispactTimeStep"] = field(default_factory=list)
-    cooling_step_index: Optional[int] = 0
+    cooling_step_index: Optional[int] = None
     num_cool_step: int = 0   # number of steps after zero keyword
     num_irrad_step: int = 0  # number of steps with flux > 0
     version: str = ""
