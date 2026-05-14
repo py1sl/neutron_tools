@@ -30,7 +30,7 @@ from neutron_tools.utilities import neut_utilities as ut
 
 
 Lines = Sequence[str]
-NumericText = Union[float, str]
+FloatOrStr = Union[float, str]
 
 
 @dataclass
@@ -79,11 +79,11 @@ class FispactTimeStep:
     total_mass: float = 0     # kg
     density: float = 0        # g/cc
     actinide_burn: float = 0   # %
-    appm_h1: NumericText = 0
-    appm_h2: NumericText = 0
-    appm_h3: NumericText = 0
-    appm_he3: NumericText = 0
-    appm_he4: NumericText = 0
+    appm_h1: FloatOrStr = 0
+    appm_h2: FloatOrStr = 0
+    appm_h3: FloatOrStr = 0
+    appm_he3: FloatOrStr = 0
+    appm_he4: FloatOrStr = 0
     dom_data: pd.DataFrame = field(default_factory=pd.DataFrame)
     inventory: pd.DataFrame = field(default_factory=pd.DataFrame)
     gspec: List[float] = field(default_factory=list)
