@@ -4,17 +4,24 @@ Geometry utility functions
 Part of neutron tools
 
 """
+from typing import Any, Tuple, Union
+
 import numpy as np
+from numpy.typing import NDArray
 import logging
 
+Number = Union[int, float, np.number]
+Array = NDArray[Any]
+Point2D = Tuple[Number, Number]
 
-def check_plane_exists(n):
+
+def check_plane_exists(n: Array) -> None:
     if np.all(n == 0):
         raise ValueError(
             'At least one plane has all zero coefficients and so does not exist.')
 
 
-def check_parallel_planes(n1, n2):
+def check_parallel_planes(n1: Array, n2: Array) -> bool:
     """ check if planes are parallel by checking if their normals are parallel"""
     n1_unit = n1 / np.linalg.norm(n1)
     n2_unit = n2 / np.linalg.norm(n2)
@@ -24,17 +31,17 @@ def check_parallel_planes(n1, n2):
         return False
 
 
-def check_identical_planes(n1, d1, n2, d2):
-    """ check if planes are identical by checking if their normals are parallel 
+def check_identical_planes(n1: Array, d1: Number, n2: Array, d2: Number) -> bool:
+    """ check if planes are identical by checking if their normals are parallel
         and they have the same offset
     """
     if check_parallel_planes(n1, n2) and np.isclose(d1, d2):
         return True
     else:
         return False
-   
-    
-def check_near_parallel_planes(n1, n2, tol=1e-6):
+
+
+def check_near_parallel_planes(n1: Array, n2: Array, tol: float = 1e-6) -> bool:
     """ check if planes are near parallel by checking if their normals are near parallel"""
     n1_unit = n1 / np.linalg.norm(n1)
     n2_unit = n2 / np.linalg.norm(n2)
@@ -44,29 +51,41 @@ def check_near_parallel_planes(n1, n2, tol=1e-6):
         return False
 
 
-def check_near_identical_planes(n1, d1, n2, d2, normal_tol=1e-6, offset_tol=1e-5):
-    """ check if planes are near identical by checking if their normals are near parallel 
+def check_near_identical_planes(
+    n1: Array,
+    d1: Number,
+    n2: Array,
+    d2: Number,
+    normal_tol: float = 1e-6,
+    offset_tol: float = 1e-5
+) -> bool:
+    """ check if planes are near identical by checking if their normals are near parallel
         and they have near offsets
     """
     if check_near_parallel_planes(n1, n2, tol=normal_tol) and np.isclose(d1, d2, atol=offset_tol):
         return True
     else:
         return False
-    
 
-def check_plane_opposite_normals(n1, d1, n2, d2, normal_tol=1e-6, offset_tol=1e-5):
-    """ check if planes have opposite normals by checking if their normals are near parallel 
+
+def check_plane_opposite_normals(
+    n1: Array,
+    d1: Number,
+    n2: Array,
+    d2: Number,
+    normal_tol: float = 1e-6,
+    offset_tol: float = 1e-5
+) -> bool:
+    """ check if planes have opposite normals by checking if their normals are near parallel
         and they have near offsets but opposite signs
     """
-    n1_unit = n1 / np.linalg.norm(n1)
-    n2_unit = n2 / np.linalg.norm(n2)
     if check_near_parallel_planes(n1, -n2, tol=normal_tol) and np.isclose(d1, -d2, atol=offset_tol):
         return True
     else:
         return False
 
 
-def angle_between_planes(n1, d1, n2, d2):
+def angle_between_planes(n1: Array, d1: Number, n2: Array, d2: Number) -> float:
     """
     Calculate angle between planes cartesian form
     Planes should be inputted in the form n.p = d with n = [a, b, c]
@@ -91,7 +110,7 @@ def angle_between_planes(n1, d1, n2, d2):
     return theta
 
 
-def dist_between_planes(n1, d1, n2, d2):
+def dist_between_planes(n1: Array, d1: Number, n2: Array, d2: Number) -> float:
     """
     Calculate absolute distance between two planes
     Planes should be inputted in the form n.p = d with n = [a, b, c]
@@ -119,7 +138,7 @@ def dist_between_planes(n1, d1, n2, d2):
     return D
 
 
-def dist_between_point_plane(n, d, p):
+def dist_between_point_plane(n: Array, d: Number, p: Array) -> float:
     """
     Calculate minimum distance between a point and a plane
     Planes should be inputted in the form n.p = d with n = [a, b, c]
@@ -161,7 +180,7 @@ def dist_between_point_plane(n, d, p):
     return dist
 
 
-def line_segment_plane_intersection(p0, p1, n, d):
+def line_segment_plane_intersection(p0: Array, p1: Array, n: Array, d: Number) -> Array:
     """
     Determines the coordinates of the intersection point between a line segment and a plane
     Point on a plane p satisfies n.p = d
@@ -190,7 +209,7 @@ def line_segment_plane_intersection(p0, p1, n, d):
         raise ValueError('Line segment does not intersect plane')
 
 
-def plane_sphere_intersect(n, d, p, R):
+def plane_sphere_intersect(n: Array, d: Number, p: Array, R: Number) -> Tuple[float, Array]:
     """
     Calculate the centre and radius of the circle produced at the intersection of a plane and sphere
     Planes should be inputted in the form n.p = d with n = [a, b, c]
@@ -218,7 +237,7 @@ def plane_sphere_intersect(n, d, p, R):
     return r, centre_coords
 
 
-def plane_plane_intersect(n1, d1, n2, d2, z_ini):
+def plane_plane_intersect(n1: Array, d1: Number, n2: Array, d2: Number, z_ini: Number) -> Tuple[Array, Array]:
     """
     Planes should be inputted in the form n.p = d with n = [a, b, c]
     Planes intersect at line p + qt, where t is a parameter.
@@ -253,7 +272,7 @@ def plane_plane_intersect(n1, d1, n2, d2, z_ini):
     return p, q
 
 
-def dist_bet_points(p1, p2):
+def dist_bet_points(p1: Array, p2: Array) -> float:
     """ calculate distance between two points """
 
     dist_vec = p2 - p1
@@ -262,7 +281,7 @@ def dist_bet_points(p1, p2):
     return dist
 
 
-def midpoint_bet_points(p1, p2):
+def midpoint_bet_points(p1: Array, p2: Array) -> Array:
     """ calculate the mid point between 2 points
         returns a tuple of the x, y, z co-ords of the mid point
     """
@@ -271,7 +290,7 @@ def midpoint_bet_points(p1, p2):
     return p
 
 
-def coefficients_of_line_from_points(p1, p2):
+def coefficients_of_line_from_points(p1: Point2D, p2: Point2D) -> Tuple[float, float]:
     """
     Computes the m and c coefficients of the equation (y=mx+c) for
     a straight line from two points on a plane.
@@ -286,7 +305,7 @@ def coefficients_of_line_from_points(p1, p2):
     return m, c
 
 
-def rotate_x(point_list, o, theta):
+def rotate_x(point_list: Array, o: Array, theta: Number) -> Array:
     """
     Rotates a point p anticlockwise about the x axis by an angle theta around a given origin o
     Theta should be given in radians and o and p should be given in the form of numpy arrays
@@ -305,7 +324,7 @@ def rotate_x(point_list, o, theta):
     return new_point_list
 
 
-def rotate_y(point_list, o, theta):
+def rotate_y(point_list: Array, o: Array, theta: Number) -> Array:
     """
     Rotates a point p anticlockwise about the y axis by an angle theta around a given origin o
     Theta should be given in radians and o and p should be given in the form of numpy arrays
@@ -324,7 +343,7 @@ def rotate_y(point_list, o, theta):
     return new_point_list
 
 
-def rotate_z(point_list, o, theta):
+def rotate_z(point_list: Array, o: Array, theta: Number) -> Array:
     """
     Rotates a point p anticlockwise about the z axis by an angle theta around a given origin o
     Theta should be given in radians and o and p should be given in the form of numpy arrays
@@ -343,7 +362,7 @@ def rotate_z(point_list, o, theta):
     return new_point_list
 
 
-def translate(point_list, translation):
+def translate(point_list: Array, translation: Array) -> Array:
     """
     Translates a point p by a translation vector
     Points and translation vector should be given in the form of numpy arrays
@@ -357,7 +376,7 @@ def translate(point_list, translation):
     return new_point_list
 
 
-def pythag_h(l1, l2):
+def pythag_h(l1: Number, l2: Number) -> float:
     """ calculate length of hypotenuse """
     if l1 == 0.0 or l2 == 0.0:
         logging.debug('One of the side lengths of the triangle is zero.')
@@ -367,26 +386,26 @@ def pythag_h(l1, l2):
     return hyp
 
 
-def check_positive(x):
+def check_positive(x: Number) -> None:
     if x < 0:
         raise ValueError('Invalid input. Ensure input is positive.')
 
 
-def perim_circle(r):
+def perim_circle(r: Number) -> float:
     """ calculate perimeter of circle """
     check_positive(r)
     perim = 2 * np.pi * r
     return perim
 
 
-def area_circle(r):
+def area_circle(r: Number) -> float:
     """calculate area of a circle"""
     check_positive(r)
     area = np.pi * r * r
     return area
 
 
-def area_cyl(r, h):
+def area_cyl(r: Number, h: Number) -> float:
     """ calculate surface area of closed cylinder """
     check_positive(r)
     check_positive(h)
@@ -396,7 +415,7 @@ def area_cyl(r, h):
     return area
 
 
-def area_cyl_shell(r1, r2):
+def area_cyl_shell(r1: Number, r2: Number) -> float:
     """calculate area of cylindrical shell cross section like a pipe"""
     area1 = area_circle(r1)
     area2 = area_circle(r2)
@@ -404,14 +423,14 @@ def area_cyl_shell(r1, r2):
     return area
 
 
-def area_sphere(r):
+def area_sphere(r: Number) -> float:
     """calculate surface area of sphere """
     check_positive(r)
     area = 4 * np.pi * r**2
     return area
 
 
-def area_cone_surf(r, h):
+def area_cone_surf(r: Number, h: Number) -> float:
     """calculate surface area of conical surface (not including area of circular base)"""
     check_positive(r)
     check_positive(h)
@@ -420,14 +439,14 @@ def area_cone_surf(r, h):
     return area
 
 
-def volume_sphere(r):
+def volume_sphere(r: Number) -> float:
     """ calculate volume of sphere """
     check_positive(r)
     volume = (4 / 3) * np.pi * r**3
     return volume
 
 
-def volume_spherical_shell(r1, r2):
+def volume_spherical_shell(r1: Number, r2: Number) -> float:
     """ calculate volume of spherical shell"""
     vol1 = volume_sphere(r1)
     vol2 = volume_sphere(r2)
@@ -435,7 +454,7 @@ def volume_spherical_shell(r1, r2):
     return volume
 
 
-def volume_cyl(r, h):
+def volume_cyl(r: Number, h: Number) -> float:
     """ calculate volume of cylinder """
     check_positive(h)
 
@@ -444,7 +463,7 @@ def volume_cyl(r, h):
     return volume
 
 
-def volume_cyl_shell(r1, r2, h):
+def volume_cyl_shell(r1: Number, r2: Number, h: Number) -> float:
     """ calculate volume of cylindrical shell - pipe"""
     check_positive(h)
     area = area_cyl_shell(r1, r2)
@@ -452,20 +471,20 @@ def volume_cyl_shell(r1, r2, h):
     return volume
 
 
-def volume_cone(r, h):
+def volume_cone(r: Number, h: Number) -> float:
     """ calculate volume cone """
     volume = volume_cyl(r, h) * (1 / 3)
     return volume
 
 
-def evaluate_plane_eq(n, d, p):
+def evaluate_plane_eq(n: Array, d: Number, p: Array) -> float:
     """ calculate plane equation """
     val = np.dot(n, p) - d
 
     return val
 
 
-def evaluate_sphere_eq(p, c, r):
+def evaluate_sphere_eq(p: Array, c: Array, r: Number) -> float:
     """
     Calc sphere equation
     p is the point being evaluated
@@ -478,7 +497,7 @@ def evaluate_sphere_eq(p, c, r):
     return val
 
 
-def evaluate_gq_eq(p, coeffs, k):
+def evaluate_gq_eq(p: Array, coeffs: Array, k: Number) -> float:
     """
     Calculate gq equation
     p = [x, y,z] are the co-ords of the point of interest
@@ -489,7 +508,7 @@ def evaluate_gq_eq(p, coeffs, k):
     return val
 
 
-def find_sense_plane(n, d, p):
+def find_sense_plane(n: Array, d: Number, p: Array) -> int:
     """ determine which side of a plane a point is on i.e the sense """
     check_plane_exists(n)
     val = evaluate_plane_eq(n, d, p)
@@ -502,7 +521,7 @@ def find_sense_plane(n, d, p):
         return 0
 
 
-def find_sense_sphere(p, c, r):
+def find_sense_sphere(p: Array, c: Array, r: Number) -> int:
     """ determine if a point is inside or outside the sphere"""
     check_positive(r)
     val = evaluate_sphere_eq(p, c, r)
@@ -515,7 +534,7 @@ def find_sense_sphere(p, c, r):
         return 0
 
 
-def find_sense_gq(p, coeffs, k):
+def find_sense_gq(p: Array, coeffs: Array, k: Number) -> int:
     """ determine if a point is inside or outside a general quadratic"""
     val = evaluate_gq_eq(p, coeffs, k)
     if val > 0.0:
@@ -527,7 +546,7 @@ def find_sense_gq(p, coeffs, k):
         return 0
 
 
-def project_ray(p0, u, mu):
+def project_ray(p0: Array, u: Array, mu: Number) -> Array:
     """
     Calculate the new co-ordinates
     for moving mu along the unit vector direct
@@ -537,7 +556,12 @@ def project_ray(p0, u, mu):
     return p1
 
 
-def sphere_ray_intersect(p, u, sphere_centre, sphere_rad):
+def sphere_ray_intersect(
+    p: Array,
+    u: Array,
+    sphere_centre: Array,
+    sphere_rad: Number
+) -> Tuple[float, float]:
     """ calculate mu for a ray intersecting a sphere """
     check_positive(sphere_rad)
     dp = p - sphere_centre
@@ -549,7 +573,7 @@ def sphere_ray_intersect(p, u, sphere_centre, sphere_rad):
     return (mu1, mu2)
 
 
-def cartesian_to_cylindrical(x, y, z):
+def cartesian_to_cylindrical(x: Number, y: Number, z: Number) -> Tuple[float, float, Number]:
     """Converts Cartesian coordinates to cylindrical polar coordinates"""
 
     rho = np.sqrt(x**2 + y**2)
@@ -561,7 +585,7 @@ def cartesian_to_cylindrical(x, y, z):
     return (rho, phi, z)
 
 
-def cartesian_to_spherical(x, y, z):
+def cartesian_to_spherical(x: Number, y: Number, z: Number) -> Tuple[float, float, float]:
     """Converts Cartesian coordinates to spherical polar coordinates"""
 
     r = np.sqrt(x**2 + y**2 + z**2)
@@ -574,7 +598,7 @@ def cartesian_to_spherical(x, y, z):
     return (r, theta, phi)
 
 
-def cylindrical_to_cartesian(rho, phi, z):
+def cylindrical_to_cartesian(rho: Number, phi: Number, z: Number) -> Tuple[float, float, Number]:
     """Converts cylindrical polar coordinates to Cartesian coordinates"""
 
     check_positive(rho)
@@ -585,7 +609,7 @@ def cylindrical_to_cartesian(rho, phi, z):
     return (x, y, z)
 
 
-def cylindrical_to_spherical(rho, theta_cyl, z):
+def cylindrical_to_spherical(rho: Number, theta_cyl: Number, z: Number) -> Tuple[float, float, Number]:
     """Converts cylindrical polar coordinates to spherical polar coordinates"""
 
     check_positive(rho)
@@ -597,7 +621,7 @@ def cylindrical_to_spherical(rho, theta_cyl, z):
     return (r, theta, phi)
 
 
-def spherical_to_cartesian(r, theta, phi):
+def spherical_to_cartesian(r: Number, theta: Number, phi: Number) -> Tuple[float, float, float]:
     """Converts spherical polar coordinates to Cartesian coordinates"""
 
     check_positive(r)
@@ -609,7 +633,7 @@ def spherical_to_cartesian(r, theta, phi):
     return (x, y, z)
 
 
-def spherical_to_cylindrical(r, theta, phi):
+def spherical_to_cylindrical(r: Number, theta: Number, phi: Number) -> Tuple[float, Number, float]:
     """Converts spherical polar coordinates to cylindrical polar coordinates"""
 
     check_positive(r)

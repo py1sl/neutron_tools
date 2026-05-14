@@ -1,24 +1,26 @@
 """utility functions for use by neutron tools"""
-from typing import Optional, Union, List, Dict, Any
+from os import PathLike
+from typing import Any, Iterable, List, Optional, Sequence, Union
 from pathlib import Path
 import logging
 import logging.handlers
 import sys
-import os
 import numpy as np
 from datetime import datetime
+
+FilePath = Union[str, PathLike[str], Path]
 
 
 class NeutronToolsLogger:
     """Centralized logging config for neutron tools"""
-    
+
     def __init__(self) -> None:
-        self.logger = logging.getLogger('nt_logger')
+        self.logger: logging.Logger = logging.getLogger('nt_logger')
         self.logger.setLevel(logging.DEBUG)
 
     def setup_logging(
         self,
-        log_file: Optional[Union[str, Path]] = None,
+        log_file: Optional[FilePath] = None,
         console_level: str = 'INFO',
         file_level: str = 'DEBUG',
         log_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -35,7 +37,7 @@ class NeutronToolsLogger:
         Returns:
             Configured logger instance
         """
-        self.logger.handlers.clear()  
+        self.logger.handlers.clear()
 
         formatter = logging.Formatter(log_format)
 
@@ -49,7 +51,7 @@ class NeutronToolsLogger:
             if log_file == 'auto':
                 date_str = datetime.now().strftime('%Y%m%d')
                 log_file = f'nt_{date_str}.log'
-            
+
             file_handler = logging.handlers.RotatingFileHandler(
                 log_file,
                 maxBytes=10*1024*1024,  # 10MB
@@ -69,7 +71,7 @@ class NeutronToolsLogger:
 
 
 def setup_ntlogger(
-    log_file: Optional[Union[str, Path]] = None,
+    log_file: Optional[FilePath] = None,
     console_level: str = 'INFO',
     file_level: str = 'DEBUG'
 ) -> logging.Logger:
@@ -84,21 +86,21 @@ def setup_ntlogger(
     )
 
 
-def write_lines(path, lines):
+def write_lines(path: FilePath, lines: Iterable[Any]) -> None:
     """ writes lines list to file at path """
     with open(path, 'w') as f:
         for line in lines:
             f.write(f"{line}\n")
 
 
-def get_lines(path):
+def get_lines(path: FilePath) -> List[str]:
     """ reads file at path and returns a list with 1 entry per line """
     with open(path) as f:
         lines = f.read().splitlines()
     return lines
 
 
-def find_line(text, lines, num):
+def find_line(text: str, lines: Sequence[str], num: int) -> int:
     """ finds first index of the line in lines where the text is present
         in the first num characters
     """
@@ -108,21 +110,21 @@ def find_line(text, lines, num):
     raise ValueError(f"'{text}' not found within the first {num} characters of any line.")
 
 
-def string_cleaner(text):
+def string_cleaner(text: str) -> str:
     """ returns cleaned up line """
     text = text.strip()
     text = " ".join(text.split())
     return text
 
 
-def string_clean_and_split(text, spliter=" "):
+def string_clean_and_split(text: str, spliter: str = " ") -> List[str]:
     """ clean and split text on spaces """
     text = string_cleaner(text)
     text_list = text.split(spliter)
     return text_list
 
 
-def find_ind(data, sub):
+def find_ind(data: Sequence[str], sub: str) -> int:
     """ finds first index in data which contains sub string """
     for i, s in enumerate(data):
         if sub in s:
@@ -130,7 +132,7 @@ def find_ind(data, sub):
     raise ValueError(f"The substring - '{sub}' was not found.")
 
 
-def find_first_non_zero(val_list):
+def find_first_non_zero(val_list: Sequence[float]) -> Optional[int]:
     """ finds the first non zero value in a list and returns its position """
     arr = np.asarray(val_list)
     nonzero_indices = np.nonzero(arr)[0]
@@ -140,7 +142,7 @@ def find_first_non_zero(val_list):
         return None
 
 
-def find_first_zero(val_list):
+def find_first_zero(val_list: Sequence[float]) -> Optional[int]:
     """ finds the first zero value in a list and returns its position """
     arr = np.asarray(val_list)
     zero_indices = np.where(arr == 0)[0]
@@ -150,7 +152,7 @@ def find_first_zero(val_list):
         return None
 
 
-def get_list_dimensions(lst):
+def get_list_dimensions(lst: Any) -> List[int]:
     """ finds dimensions of a list or list of lists etc"""
     if not isinstance(lst, list):
         return []
@@ -163,7 +165,7 @@ def get_list_dimensions(lst):
     return dimensions
 
 
-def text_replace(fname, old_string, new_string):
+def text_replace(fname: FilePath, old_string: str, new_string: str) -> None:
     """ replaces strings in place in a file """
 
     # replace string
@@ -176,12 +178,12 @@ def text_replace(fname, old_string, new_string):
         file.write(data)
 
 
-def is_same_value(v1, v2, tolerance=1e-6):
+def is_same_value(v1: float, v2: float, tolerance: float = 1e-6) -> bool:
     """ check if two float values are effectively equal within tolerance."""
     return abs(v1 - v2) < tolerance
 
 
-def ensure_dir_exists(dir_path: Union[str, Path]) -> None:
+def ensure_dir_exists(dir_path: FilePath) -> None:
     """Ensure that a directory exists; create it if it does not."""
     Path(dir_path).mkdir(parents=True, exist_ok=True)
 

@@ -1,10 +1,44 @@
 """
 useful utilities for common output options
 """
+from os import PathLike
+from typing import Any, List, Mapping, Optional, Protocol, Sequence, Union
+
+import pandas as pd
+
 from neutron_tools.utilities import neut_utilities as ut
 import logging as ntlogger
 
-def wrap_tokens(prefix, tokens, max_len=80, cont_prefix='     '):
+FilePath = Union[str, PathLike[str]]
+
+
+class TallyProtocol(Protocol):
+    number: Any
+    particle: str
+    eng: Optional[Sequence[Any]]
+    times: Optional[Sequence[Any]]
+    stat_tests: Optional[Sequence[Any]]
+    tally_type: str
+    cells: Sequence[str]
+    vols: Sequence[str]
+    result: Mapping[int, pd.DataFrame]
+
+
+class MCObjectProtocol(Protocol):
+    file_name: str
+    date: Any
+    start_time: Any
+    num_rendevous: Any
+    warnings: Sequence[Any]
+    tally_data: Sequence[TallyProtocol]
+
+
+def wrap_tokens(
+    prefix: Any,
+    tokens: Sequence[Any],
+    max_len: int = 80,
+    cont_prefix: str = '     '
+) -> List[str]:
     """ wraps a list of tokens into lines with a given prefix and max length """
     # normalize cont_prefix to ensure a separating space is present
     if cont_prefix and not cont_prefix.endswith(' '):
@@ -43,8 +77,14 @@ def wrap_tokens(prefix, tokens, max_len=80, cont_prefix='     '):
 
     return lines
 
-    
-def output_points(x_vals, y_vals, z_vals, data_val=None, outpath="lost"):
+
+def output_points(
+    x_vals: Sequence[Any],
+    y_vals: Sequence[Any],
+    z_vals: Sequence[Any],
+    data_val: Optional[Sequence[Any]] = None,
+    outpath: str = "lost"
+) -> None:
     """ outputs points in .3d format """
 
     # check cordinate list lengths match
@@ -82,7 +122,7 @@ def output_points(x_vals, y_vals, z_vals, data_val=None, outpath="lost"):
     ut.write_lines(outpath, out_list)
 
 
-def html_output(mc_object, fname):
+def html_output(mc_object: MCObjectProtocol, fname: FilePath) -> None:
     """produces html output of file """
     # TODO refactor this to work with a template system
 
@@ -142,7 +182,6 @@ def html_output(mc_object, fname):
             # add result plots
             if tdat.eng and len(tdat.cells) == 1:
                 pname = f"tally_{tdat.number}_{tdat.cells[0]}.png"
-                title = f"{tdat.particle} Spectra for cell {tdat.cells[0]}"
                 # plot_spectra(tdat, pname, title, sp="neutron")
                 hlines.append(f"<img src={pname} alt=\"simulated spectrum\">")
             else:
@@ -158,7 +197,7 @@ def html_output(mc_object, fname):
     ntlogger.info("produced html file: %s", fname)
 
 
-def html_f4_tab_out(data, fname):
+def html_f4_tab_out(data: Union[TallyProtocol, Sequence[TallyProtocol]], fname: FilePath) -> None:
     """ produces f4 tally data as html table output """
     if not isinstance(data, list):
         data = [data]
@@ -185,7 +224,7 @@ def html_f4_tab_out(data, fname):
     ntlogger.info("produced html file: %s", fname)
 
 
-def csv_out(data, fname):
+def csv_out(data: Union[TallyProtocol, Sequence[TallyProtocol]], fname: FilePath) -> None:
     """ produces  tally data as csv output   """
     if not isinstance(data, list):
         data = [data]
