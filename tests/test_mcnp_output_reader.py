@@ -662,6 +662,16 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.misses["underflow in transmission"], 39376)
                 self.assertEqual(tn.misses["hit a zero-importance cell"], 0)
                 self.assertEqual(tn.misses["energy cutoff"], 0)
+                self.assertIsInstance(tn.cell_scores, pd.DataFrame)
+                self.assertEqual(list(tn.cell_scores.columns),
+                                 ["cell", "misses", "hits", "tally_per_history", "weight_per_hit"])
+                self.assertEqual(len(tn.cell_scores), 3)  # 2 cells + total
+                self.assertEqual(tn.cell_scores.iloc[-1]["cell"], "total")
+                self.assertEqual(tn.cell_scores.iloc[0]["cell"], "1")
+                self.assertEqual(tn.cell_scores.iloc[0]["misses"], 0)
+                self.assertEqual(tn.cell_scores.iloc[0]["hits"], 1000000)
+                self.assertAlmostEqual(tn.cell_scores.iloc[0]["tally_per_history"], 1.72673E-04)
+                self.assertAlmostEqual(tn.cell_scores.iloc[-1]["tally_per_history"], 3.42950E-04)
 
     def test_ebined_t5_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_erg.io')
@@ -693,6 +703,10 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.misses["underflow in transmission"], 39376)
                 self.assertEqual(tn.misses["hit a zero-importance cell"], 0)
                 self.assertEqual(tn.misses["energy cutoff"], 0)
+                self.assertIsInstance(tn.cell_scores, pd.DataFrame)
+                self.assertEqual(len(tn.cell_scores), 3)  # 2 cells + total
+                self.assertEqual(tn.cell_scores.iloc[-1]["cell"], "total")
+                self.assertAlmostEqual(tn.cell_scores.iloc[-1]["tally_per_history"], 3.42950E-04)
 
     def test_etbined_t5_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles_et.io')
@@ -714,7 +728,42 @@ class tally_type5_tests(unittest.TestCase):
                 self.assertEqual(tn.x, 15)
                 self.assertEqual(tn.y, 0.00)
                 self.assertEqual(tn.z, 0.00)
+                self.assertIsInstance(tn.cell_scores, pd.DataFrame)
+                self.assertEqual(len(tn.cell_scores), 3)  # 2 cells + total
+                self.assertEqual(tn.cell_scores.iloc[-1]["cell"], "total")
+                self.assertEqual(tn.cell_scores.iloc[-1]["misses"], 976331)
+                self.assertEqual(tn.cell_scores.iloc[-1]["hits"], 1643329)
+                self.assertAlmostEqual(tn.cell_scores.iloc[-1]["tally_per_history"], 3.44027E-04)
 
+    def test_multiple_ebined_t5_tally(self):
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'multiple_erg.io')
+        multiple = mcnp_output_reader.read_output_file(path)
+        for tn in multiple.tally_data:
+            if tn.number == 5:
+                self.assertEqual(tn.tally_type, '5')
+                self.assertEqual(tn.particle, "photons")
+                self.assertEqual(tn.nps, 1000000)
+                self.assertNotEqual(tn.eng, None)
+                self.assertEqual(len(tn.eng), 14)
+                self.assertEqual(tn.times, None)
+                self.assertEqual(tn.user_bins, None)
+                self.assertEqual(tn.x, 15)
+                self.assertEqual(tn.y, 0.00)
+                self.assertEqual(tn.z, 0.00)
+                self.assertAlmostEqual(tn.average_per_history, 4.96162E-04)
+                self.assertAlmostEqual(tn.largest_score, 2.22478E+00)
+                self.assertEqual(tn.largest_score_nps, 517734)
+                self.assertEqual(tn.misses["russian roulette in transmission"], 5999373)
+                self.assertEqual(tn.misses["underflow in transmission"], 125625)
+                self.assertIsInstance(tn.cell_scores, pd.DataFrame)
+                self.assertEqual(len(tn.cell_scores), 7)  # 6 cells + total
+                self.assertEqual(tn.cell_scores.iloc[-1]["cell"], "total")
+                self.assertEqual(tn.cell_scores.iloc[0]["cell"], "1")
+                self.assertEqual(tn.cell_scores.iloc[0]["misses"], 0)
+                self.assertEqual(tn.cell_scores.iloc[0]["hits"], 1000000)
+                self.assertAlmostEqual(tn.cell_scores.iloc[0]["tally_per_history"], 8.43023E-05)
+                self.assertAlmostEqual(tn.cell_scores.iloc[-1]["tally_per_history"], 4.96162E-04)
+                self.assertAlmostEqual(tn.cell_scores.iloc[-1]["weight_per_hit"], 1.15095E-04)
 
 class tally_type6_tests(unittest.TestCase):
     """ tests for type 6 tally """
@@ -756,6 +805,162 @@ class tally_type6_tests(unittest.TestCase):
                 first_df = list(tn.result.values())[0]
                 self.assertEqual(len(first_df[first_df["energy"] == "total"]), 1)
                 self.assertEqual(tn.vols, ['9.89602E+03'])
+
+
+class tally_type5_helper_function_tests(unittest.TestCase):
+    """Unit tests for type 5 tally helper functions using crafted input lines."""
+
+    CELL_SCORE_LINES = [
+        " score contributions by cell",
+        "        cell      misses        hits    tally per history    weight per hit",
+        "     1     1           0     1000000       1.72673E-04         1.72673E-04",
+        "     2     2      974693      645404       1.70277E-04         2.63830E-04",
+        "       total      974693     1645404       3.42950E-04         2.08429E-04",
+    ]
+
+    DIAGNOSTICS_LINES = [
+        " detector score diagnostics                  cumulative          tally         cumulative",
+        "                                             fraction of         per           fraction of",
+        "   times average score     transmissions     transmissions       history       total tally",
+        "        1.00000E-01             246684         0.14992        8.46227E-06        0.02467",
+        "        1.00000E+00            1290278         0.93409        2.06874E-04        0.62789",
+        "        1.00000E+38                  0         0.99853        0.00000E+00        0.99899",
+        " before dd roulette               2411         1.00000        3.47496E-07        1.00000",
+        "",
+    ]
+
+    GENERAL_STATS_LINES = [
+        " average tally per history = 3.42950E-04            largest score = 2.32897E-01",
+        " (largest score)/(average tally) = 6.79099E+02      nps of largest score =      492485",
+    ]
+
+    SCORE_MISSES_LINES = [
+        " score misses",
+        "   russian roulette on pd                        0",
+        "   psc=0.                                        0",
+        "   russian roulette in transmission         935317",
+        "   underflow in transmission                 39376",
+        "   hit a zero-importance cell                    0",
+        "   energy cutoff                                 0",
+    ]
+
+    def test_cell_scores_returns_dataframe(self):
+        df = mcnp_output_reader.read_type5_cell_scores(self.CELL_SCORE_LINES)
+        self.assertIsInstance(df, pd.DataFrame)
+
+    def test_cell_scores_columns(self):
+        df = mcnp_output_reader.read_type5_cell_scores(self.CELL_SCORE_LINES)
+        self.assertListEqual(list(df.columns),
+                             ["cell", "misses", "hits", "tally_per_history", "weight_per_hit"])
+
+    def test_cell_scores_row_count(self):
+        df = mcnp_output_reader.read_type5_cell_scores(self.CELL_SCORE_LINES)
+        self.assertEqual(len(df), 3)  # 2 cell rows + total
+
+    def test_cell_scores_total_row_is_last(self):
+        df = mcnp_output_reader.read_type5_cell_scores(self.CELL_SCORE_LINES)
+        self.assertEqual(df.iloc[-1]["cell"], "total")
+
+    def test_cell_scores_first_cell_values(self):
+        df = mcnp_output_reader.read_type5_cell_scores(self.CELL_SCORE_LINES)
+        self.assertEqual(df.iloc[0]["cell"], "1")
+        self.assertEqual(df.iloc[0]["misses"], 0)
+        self.assertEqual(df.iloc[0]["hits"], 1000000)
+        self.assertAlmostEqual(df.iloc[0]["tally_per_history"], 1.72673E-04)
+        self.assertAlmostEqual(df.iloc[0]["weight_per_hit"], 1.72673E-04)
+
+    def test_cell_scores_second_cell_values(self):
+        df = mcnp_output_reader.read_type5_cell_scores(self.CELL_SCORE_LINES)
+        self.assertEqual(df.iloc[1]["cell"], "2")
+        self.assertEqual(df.iloc[1]["misses"], 974693)
+        self.assertEqual(df.iloc[1]["hits"], 645404)
+        self.assertAlmostEqual(df.iloc[1]["tally_per_history"], 1.70277E-04)
+        self.assertAlmostEqual(df.iloc[1]["weight_per_hit"], 2.63830E-04)
+
+    def test_cell_scores_total_values(self):
+        df = mcnp_output_reader.read_type5_cell_scores(self.CELL_SCORE_LINES)
+        self.assertEqual(df.iloc[-1]["misses"], 974693)
+        self.assertEqual(df.iloc[-1]["hits"], 1645404)
+        self.assertAlmostEqual(df.iloc[-1]["tally_per_history"], 3.42950E-04)
+        self.assertAlmostEqual(df.iloc[-1]["weight_per_hit"], 2.08429E-04)
+
+    def test_cell_scores_numeric_columns(self):
+        df = mcnp_output_reader.read_type5_cell_scores(self.CELL_SCORE_LINES)
+        for col in ["misses", "hits", "tally_per_history", "weight_per_hit"]:
+            self.assertTrue(pd.api.types.is_numeric_dtype(df[col]),
+                            msg=f"column '{col}' is not numeric")
+
+    def test_diagnostics_returns_dataframe(self):
+        df = mcnp_output_reader.read_type5_diagnostics(self.DIAGNOSTICS_LINES)
+        self.assertIsInstance(df, pd.DataFrame)
+
+    def test_diagnostics_columns(self):
+        df = mcnp_output_reader.read_type5_diagnostics(self.DIAGNOSTICS_LINES)
+        expected = ["times_average_score", "transmissions",
+                    "cumulative_fraction_transmissions", "tally_per_history",
+                    "cumulative_fraction_total"]
+        self.assertListEqual(list(df.columns), expected)
+
+    def test_diagnostics_row_count(self):
+        df = mcnp_output_reader.read_type5_diagnostics(self.DIAGNOSTICS_LINES)
+        self.assertEqual(len(df), 4)  # 3 numeric rows + before dd roulette
+
+    def test_diagnostics_first_row_values(self):
+        df = mcnp_output_reader.read_type5_diagnostics(self.DIAGNOSTICS_LINES)
+        self.assertAlmostEqual(df.iloc[0]["times_average_score"], 1.0E-01)
+        self.assertEqual(df.iloc[0]["transmissions"], 246684)
+        self.assertAlmostEqual(df.iloc[0]["cumulative_fraction_transmissions"], 0.14992)
+        self.assertAlmostEqual(df.iloc[0]["tally_per_history"], 8.46227E-06)
+        self.assertAlmostEqual(df.iloc[0]["cumulative_fraction_total"], 0.02467)
+
+    def test_diagnostics_before_dd_roulette_nan(self):
+        df = mcnp_output_reader.read_type5_diagnostics(self.DIAGNOSTICS_LINES)
+        self.assertTrue(pd.isna(df.iloc[-1]["times_average_score"]))
+
+    def test_diagnostics_numeric_columns(self):
+        df = mcnp_output_reader.read_type5_diagnostics(self.DIAGNOSTICS_LINES)
+        for col in ["transmissions", "cumulative_fraction_transmissions",
+                    "tally_per_history", "cumulative_fraction_total"]:
+            self.assertTrue(pd.api.types.is_numeric_dtype(df[col]),
+                            msg=f"column '{col}' is not numeric")
+
+    def test_general_stats_average_per_history(self):
+        tally_data = mcnp_output_reader.MCNP_type5_tally()
+        tally_data = mcnp_output_reader.read_type5_general_stats(tally_data, self.GENERAL_STATS_LINES)
+        self.assertAlmostEqual(tally_data.average_per_history, 3.42950E-04)
+
+    def test_general_stats_largest_score(self):
+        tally_data = mcnp_output_reader.MCNP_type5_tally()
+        tally_data = mcnp_output_reader.read_type5_general_stats(tally_data, self.GENERAL_STATS_LINES)
+        self.assertAlmostEqual(tally_data.largest_score, 2.32897E-01)
+
+    def test_general_stats_largest_score_nps(self):
+        tally_data = mcnp_output_reader.MCNP_type5_tally()
+        tally_data = mcnp_output_reader.read_type5_general_stats(tally_data, self.GENERAL_STATS_LINES)
+        self.assertAlmostEqual(tally_data.largest_score_nps, 492485)
+
+    def test_score_misses_returns_dict(self):
+        misses = mcnp_output_reader.read_type5_score_misses(self.SCORE_MISSES_LINES)
+        self.assertIsInstance(misses, dict)
+
+    def test_score_misses_keys(self):
+        misses = mcnp_output_reader.read_type5_score_misses(self.SCORE_MISSES_LINES)
+        expected_keys = [
+            "russian roulette on pd", "psc=0",
+            "russian roulette in transmission", "underflow in transmission",
+            "hit a zero-importance cell", "energy cutoff",
+        ]
+        for key in expected_keys:
+            self.assertIn(key, misses)
+
+    def test_score_misses_values(self):
+        misses = mcnp_output_reader.read_type5_score_misses(self.SCORE_MISSES_LINES)
+        self.assertEqual(misses["russian roulette on pd"], 0)
+        self.assertEqual(misses["psc=0"], 0)
+        self.assertEqual(misses["russian roulette in transmission"], 935317)
+        self.assertEqual(misses["underflow in transmission"], 39376)
+        self.assertEqual(misses["hit a zero-importance cell"], 0)
+        self.assertEqual(misses["energy cutoff"], 0)
 
 
 class tally_type8_tests(unittest.TestCase):
