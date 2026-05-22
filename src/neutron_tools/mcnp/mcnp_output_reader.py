@@ -1212,6 +1212,115 @@ def read_type_cell(tally_data, lines):
     return tally_data
 
 
+def read_type5_cell_scores(lines):
+    """Read the score contributions by cell table for a type 5 tally.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``cell``, ``misses``, ``hits``, ``tally_per_history``,
+        ``weight_per_hit``.  The final row has ``cell == "total"``.
+    """
+    cell_score_line_id = ut.find_ind(lines, "score contributions by cell")
+    data_start = cell_score_line_id + 2  # skip header line
+
+    columns = ["cell", "misses", "hits", "tally_per_history", "weight_per_hit"]
+    rows = []
+
+    for line in lines[data_start:]:
+        line = line.strip()
+        if not line:
+            break
+        parts = line.split()
+        if parts[0] == "total":
+            rows.append(["total"] + parts[1:])
+            break
+        else:
+            # parts[0] is the row index, parts[1] is the cell number
+            rows.append(parts[1:])
+
+    df = pd.DataFrame(rows, columns=columns)
+    for col in columns[1:]:
+        df[col] = pd.to_numeric(df[col])
+
+    return df
+
+
+def read_type5_diagnostics(lines):
+    """Read the detector score diagnostics table for a type 5 tally.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: ``times_average_score``, ``transmissions``,
+        ``cumulative_fraction_transmissions``, ``tally_per_history``,
+        ``cumulative_fraction_total``.  The final row represents the
+        ``"before dd roulette"`` entry; its ``times_average_score``
+        value is ``NaN``.
+    """
+    diag_line_id = ut.find_ind(lines, "detector score diagnostics")
+    data_start = diag_line_id + 3  # skip 3 header lines
+
+    columns = [
+        "times_average_score",
+        "transmissions",
+        "cumulative_fraction_transmissions",
+        "tally_per_history",
+        "cumulative_fraction_total",
+    ]
+
+    rows = []
+    for line in lines[data_start:]:
+        line = line.strip()
+        if not line:
+            break
+        parts = re.split(r'\s{2,}', line)
+        if len(parts) == 5:
+            rows.append(parts)
+
+    df = pd.DataFrame(rows, columns=columns)
+    for col in columns[1:]:
+        df[col] = pd.to_numeric(df[col])
+    df["times_average_score"] = pd.to_numeric(df["times_average_score"], errors="coerce")
+
+    return df
+
+
+def read_type5_general_stats(tally_data, lines):
+    """Read average tally, largest score and largest-score NPS for a type 5 tally."""
+    ave_line_id = ut.find_ind(lines, " average tally per history")
+    ave_line = ut.string_clean_and_split(lines[ave_line_id], "=")
+    tally_data.average_per_history = float(ave_line[1][1:13])
+    tally_data.largest_score = float(ave_line[-1])
+
+    n_line = ut.string_clean_and_split(lines[ave_line_id + 1], "=")
+    tally_data.largest_score_nps = float(n_line[-1])
+
+    return tally_data
+
+
+def read_type5_score_misses(lines):
+    """Read score-miss diagnostics for a type 5 tally."""
+    misses = {}
+    score_miss_line_id = ut.find_ind(lines, "score misses")
+
+    miss_keys = [
+        "russian roulette on pd",
+        "psc=0",
+        "russian roulette in transmission",
+        "underflow in transmission",
+        "hit a zero-importance cell",
+        "energy cutoff",
+    ]
+
+    for i, key in enumerate(miss_keys, start=1):
+        n_line = lines[score_miss_line_id + i]
+        n_line = ut.string_clean_and_split(n_line)
+        misses[key] = float(n_line[-1])
+
+    return misses
+
+
 def read_type_5(tally_data, lines):
     """ processes a type 5 (point detector tally output) """
     # read detector position
@@ -1225,13 +1334,10 @@ def read_type_5(tally_data, lines):
     tally_data.y = float(tally_data.y.strip())
     tally_data.z = loc_line[24:36]
     tally_data.z = float(tally_data.z.strip())
-    ntlogger.debug("x: %s", tally_data.x)
-    ntlogger.debug("y: %s", tally_data.y)
-    ntlogger.debug("z: %s", tally_data.z)
     res_line = lines[loc_line_id + 1]
 
     # check if energy dependant
-    if res_line == "      energy   ":
+    if "energy" in res_line:
         ntlogger.debug("energy dependant")
         total_line_id2 = ut.find_line(
             "      total", lines[loc_line_id + 1:], 11)
@@ -1295,44 +1401,42 @@ def read_type_5(tally_data, lines):
                              "rel_err": [float(res_line[1])]})
         }
 
-    # read general f5 tally data
-    ave_line_id = ut.find_ind(lines, " average tally per history")
-    ave_line = lines[ave_line_id]
-    ave_line = ut.string_clean_and_split(ave_line, "=")
-    tally_data.average_per_history = float(ave_line[1][1:13])
-    tally_data.largest_score = float(ave_line[-1])
+    # read uncollided flux
+    uncoll_line_id = ut.find_ind(lines, "uncollided")
+    uncoll_next_line = lines[uncoll_line_id + 1]
 
-    n_line = lines[ave_line_id+1]
-    n_line = ut.string_clean_and_split(n_line, "=")
-    tally_data.largest_score_nps = float(n_line[-1])
+    if "energy" in uncoll_next_line:
+        ntlogger.debug("uncollided energy bins")
+        uncoll_total_offset = ut.find_line("      total", lines[uncoll_line_id:], 11)
+        uncoll_erg_lines = lines[uncoll_line_id + 2:uncoll_line_id + uncoll_total_offset]
+        uncoll_df = process_energy_lines(uncoll_erg_lines)
+        tally_data.uncoll_flux = {0: uncoll_df}
+    elif "time" in uncoll_next_line:
+        ntlogger.debug("uncollided time bins")
+        end_line_id = ut.find_line(" det", lines[uncoll_line_id + 1:], 4)
+        uncoll_res_df, uncoll_err_df = process_e_t_userbin(
+            lines[uncoll_line_id + 1:uncoll_line_id + 1 + end_line_id])
+        tally_data.uncoll_flux = {0: uncoll_res_df}
+        tally_data.uncoll_err = {0: uncoll_err_df}
+    else:
+        ntlogger.debug("uncollided single value")
+        uncoll_val_line = uncoll_next_line.split()
+        tally_data.uncoll_flux = {
+            0: pd.DataFrame({"result": [float(uncoll_val_line[0])],
+                             "rel_err": [float(uncoll_val_line[1])]})
+        }
+
+    # read detector score diagnostics
+    tally_data.diagnostics = read_type5_diagnostics(lines)
+
+    # read general f5 tally data
+    tally_data = read_type5_general_stats(tally_data, lines)
 
     # read score misses data
-    tally_data.misses = {}
+    tally_data.misses = read_type5_score_misses(lines)
 
-    score_miss_line_id = ut.find_ind(lines, "score misses")
-    n_line = lines[score_miss_line_id+1]
-    n_line = ut.string_clean_and_split(n_line)
-    tally_data.misses["russian roulette on pd"] = float(n_line[-1])
-
-    n_line = lines[score_miss_line_id+2]
-    n_line = ut.string_clean_and_split(n_line)
-    tally_data.misses["psc=0"] = float(n_line[-1])
-
-    n_line = lines[score_miss_line_id+3]
-    n_line = ut.string_clean_and_split(n_line)
-    tally_data.misses["russian roulette in transmission"] = float(n_line[-1])
-
-    n_line = lines[score_miss_line_id+4]
-    n_line = ut.string_clean_and_split(n_line)
-    tally_data.misses["underflow in transmission"] = float(n_line[-1])
-
-    n_line = lines[score_miss_line_id+5]
-    n_line = ut.string_clean_and_split(n_line)
-    tally_data.misses["hit a zero-importance cell"] = float(n_line[-1])
-
-    n_line = lines[score_miss_line_id+6]
-    n_line = ut.string_clean_and_split(n_line)
-    tally_data.misses["energy cutoff"] = float(n_line[-1])
+    # read cell score contributions
+    tally_data.cell_scores = read_type5_cell_scores(lines)
 
     return tally_data
 
