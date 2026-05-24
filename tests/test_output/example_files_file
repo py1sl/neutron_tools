@@ -1,0 +1,38 @@
+# /home/gfortran/fispact
+
+# gamma attenuation data
+absorp  /work/fispact_nd/ENDFdata/decay/abs_2012
+
+# index of nuclides to be included
+ind_nuc  /work/fispact_nd/ENDFdata/TENDL2014data/tendl14_decay12_index
+
+# Library cross section data
+xs_endf /work/fispact_nd/ENDFdata/TENDL2014data/tal2014-n/gxs-709
+ 
+# Library probability tables for self-shielding
+prob_tab  /work/fispact_nd/ENDFdata/TENDL2014data/tal2014-n/tp-709-294
+
+# fluxes
+fluxes  fluxes
+arb_flux  spectra
+
+# Library decay data
+dk_endf /work/fispact_nd/ENDFdata/decay/decay_2012
+
+# Library fission  data
+fy_endf /work/fispact_nd/ENDFdata/TENDL2014data/tal2014-n/gef42_nfy
+
+# Spontaneous fission data
+sf_endf /work/fispact_nd/ENDFdata/TENDL2014data/tal2014-n/gef42_sfy
+
+# Library regulatory data
+hazards /work/fispact_nd/ENDFdata/decay/hazards_2012
+clear   /work/fispact_nd/ENDFdata/decay/clear_2012
+a2data  /work/fispact_nd/ENDFdata/decay/a2_2012
+
+# collapsed cross section data (in and out)
+collapxi  COLLAPX
+collapxo  COLLAPX
+
+# condensed decay and fission data (in and out)
+arrayx  ARRAYX
