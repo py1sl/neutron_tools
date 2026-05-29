@@ -13,6 +13,16 @@ class data_frame_test_case(unittest.TestCase):
                 "particle": ["neutron", "muon", "neutron", "neutron", "neutrino"]
             })
 
+
+    def test_read_fispact_printlib_logs_file_read(self):
+        logger_name = ut.get_ntlogger().name
+        with self.assertLogs(logger_name, level="INFO") as cm:
+            read_fispact_printlib(str(self.example_printlib))
+
+        log_output = "\n".join(cm.output)
+        self.assertIn(f"reading FISPACT printlib file {self.example_printlib}", log_output)
+        self.assertIn(f"loaded 3 discrete emission lines from FISPACT printlib file {self.example_printlib}", log_output)
+
     def test_energy_filter(self):
         """ test the energy filter function """
         filtered_data = fispact_printlib_reader.energy_filter(self.df, 250)

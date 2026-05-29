@@ -29,6 +29,8 @@ import pandas as pd
 from neutron_tools.utilities import neut_utilities as ut
 
 
+ntlogger = ut.get_ntlogger()
+
 Lines = Sequence[str]
 FloatOrStr = Union[float, str]
 
@@ -94,6 +96,7 @@ def read_fis_out(path: str) -> FispactOutput:
     """ parse a fispact output file
         returns fo, a fispact output object
     """
+    ntlogger.info("reading FISPACT output file %s", path)
     if not os.path.exists(path):
         raise FileNotFoundError(f"FISPACT output file not found: {path}")
 
@@ -142,6 +145,7 @@ def read_fis_out(path: str) -> FispactOutput:
         data = lines[start:end]
         fo.timestep_data.append(read_time_step(data, i))
 
+    ntlogger.info("parsed FISPACT output file %s into %d time steps", path, len(fo.timestep_data))
     return fo
 
 

@@ -2,6 +2,8 @@ import os
 
 from neutron_tools.utilities import neut_utilities as ut
 
+ntlogger = ut.get_ntlogger()
+
 class files_file:
     """Class to represent a FISPACT files file"""
     def __init__(self, fpath: str):
@@ -20,6 +22,7 @@ class files_file:
         with open(output_path, "w") as f:
             for line in self.lines:
                 f.write(line + "\n")
+        ntlogger.info("wrote FISPACT files file to %s", output_path)
                 
 
 def process_files_file(lines) -> files_file:
@@ -36,11 +39,13 @@ def process_files_file(lines) -> files_file:
             line = line.strip()
             key, value = line.split(maxsplit=1)
             files_file_obj.parameters[key.strip()] = value.strip()
+    ntlogger.info("parsed FISPACT files file into %d parameters", len(files_file_obj.parameters))
     return files_file_obj
 
 
 def read_fispact_files_file(fpath: str) -> None:
     """ reads a fispact files file and returns the data as a list of lines """
+    ntlogger.info("reading FISPACT files file %s", fpath)
     if not os.path.exists(fpath):
         raise FileNotFoundError(f"FISPACT files file not found: {fpath}")
 
@@ -52,6 +57,7 @@ def read_fispact_files_file(fpath: str) -> None:
     except Exception as e:
         raise IOError(f"Failed to read FISPACT files file {fpath}: {e}") from e
 
+    ntlogger.info("loaded %d lines from FISPACT files file %s", len(lines), fpath)
     return lines
 
 if __name__ == "__main__":
