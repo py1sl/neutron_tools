@@ -166,6 +166,14 @@ class logger_test_case(unittest.TestCase):
             self.assertEqual(called_args[0], expected_fname)
             self.assertIn(mock_handler, logger.handlers)
 
+    def test_get_ntlogger_returns_named_logger(self):
+        logger = ut.get_ntlogger()
+        self.assertEqual(logger.name, "nt_logger")
+
+    def test_setup_logging_invalid_level(self):
+        with self.assertRaises(ValueError):
+            ut.NeutronToolsLogger().setup_logging(console_level="invalid")
+
 
 class tab_finder_test_case(unittest.TestCase):
     """test for the function """

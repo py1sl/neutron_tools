@@ -120,9 +120,10 @@ class filtering_functions_tests(unittest.TestCase):
 class plotting_tests(unittest.TestCase):
     """ tests for plotting functions """
 
+    @patch("neutron_tools.fispact.fispact_analysis.ntlogger.info")
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
-    def test_plot_summary(self, mock_show, mock_savefig):
+    def test_plot_summary(self, mock_show, mock_savefig, mock_log_info):
         """ testing that the plot_summary function can generate and save plots for every
         column currently existing in the data frame """
         # creating a test data frame
@@ -169,6 +170,7 @@ class plotting_tests(unittest.TestCase):
         expected_calls = [call("test"), call("test1"), call("test2"), call("test3"), call("test4"), call("test5")]
         mock_savefig.assert_has_calls(expected_calls, any_order=True)
         self.assertEqual(mock_savefig.call_count, 6)
+        self.assertEqual(mock_log_info.call_count, 6)
 
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
@@ -188,9 +190,10 @@ class plotting_tests(unittest.TestCase):
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
 
+    @patch("neutron_tools.fispact.fispact_analysis.ntlogger.info")
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
-    def test_plot_spectra(self, mock_show, mock_savefig):
+    def test_plot_spectra(self, mock_show, mock_savefig, mock_log_info):
         # stub
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
         output = fo.read_fis_out(path)
@@ -202,21 +205,24 @@ class plotting_tests(unittest.TestCase):
         fa.plot_spectra(output.timestep_data[3], fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
+        mock_log_info.assert_called_once()
 
+    @patch("neutron_tools.fispact.fispact_analysis.ntlogger.info")
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
-    def test_plot_nuc_cont(self, mock_show, mock_savefig):
+    def test_plot_nuc_cont(self, mock_show, mock_savefig, mock_log_info):
         # stub
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
         output = fo.read_fis_out(path)
-        plot = fa.plot_nuc_cont(output, ["V52", "Sc43"])
+        fa.plot_nuc_cont(output, ["V52", "Sc43"])
         mock_show.assert_called_once()
 
         # called with a file name
         fname = "test"
-        plot = fa.plot_nuc_cont(output, ["V52", "Sc43"], fname=fname)
+        fa.plot_nuc_cont(output, ["V52", "Sc43"], fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
+        mock_log_info.assert_called_once()
 
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
