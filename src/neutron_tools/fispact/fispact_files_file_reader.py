@@ -39,7 +39,6 @@ def process_files_file(lines) -> files_file:
             line = line.strip()
             key, value = line.split(maxsplit=1)
             files_file_obj.parameters[key.strip()] = value.strip()
-    ntlogger.info("parsed FISPACT files file into %d parameters", len(files_file_obj.parameters))
     return files_file_obj
 
 
