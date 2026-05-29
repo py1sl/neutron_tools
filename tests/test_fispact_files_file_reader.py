@@ -25,13 +25,14 @@ class read_fispact_files_file_test_case(unittest.TestCase):
 
 
     def test_read_fispact_files_file_logs_file_read(self):
+        expected_line_count = len(ffr.read_fispact_files_file(str(self.example_files_file)))
         logger_name = ut.get_ntlogger().name
         with self.assertLogs(logger_name, level="INFO") as cm:
             ffr.read_fispact_files_file(str(self.example_files_file))
 
         log_output = "\n".join(cm.output)
         self.assertIn(f"reading FISPACT files file {self.example_files_file}", log_output)
-        self.assertIn(f"loaded 12 lines from FISPACT files file {self.example_files_file}", log_output)
+        self.assertIn(f"loaded {expected_line_count} lines from FISPACT files file {self.example_files_file}", log_output)
 
     def test_output_files_file_logs_file_write(self):
         parsed = ffr.process_files_file(ffr.read_fispact_files_file(str(self.example_files_file)))

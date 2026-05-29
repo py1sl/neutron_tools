@@ -1,6 +1,9 @@
 import unittest
+import tempfile
+import os
 import pandas as pd
 from neutron_tools.fispact import fispact_printlib_reader
+from neutron_tools.utilities import neut_utilities as ut
 
 
 class data_frame_test_case(unittest.TestCase):
@@ -13,11 +16,31 @@ class data_frame_test_case(unittest.TestCase):
                 "particle": ["neutron", "muon", "neutron", "neutron", "neutrino"]
             })
 
+    @staticmethod
+    def _sample_printlib_contents():
+        def emission_line(nuclide, particle, energy, intensity):
+            return f"  {nuclide:<6}{'':17}{particle:<9}{'':9}{energy:11.3f}{'':17}{intensity:11.3f}\n"
+
+        return (
+            "header\n"
+            " FD \n"
+            + emission_line("V52", "neutron", 1.0, 0.1)
+            + emission_line("Sc43", "gamma", 2.0, 0.2)
+            + emission_line("Co60", "beta", 3.0, 0.3)
+            + "fispact run time\n"
+        )
 
     def test_read_fispact_printlib_logs_file_read(self):
+        with tempfile.NamedTemporaryFile("w", delete=False) as tmp_file:
+            tmp_file.write(self._sample_printlib_contents())
+            self.example_printlib = tmp_file.name
+
         logger_name = ut.get_ntlogger().name
-        with self.assertLogs(logger_name, level="INFO") as cm:
-            read_fispact_printlib(str(self.example_printlib))
+        try:
+            with self.assertLogs(logger_name, level="INFO") as cm:
+                fispact_printlib_reader.read_fispact_printlib(str(self.example_printlib))
+        finally:
+            os.remove(self.example_printlib)
 
         log_output = "\n".join(cm.output)
         self.assertIn(f"reading FISPACT printlib file {self.example_printlib}", log_output)

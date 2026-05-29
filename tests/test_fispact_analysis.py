@@ -205,7 +205,7 @@ class plotting_tests(unittest.TestCase):
         fa.plot_spectra(output.timestep_data[3], fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
-        mock_log_info.assert_called_once()
+        mock_log_info.assert_any_call("saved spectra plot to %s", fname)
 
     @patch("neutron_tools.fispact.fispact_analysis.ntlogger.info")
     @patch("matplotlib.pyplot.savefig")
@@ -222,7 +222,7 @@ class plotting_tests(unittest.TestCase):
         fa.plot_nuc_cont(output, ["V52", "Sc43"], fname=fname)
         # Assert that savefig was called with the specified filename
         mock_savefig.assert_called_once_with(fname)
-        mock_log_info.assert_called_once()
+        mock_log_info.assert_any_call("saved activity plot to %s", fname)
 
     @patch("matplotlib.pyplot.savefig")
     @patch("matplotlib.pyplot.show")
