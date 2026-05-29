@@ -37,12 +37,17 @@ class NeutronToolsLogger:
         Returns:
             Configured logger instance
         """
-        self.logger.handlers.clear()
+        for handler in list(self.logger.handlers):
+            self.logger.removeHandler(handler)
+            try:
+                handler.close()
+            except (OSError, ValueError):
+                pass
 
         formatter = logging.Formatter(log_format)
 
         console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setLevel(getattr(logging, console_level.upper()))
+        console_handler.setLevel(_parse_log_level(console_level))
         console_handler.setFormatter(formatter)
         self.logger.addHandler(console_handler)
 
@@ -57,7 +62,7 @@ class NeutronToolsLogger:
                 maxBytes=10*1024*1024,  # 10MB
                 backupCount=5
             )
-            file_handler.setLevel(getattr(logging, file_level.upper()))
+            file_handler.setLevel(_parse_log_level(file_level))
             file_handler.setFormatter(formatter)
             self.logger.addHandler(file_handler)
 
@@ -84,6 +89,19 @@ def setup_ntlogger(
         console_level=console_level,
         file_level=file_level
     )
+
+
+def get_ntlogger() -> logging.Logger:
+    """Return the shared neutron-tools logger, configuring defaults if needed."""
+    return NeutronToolsLogger().get_logger()
+
+
+def _parse_log_level(level_name: str) -> int:
+    """Convert logging level text into a valid logging level constant."""
+    level_value = getattr(logging, level_name.upper(), None)
+    if isinstance(level_value, int):
+        return level_value
+    raise ValueError(f"Invalid logging level: {level_name}")
 
 
 def write_lines(path: FilePath, lines: Iterable[Any]) -> None:

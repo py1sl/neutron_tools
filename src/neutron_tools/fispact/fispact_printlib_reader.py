@@ -12,6 +12,9 @@ import pandas as pd
 from neutron_tools.utilities import neut_utilities as ut
 
 
+ntlogger = ut.get_ntlogger()
+
+
 def energy_filter(data: pd.DataFrame, energy: float) -> pd.DataFrame:
     """ filter emission lines based on energy """
     if not isinstance(data, pd.DataFrame):
@@ -32,6 +35,7 @@ def particle_filter(data: pd.DataFrame, particle: str) -> pd.DataFrame:
 
 def read_fispact_printlib(fpath: str) -> pd.DataFrame:
     """  processes a fispact printlib file """
+    ntlogger.info("reading FISPACT printlib file %s", fpath)
     if not os.path.exists(fpath):
         raise FileNotFoundError(f"FISPACT printlib file not found: {fpath}")
 
@@ -82,6 +86,7 @@ def read_fispact_printlib(fpath: str) -> pd.DataFrame:
     except Exception as e:
         raise IOError(f"Failed to read FISPACT printlib file {fpath}: {e}") from e
 
+    ntlogger.info("loaded %d discrete emission lines from FISPACT printlib file %s", len(discrete_lines_df), fpath)
     return discrete_lines_df
 
 
@@ -90,4 +95,5 @@ if __name__ == "__main__":
     parser.add_argument("input", help="path to the fispact printlib file")
     args = parser.parse_args()
 
+    ut.setup_ntlogger(console_level="INFO")
     read_fispact_printlib(args.input)

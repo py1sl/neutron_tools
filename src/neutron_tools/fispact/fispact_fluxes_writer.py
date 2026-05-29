@@ -5,7 +5,6 @@ Functions for writing fispact fluxes files
 @author: S Lilley
 """
 import argparse
-import logging as ntlogger
 from typing import Sequence, Tuple, Union
 
 import numpy as np
@@ -15,6 +14,7 @@ from neutron_tools.utilities import neut_utilities as ut
 
 EnergyLike = Union[float, int, str]
 GroupBounds = Union[Sequence[float], np.ndarray]
+ntlogger = ut.get_ntlogger()
 
 
 def get_group_pos(groups: GroupBounds, energy: EnergyLike) -> int:
@@ -206,7 +206,7 @@ def get_group_struct(gs: str) -> Union[Tuple[float, ...], bool]:
     elif gs == "162":
         return gs_162
     else:
-        ntlogger.debug(f"Error: group structure '{gs}' not found")
+        ntlogger.debug("group structure '%s' not found", gs)
         return False
 
 
@@ -273,7 +273,7 @@ def check_upper_bound(groups: GroupBounds, energy: EnergyLike) -> bool:
         raise ValueError(f"groups and energy must be convertible to float: {e}") from e
 
     if energy > groups_array[0]:
-        ntlogger.debug(f"Energy {energy} is above max group structure energy {groups_array[0]}")
+        ntlogger.debug("energy %s is above max group structure energy %s", energy, groups_array[0])
         return False
     else:
         return True
@@ -287,6 +287,7 @@ def write_fluxes_file(opath: str, data: GroupBounds) -> None:
     try:
         data = np.asarray(data).astype(str).tolist()
         ut.write_lines(opath, data)
+        ntlogger.info("wrote fluxes file to %s", opath)
     except Exception as e:
         raise IOError(f"Failed to write fluxes file to {opath}: {e}") from e
 
@@ -296,13 +297,14 @@ def check_group_struct(gs: str) -> bool:
     """
     structures = ("709", "162")
     if gs not in structures:
-        ntlogger.debug(f"{gs} group structure is not recognised.")
+        ntlogger.debug("%s group structure is not recognised.", gs)
         return False
-    ntlogger.debug(f"{gs} group structure recognised.")
+    ntlogger.debug("%s group structure recognised.", gs)
     return True
 
 
 if __name__ == "__main__":
+    ut.setup_ntlogger()
     parser = argparse.ArgumentParser(description="write a new fispact spectra")
     parser.add_argument("-o", "--output", action="store", dest="output",
                         default="fluxes", help="path to the output file")

@@ -90,6 +90,18 @@ class read_fis_out_test_case(unittest.TestCase):
         self.assertEqual(ts1.appm_h2, 9.3281E-12)
         self.assertEqual(ts1.appm_h1, 5.4402E-11)
 
+
+    def test_read_fis_out_logs_file_read(self):
+        """Test that output file reads are logged."""
+        path = os.path.join(os.path.dirname(__file__), 'test_output', 'fis_test1.out')
+        logger_name = ut.get_ntlogger().name
+        with self.assertLogs(logger_name, level="INFO") as cm:
+            fo.read_fis_out(path)
+
+        log_output = "\n".join(cm.output)
+        self.assertIn(f"reading FISPACT output file {path}", log_output)
+        self.assertIn(f"parsed FISPACT output file {path} into 9 time steps", log_output)
+
     def test_file_not_found(self):
         """Test error when file doesn't exist"""
         with self.assertRaises(FileNotFoundError):

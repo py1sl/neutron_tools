@@ -1,4 +1,3 @@
-import logging
 import matplotlib
 import os
 from typing import List, Optional, Sequence, Tuple
@@ -14,6 +13,7 @@ from neutron_tools.utilities import neut_constants
 from neutron_tools.utilities import neut_utilities as ut
 
 matplotlib.use('agg')
+ntlogger = ut.get_ntlogger()
 
 
 def reduce_to_non_zero(
@@ -273,7 +273,7 @@ def plot_summary(
     # plot to screen or file
     if fname:
         plt.savefig(fname)
-        logging.info(f"plotted {column}")
+        ntlogger.info("saved plot of %s to %s", column, fname)
     else:
         plt.show()
 
@@ -300,6 +300,7 @@ def plot_spectra(timestep: FispactTimeStep, fname: Optional[str] = None) -> None
     # plot to screen or file
     if fname:
         plt.savefig(fname)
+        ntlogger.info("saved spectra plot to %s", fname)
     else:
         plt.show()
 
@@ -391,7 +392,7 @@ def plot_nuc_cont(
     # plot to screen or file
     if fname:
         plt.savefig(fname)
-        logging.info("plotted activity")
+        ntlogger.info("saved activity plot to %s", fname)
     else:
         plt.show()
     return plot
