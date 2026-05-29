@@ -225,6 +225,90 @@ class plot_spectra_additional_test_cases(unittest.TestCase):
         ma.plot_spectra(tally, "out.png", "test", legend=["surf 1"])
         mock_savefig.assert_called_once_with("out.png")
 
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_spectra_type1_ang_bins_none(self, mock_show, mock_savefig):
+        eng = [0.1, 0.5, 1.0, 2.0]
+        result = {1: _eng_df(eng, [1e-3, 2e-3, 3e-3, 4e-3])}
+        tally = _make_surface_tally('1', eng, result, surfaces=['1'], ang_bins=None)
+        ma.plot_spectra(tally, "out.png", "test")
+        mock_savefig.assert_called_once_with("out.png")
+
+    @patch("matplotlib.pyplot.xlim")
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_spectra_global_xlim_uses_widest_series(self, mock_show, mock_savefig, mock_xlim):
+        tally_short = _make_surface_tally(
+            '2',
+            [0.5, 1.0, 1.5],
+            {1: _eng_df([0.5, 1.0, 1.5], [1e-3, 2e-3, 3e-3])},
+            surfaces=['1']
+        )
+        tally_wide = _make_surface_tally(
+            '2',
+            [0.1, 1.0, 10.0],
+            {2: _eng_df([0.1, 1.0, 10.0], [1e-3, 2e-3, 3e-3])},
+            surfaces=['2']
+        )
+
+        ma.plot_spectra([tally_short, tally_wide], "out.png", "test")
+
+        self.assertTrue(mock_xlim.called)
+        kwargs = mock_xlim.call_args.kwargs
+        self.assertIn("xmin", kwargs)
+        self.assertIn("xmax", kwargs)
+        self.assertEqual(kwargs["xmin"], 0.1)
+        self.assertEqual(kwargs["xmax"], 10.0)
+        mock_savefig.assert_called_once_with("out.png")
+
+    @patch("matplotlib.pyplot.errorbar")
+    @patch("matplotlib.pyplot.savefig")
+    @patch("matplotlib.pyplot.show")
+    def test_spectra_errorbars_per_series(self, mock_show, mock_savefig, mock_errorbar):
+        tally = _make_surface_tally(
+            '2',
+            [0.1, 0.5, 1.0, 2.0],
+            {
+                1: _eng_df([0.1, 0.5, 1.0, 2.0], [1e-3, 2e-3, 3e-3, 4e-3]),
+                2: _eng_df([0.1, 0.5, 1.0, 2.0], [1.5e-3, 2.5e-3, 3.5e-3, 4.5e-3]),
+            },
+            surfaces=['1', '2']
+        )
+
+        ma.plot_spectra(tally, "out.png", "test", err=True)
+
+        self.assertEqual(mock_errorbar.call_count, 2)
+        mock_savefig.assert_called_once_with("out.png")
+
+
+class plot_ratio_total_row_test(unittest.TestCase):
+    """tests for ratio plotting with mixed numeric/total energy rows"""
+
+    @patch("matplotlib.pyplot.savefig")
+    def test_ratio_ignores_total_row(self, mock_savefig):
+        tally1 = MagicMock()
+        tally1.eng = [0.1, 0.5, 1.0, 2.0]
+        tally1.result = {
+            1: pd.DataFrame({
+                "energy": [0.1, 0.5, 1.0, 2.0, "total"],
+                "result": [1.0, 2.0, 3.0, 4.0, 10.0],
+                "rel_err": [0.01, 0.01, 0.01, 0.01, 0.01],
+            })
+        }
+
+        tally2 = MagicMock()
+        tally2.eng = [0.1, 0.5, 1.0, 2.0]
+        tally2.result = {
+            1: pd.DataFrame({
+                "energy": [0.1, 0.5, 1.0, 2.0, "total"],
+                "result": [0.5, 1.0, 1.5, 2.0, 5.0],
+                "rel_err": [0.01, 0.01, 0.01, 0.01, 0.01],
+            })
+        }
+
+        ma.plot_spectra_ratio(tally1, tally2, "ratio.png", "ratio")
+        mock_savefig.assert_called_once_with("ratio.png")
+
 
 class plot_ET_heatmap_test(unittest.TestCase):
     """ tests for plot_ET_heatmap """

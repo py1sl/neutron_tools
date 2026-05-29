@@ -53,6 +53,223 @@ def calc_mid_points(bounds):
     return mids
 
 
+def _get_df_energy_result(df, eng_hint=None):
+    """Extract aligned energy/result arrays from an energy-binned tally DataFrame.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Tally result DataFrame. Usually contains columns ``energy`` and
+        ``result``; ``energy`` may include a final ``"total"`` row.
+    eng_hint : sequence, optional
+        Optional energy-bin edges from tally metadata, used when no
+        ``energy`` column is present.
+
+    Returns
+    -------
+    tuple[np.ndarray, np.ndarray]
+        ``(energy, result)`` arrays with any non-numeric energy rows removed.
+    """
+    if not isinstance(df, pd.DataFrame):
+        raise TypeError("Expected a pandas DataFrame for tally result data")
+    if "result" not in df.columns:
+        raise ValueError("Result DataFrame must contain a 'result' column")
+
+    result_vals = pd.to_numeric(df["result"], errors="coerce")
+
+    if "energy" in df.columns:
+        energy_vals = pd.to_numeric(df["energy"], errors="coerce")
+        valid = energy_vals.notna() & result_vals.notna()
+        energy = energy_vals[valid].to_numpy(dtype=float)
+        result = result_vals[valid].to_numpy(dtype=float)
+    else:
+        if eng_hint is None:
+            raise ValueError("Energy-binned result requires an 'energy' column or eng_hint")
+        energy = np.asarray(eng_hint, dtype=float)
+        result = result_vals.dropna().to_numpy(dtype=float)
+        if len(energy) != len(result):
+            raise ValueError(
+                f"Energy/result length mismatch ({len(energy)} != {len(result)})"
+            )
+
+    return energy, result
+
+
+def _first_result_df(result_obj):
+    """Return the first DataFrame from common tally ``result`` containers."""
+    if isinstance(result_obj, pd.DataFrame):
+        return result_obj
+    if isinstance(result_obj, dict):
+        return next(iter(result_obj.values()))
+    raise TypeError("Unsupported tally result container; expected DataFrame or dict")
+
+
+def _extract_series_rel_err(df, tally, series_key, expected_len):
+    """Get per-series relative error array for a plotted line when available."""
+    rel_err = None
+
+    if isinstance(df, pd.DataFrame) and "rel_err" in df.columns:
+        rel_vals = pd.to_numeric(df["rel_err"], errors="coerce")
+        if "energy" in df.columns:
+            energy_vals = pd.to_numeric(df["energy"], errors="coerce")
+            valid = energy_vals.notna() & rel_vals.notna()
+            rel_vals = rel_vals[valid]
+        else:
+            rel_vals = rel_vals.dropna()
+        rel_arr = rel_vals.to_numpy(dtype=float)
+        if len(rel_arr) == expected_len:
+            rel_err = rel_arr
+
+    if rel_err is not None:
+        return rel_err
+
+    if not hasattr(tally, "err") or tally.err is None:
+        return None
+
+    if isinstance(tally.err, dict):
+        if series_key not in tally.err:
+            return None
+        err_obj = tally.err[series_key]
+        if isinstance(err_obj, pd.DataFrame):
+            if "rel_err" in err_obj.columns:
+                err_vals = pd.to_numeric(err_obj["rel_err"], errors="coerce").dropna()
+                err_arr = err_vals.to_numpy(dtype=float)
+            else:
+                return None
+        else:
+            err_arr = np.asarray(err_obj, dtype=float)
+    else:
+        err_arr = np.asarray(tally.err, dtype=float)
+
+    if len(err_arr) != expected_len:
+        return None
+    return err_arr
+
+
+def _plot_energy_series(ax, tally, series_key, df, label=None):
+    """Plot a single energy-binned series and return plotting context."""
+    energy, result = _get_df_energy_result(df, eng_hint=tally.eng)
+    bw = calc_bin_width(energy)
+    y_vals = result / bw
+    splot = ax.step(energy, y_vals, label=label)
+
+    rel_err = _extract_series_rel_err(df, tally, series_key, len(y_vals))
+    return {
+        "energy": energy,
+        "y_vals": y_vals,
+        "line": splot[0],
+        "rel_err": rel_err,
+    }
+
+
+def _plot_type1_spectra(ax, tally, legend_override, sp):
+    """Handle tally type 1 plotting. Keeps existing type-1 behavior."""
+    ax.ylabel("current n/MeV/" + sp)
+    series_contexts = []
+    ang_bins = tally.ang_bins if tally.ang_bins is not None else []
+
+    if len(tally.surfaces) > 1:
+        if len(ang_bins) > 1:
+            print("not implemented yet - plotting spectra, angle and multiple surfaces")
+            raise NotImplementedError
+        for surf, df in tally.result.items():
+            series_contexts.append(_plot_energy_series(ax, tally, surf, df, label=surf))
+    else:
+        if len(ang_bins) > 1:
+            for ang_df in tally.result:
+                series_contexts.append(_plot_energy_series(ax, tally, None, ang_df))
+            legend_override = ang_bins
+        else:
+            for surf, df in tally.result.items():
+                series_contexts.append(_plot_energy_series(ax, tally, surf, df, label=surf))
+            ax.legend()
+
+    return series_contexts, legend_override
+
+
+def _plot_type2_spectra(ax, tally, legend_override):
+    """Handle tally type 2 plotting."""
+    series_contexts = []
+    for surf, df in tally.result.items():
+        series_contexts.append(_plot_energy_series(ax, tally, surf, df, label=surf))
+    ax.legend()
+    return series_contexts, legend_override
+
+
+def _plot_type4_spectra(ax, tally, legend_override):
+    """Handle tally type 4 plotting."""
+    series_contexts = []
+    for cell, df in tally.result.items():
+        series_contexts.append(_plot_energy_series(ax, tally, cell, df, label=cell))
+    ax.legend()
+    return series_contexts, legend_override
+
+
+def _plot_type5_spectra(ax, tally, legend_override):
+    """Handle tally type 5 plotting."""
+    df = tally.result[0]
+    series_contexts = [_plot_energy_series(ax, tally, 0, df)]
+    return series_contexts, legend_override
+
+
+def _plot_default_spectra(ax, tally, legend_override):
+    """Fallback plotting for other tally types."""
+    df = _first_result_df(tally.result)
+    series_contexts = [_plot_energy_series(ax, tally, None, df)]
+    return series_contexts, legend_override
+
+
+def _apply_errorbars_for_contexts(ax, series_contexts):
+    """Apply per-series error bars using each series' own relative errors."""
+    for ctx in series_contexts:
+        rel_err = ctx["rel_err"]
+        if rel_err is None:
+            continue
+        y_vals = ctx["y_vals"]
+        energy = ctx["energy"]
+        if len(energy) < 2:
+            continue
+        abs_err = calc_err_abs(y_vals, rel_err)
+        mids = calc_mid_points(energy)
+        ecol = ctx["line"].get_color()
+        ax.errorbar(mids, y_vals[1:], yerr=abs_err[:-1], fmt="none",
+                    ecolor=ecol, markeredgewidth=1, capsize=2)
+
+
+def _apply_global_x_limits(ax, all_series_contexts, xlow=None):
+    """Set global x-limits based on the widest plotted series."""
+    if not all_series_contexts:
+        return
+
+    widest_ctx = None
+    widest_span = -np.inf
+    for ctx in all_series_contexts:
+        energy = ctx["energy"]
+        if len(energy) == 0:
+            continue
+        span = float(np.max(energy) - np.min(energy))
+        if span > widest_span:
+            widest_span = span
+            widest_ctx = ctx
+
+    if widest_ctx is None:
+        return
+
+    widest_energy = widest_ctx["energy"]
+    widest_y = widest_ctx["y_vals"]
+    xmax = float(np.max(widest_energy))
+
+    if xlow is None:
+        non_zero_loc = ut.find_first_non_zero(widest_y)
+        if non_zero_loc is not None:
+            xmin = float(widest_energy[non_zero_loc])
+            ax.xlim(xmin=xmin, xmax=xmax)
+        else:
+            ax.xlim(xmax=xmax)
+    else:
+        ax.xlim(xmin=xlow, xmax=xmax)
+
+
 def _unpack_et_df(et_input):
     """Extract (energy_arr, time_arr, value_matrix) from an E×T DataFrame.
 
@@ -126,8 +343,8 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
             raise ValueError("Invalid MCNP tally does not have energy bins.")
 
         for obj_id, df in d.result.items():
-            df_plot = df[df["energy"] != "total"]
-            splot = plt.step(np.asarray(d.eng), df_plot["result"], label=obj_id)
+            energy, result = _get_df_energy_result(df, eng_hint=d.eng)
+            splot = plt.step(energy, result, label=obj_id)
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
 
@@ -145,63 +362,24 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
     plt.xscale('log')
     plt.yscale('log')
 
+    handlers = {
+        '1': lambda ax, d, leg: _plot_type1_spectra(ax, d, leg, sp),
+        '2': _plot_type2_spectra,
+        '4': _plot_type4_spectra,
+        '5': _plot_type5_spectra,
+    }
+
+    all_series_contexts = []
+
     for d in data:
-        bw = calc_bin_width(d.eng)
-        if d.tally_type == '1':
-            plt.ylabel("current n/MeV/" + sp)
-            if len(d.surfaces) > 1:
-                if len(d.ang_bins) > 1:
-                    print("not implemented yet - plotting spectra, angle and multiple surfaces")
-                    raise NotImplementedError
-                for surf, df in d.result.items():
-                    df_plot = df[df["energy"] != "total"]
-                    y_vals = df_plot["result"].values / bw
-                    splot = plt.step(np.asarray(d.eng),  y_vals, label=surf)
-
-            else:
-                if len(d.ang_bins) > 1:
-                    for ang_df in d.result:
-                        y_vals = ang_df["result"].values / bw
-                        splot = plt.step(np.asarray(d.eng),  y_vals)
-                        legend = d.ang_bins
-                else:
-                    for surf, df in d.result.items():
-                        df_plot = df[df["energy"] != "total"]
-                        y_vals = df_plot["result"].values / bw
-                        splot = plt.step(np.asarray(d.eng),  y_vals, label=surf)
-                    plt.legend()
-
-        elif d.tally_type == '2':
-            for surf, df in d.result.items():
-                df_plot = df[df["energy"] != "total"]
-                y_vals = df_plot["result"].values / bw
-                splot = plt.step(np.asarray(d.eng),  y_vals, label=surf)
-            plt.legend()
-
-        elif d.tally_type == '4':
-            for cell, df in d.result.items():
-                df_plot = df[df["energy"] != "total"]
-                y_vals = df_plot["result"].values / bw
-                splot = plt.step(np.asarray(d.eng),  y_vals, label=cell)
-            plt.legend()
-
-        else:
-            y_vals = d.result["result"].values / bw
-            splot = plt.step(np.asarray(d.eng), y_vals)
+        handler = handlers.get(d.tally_type, _plot_default_spectra)
+        series_contexts, legend = handler(plt, d, legend)
+        all_series_contexts.extend(series_contexts)
 
         if err is True:
-            abs_err = calc_err_abs(y_vals, d.err)
-            mids = calc_mid_points(d.eng)
-            ecol = splot[0].get_color()
-            plt.errorbar(mids, y_vals[1:], yerr=abs_err[:-1], fmt="none",
-                         ecolor=ecol, markeredgewidth=1, capsize=2)
+            _apply_errorbars_for_contexts(plt, series_contexts)
 
-    if xlow is None:
-        non_zero_loc = ut.find_first_non_zero(y_vals)
-        if non_zero_loc:
-            plt.xlim(xmin=d.eng[non_zero_loc])
-    else:
-        plt.xlim(xmin=xlow)
+    _apply_global_x_limits(plt, all_series_contexts, xlow=xlow)
 
     if legend is not None:
         plt.legend(legend)
@@ -218,11 +396,20 @@ def plot_spectra_ratio(data1, data2, fname, title):
     plt.ylabel("ratio")
     plt.xscale('log')
 
-    res1 = next(iter(data1.result.values()))["result"].values
-    res2 = next(iter(data2.result.values()))["result"].values
-    ratio = res1 / res2
+    df1 = _first_result_df(data1.result)
+    df2 = _first_result_df(data2.result)
 
-    plt.plot(data1.eng, ratio)
+    e1, r1 = _get_df_energy_result(df1, eng_hint=data1.eng)
+    e2, r2 = _get_df_energy_result(df2, eng_hint=data2.eng)
+
+    s1 = pd.Series(r1, index=e1)
+    s2 = pd.Series(r2, index=e2)
+    common_energies = s1.index.intersection(s2.index)
+    if len(common_energies) == 0:
+        raise ValueError("No overlapping energy bins found for ratio plot")
+
+    ratio = (s1.loc[common_energies] / s2.loc[common_energies]).to_numpy(dtype=float)
+    plt.plot(common_energies.to_numpy(dtype=float), ratio)
     plt.savefig(fname)
     ntlogger.info("produced figure: %s", fname)
 

@@ -41,6 +41,13 @@ class mcnp_input():
         return "\n".join(print_list)
 
 
+class generic_data_card():
+    """ class reresenting data cards with a keyword and then parameters """
+    def __init__(self):
+        self.card_name = None
+        self.parameters = {}
+
+
 class mcnp_surface():
     """ class representing a MCNP surface definition """
     def __init__(self):
@@ -563,14 +570,23 @@ def process_material_line(mat_line, mat_num):
     return mat
 
 
+def validate_allowed_keys(keys, valid_keys, invalid_key_message, normalizer=str.lower):
+    """Validate a collection of keys against an allowed set."""
+    for key in keys:
+        candidate = normalizer(key) if normalizer is not None else key
+        if candidate not in valid_keys:
+            raise ValueError(invalid_key_message.format(key=key))
+
+
 def check_valid_mat_keyword(mat):
     """ checks that any keywords found for the material are valid inputs """
     valid_keywords = ("plib", "hlib", "gas", "estep", "hstep",
                       "nlib", "pnlib", "elib", "alib", "slib",
                       "tlib", "dlib", "cond", "refi", "refc", "refs")
-    for key in mat.keywords.keys():
-        if key not in valid_keywords:
-            raise ValueError(f'{key} input not recognised as valid keyword for a material')
+    validate_allowed_keys(
+        mat.keywords.keys(),
+        valid_keywords,
+        "{key} input not recognised as valid keyword for a material")
 
 
 def get_mt_lines(lines, mnum):
@@ -581,6 +597,40 @@ def get_mt_lines(lines, mnum):
 def get_mx_lines(lines, mnum):
     """ finds mx lines for a material"""
     return get_prefixed_lines(lines, "mx", mnum)
+
+
+def check_valid_read_card(read_card):
+    """ checks a read card is valid 
+        read_card is a generic data card class object"""
+    valid_read_params = ("echo", "noecho", "file", "encode", "decode")
+    validate_allowed_keys(
+        read_card.parameters,
+        valid_read_params,
+        "{key} is not a valid read card parameter",
+    )
+
+
+def check_valid_act_card(act_card):
+    """ checks an act card is valid 
+        act_card is a generic data card class object"""
+    valid_act_params = ("fission", "nonfission", "dn", "dg", "thresh", "dnbias", "nap", 
+                        "dgeb", "dneb", "pecut", "hlcut", "sample")
+    validate_allowed_keys(
+        act_card.parameters,
+        valid_act_params,
+        "{key} is not a valid act card parameter",
+    )
+
+
+def check_valid_fmult_card(fmult_card):
+    """ checks a fmult card is valid 
+        fmult_card is a generic data card class object"""
+    valid_fmult_params = ("sfnu", "data", "width", "watt", "method", "shift", "sfyield")
+    validate_allowed_keys(
+        fmult_card.parameters,
+        valid_fmult_params,
+        "{key} is not a valid fmult card parameter",
+    )
 
 
 def is_card_present(lines, card):
