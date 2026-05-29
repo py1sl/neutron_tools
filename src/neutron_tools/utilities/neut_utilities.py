@@ -39,9 +39,10 @@ class NeutronToolsLogger:
         """
         for handler in list(self.logger.handlers):
             self.logger.removeHandler(handler)
-            handler.close()
-
-        self.logger.propagate = False
+            try:
+                handler.close()
+            except (OSError, ValueError):
+                pass
 
         formatter = logging.Formatter(log_format)
 

@@ -273,7 +273,7 @@ def plot_summary(
     # plot to screen or file
     if fname:
         plt.savefig(fname)
-        ntlogger.info("plotted %s to %s", column, fname)
+        ntlogger.info("saved plot of %s to %s", column, fname)
     else:
         plt.show()
 
@@ -300,7 +300,7 @@ def plot_spectra(timestep: FispactTimeStep, fname: Optional[str] = None) -> None
     # plot to screen or file
     if fname:
         plt.savefig(fname)
-        ntlogger.info("plotted spectra to %s", fname)
+        ntlogger.info("saved spectra plot to %s", fname)
     else:
         plt.show()
 
@@ -392,7 +392,7 @@ def plot_nuc_cont(
     # plot to screen or file
     if fname:
         plt.savefig(fname)
-        ntlogger.info("plotted activity to %s", fname)
+        ntlogger.info("saved activity plot to %s", fname)
     else:
         plt.show()
     return plot

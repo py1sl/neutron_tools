@@ -206,7 +206,7 @@ def get_group_struct(gs: str) -> Union[Tuple[float, ...], bool]:
     elif gs == "162":
         return gs_162
     else:
-        ntlogger.error("group structure '%s' not found", gs)
+        ntlogger.debug("group structure '%s' not found", gs)
         return False
 
 
@@ -273,7 +273,7 @@ def check_upper_bound(groups: GroupBounds, energy: EnergyLike) -> bool:
         raise ValueError(f"groups and energy must be convertible to float: {e}") from e
 
     if energy > groups_array[0]:
-        ntlogger.warning("energy %s is above max group structure energy %s", energy, groups_array[0])
+        ntlogger.debug("energy %s is above max group structure energy %s", energy, groups_array[0])
         return False
     else:
         return True
@@ -297,7 +297,7 @@ def check_group_struct(gs: str) -> bool:
     """
     structures = ("709", "162")
     if gs not in structures:
-        ntlogger.warning("%s group structure is not recognised.", gs)
+        ntlogger.debug("%s group structure is not recognised.", gs)
         return False
     ntlogger.debug("%s group structure recognised.", gs)
     return True
