@@ -38,7 +38,7 @@ def is_nuc_present(inv: pd.DataFrame, nuc: str) -> bool:
         raise ValueError("inv must be a pandas DataFrame")
     if "nuclide" not in inv.columns:
         raise ValueError("inv DataFrame must contain a 'nuclide' column")
-    return nuc in inv["nuclide"].unique()
+    return nuc in inv["nuclide"].values
 
 
 def remove_stable(inv: pd.DataFrame) -> pd.DataFrame:
@@ -81,6 +81,7 @@ def output_mcnp_mat(inv: pd.DataFrame, lib: str = ".70c") -> pd.DataFrame:
     """ convert the fispact inventory into an MCNP material
         note: metastables are converted to ground state
     """
+    inv = inv.copy()
     zdict = neut_constants.Z_dict()  # Load Z to element dictionary
     inv["Z"] = inv["element"].map(zdict)  # Map elements to Z
     inv["ZAID"] = inv["Z"] * 1000 + inv["A"]  # Calculate ZAID
@@ -134,12 +135,19 @@ def check_nuclide_oos(
         returns true if activity is lower than the OOS value
         returns false if above the OOS value
     """
+    if mass <= 0:
+        raise ValueError("mass must be greater than zero")
+    if "Nuclide" not in oos_data.columns or "OOS Level" not in oos_data.columns:
+        raise ValueError("oos_data must contain 'Nuclide' and 'OOS Level' columns")
+
     oos_values = oos_data[oos_data["Nuclide"] == nuclide]["OOS Level"].values
     if oos_values.size > 0:
         oos_value = oos_values[0]
 
     else:
         oos_values = oos_data[oos_data["Nuclide"] == 'Other']["OOS Level"].values
+        if oos_values.size == 0:
+            raise ValueError(f"Nuclide '{nuclide}' not found and no 'Other' OOS level is available")
         oos_value = oos_values[0]
 
     # now do the comparison
@@ -165,7 +173,7 @@ def check_inventory_oos(inv: pd.DataFrame, oos_path: str = "data/t1.txt") -> boo
 def get_not_oos_nuclides(inv: pd.DataFrame, oos_path: str = "data/t1.txt") -> pd.DataFrame:
     """ """
     oos_data = read_OOS(oos_path)
-    inv = remove_stable(inv)
+    inv = remove_stable(inv).copy()
 
     inv["oos_result"] = inv.apply(lambda row: check_nuclide_oos(row['nuclide'], row['act'], oos_data), axis=1)
     inv = inv[~inv["oos_result"]]

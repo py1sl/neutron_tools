@@ -42,6 +42,8 @@ class output_function_tests(unittest.TestCase):
 
         mat = fa.output_mcnp_mat(inv)
         self.assertEqual(len(mat["ZAID"]), len(inv["A"]))
+        self.assertNotIn("Z", inv.columns)
+        self.assertNotIn("ZAID", inv.columns)
 
 
 class filtering_functions_tests(unittest.TestCase):
@@ -115,6 +117,18 @@ class filtering_functions_tests(unittest.TestCase):
         inv["wrong_col"] = ["Ta181"]
         with self.assertRaises(ValueError):
             fa.is_nuc_present(inv, "Ta181")
+
+    def test_check_nuclide_oos_raises_error_when_other_fallback_missing(self):
+        """Test missing fallback OOS value raises helpful error"""
+        oos_data = pd.DataFrame({"Nuclide": ["Ta181"], "OOS Level": [1e3]})
+        with self.assertRaises(ValueError):
+            fa.check_nuclide_oos("W180", 1.0, oos_data)
+
+    def test_check_nuclide_oos_raises_error_for_non_positive_mass(self):
+        """Test non-positive mass is rejected"""
+        oos_data = pd.DataFrame({"Nuclide": ["Other"], "OOS Level": [1e3]})
+        with self.assertRaises(ValueError):
+            fa.check_nuclide_oos("W180", 1.0, oos_data, mass=0)
 
 
 class plotting_tests(unittest.TestCase):
