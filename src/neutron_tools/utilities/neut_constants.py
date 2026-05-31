@@ -48,12 +48,12 @@ def years_to_days(val):
 
 def bq_to_curie(val):
     """converts bq to curies """
-    return val * 2.703e11
+    return val * 2.703e-11
 
 
 def curie_to_bq(val):
     """ convert val to bq """
-    return val * 3.7e-12
+    return val * 3.7e10
 
 
 def eV_to_joule(val):

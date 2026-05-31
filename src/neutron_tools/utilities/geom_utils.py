@@ -23,12 +23,9 @@ def check_plane_exists(n: Array) -> None:
 
 def check_parallel_planes(n1: Array, n2: Array) -> bool:
     """ check if planes are parallel by checking if their normals are parallel"""
-    n1_unit = n1 / np.linalg.norm(n1)
-    n2_unit = n2 / np.linalg.norm(n2)
-    if np.array_equal(n1_unit, n2_unit):
-        return True
-    else:
-        return False
+    check_plane_exists(n1)
+    check_plane_exists(n2)
+    return bool(np.all(np.isclose(np.cross(n1, n2), 0.0)))
 
 
 def check_identical_planes(n1: Array, d1: Number, n2: Array, d2: Number) -> bool:
@@ -43,12 +40,11 @@ def check_identical_planes(n1: Array, d1: Number, n2: Array, d2: Number) -> bool
 
 def check_near_parallel_planes(n1: Array, n2: Array, tol: float = 1e-6) -> bool:
     """ check if planes are near parallel by checking if their normals are near parallel"""
-    n1_unit = n1 / np.linalg.norm(n1)
-    n2_unit = n2 / np.linalg.norm(n2)
-    if np.all(np.isclose(n1_unit, n2_unit, atol=tol)):
-        return True
-    else:
-        return False
+    check_plane_exists(n1)
+    check_plane_exists(n2)
+    denom = np.linalg.norm(n1) * np.linalg.norm(n2)
+    cos_theta = np.abs(np.dot(n1, n2)) / denom
+    return bool(np.isclose(cos_theta, 1.0, atol=tol))
 
 
 def check_near_identical_planes(
@@ -124,13 +120,11 @@ def dist_between_planes(n1: Array, d1: Number, n2: Array, d2: Number) -> float:
         logging.debug('Planes are not parallel and thus intersect.')
         return 0.0
 
-    # Ensure planes have form ax + by + cz = d1 and ax + by + cz = d2
-    ratio = n1[0] / n2[0]
-    n2 *= ratio
-    d2 *= ratio
-
-    # Shortest distance FROM PLANE 1 TO PLANE 2 is:
-    D = (d2 - d1) / np.linalg.norm(n2)
+    n1_norm = np.linalg.norm(n1)
+    # Shortest signed distance FROM PLANE 1 TO PLANE 2
+    # Handle opposite normals by re-orienting d2 to the n1 convention.
+    d2_oriented = -d2 if np.dot(n1, n2) < 0 else d2
+    D = (d2_oriented - d1) / n1_norm
 
     # Function designed to return signed distance as opposed to magnitude
     # as allows more flexibility in interactions with other functions
@@ -191,22 +185,15 @@ def line_segment_plane_intersection(p0: Array, p1: Array, n: Array, d: Number) -
     """
     check_plane_exists(n)
 
+    denom = np.dot(p1 - p0, n)
     # Necessary to avoid division by zero
-    if np.dot(p1 - p0, n) == 0:
+    if denom == 0:
         raise ValueError(
             'Line segment parallel to plane so does not intersect')
-
-    # If val < 0, the two points must lie either side of the plane and so the line
-    # segment must intersect the plane
-    val = (np.dot(p0, n) - d) * (np.dot(p1, n) - d)
-
-    if val < 0:
-        t = d - np.dot(p0, n) / np.dot(p1 - p0, n)
-
+    t = (d - np.dot(p0, n)) / denom
+    if 0 <= t <= 1:
         return p0 + t * (p1 - p0)
-
-    else:
-        raise ValueError('Line segment does not intersect plane')
+    raise ValueError('Line segment does not intersect plane')
 
 
 def plane_sphere_intersect(n: Array, d: Number, p: Array, R: Number) -> Tuple[float, Array]:
@@ -226,11 +213,11 @@ def plane_sphere_intersect(n: Array, d: Number, p: Array, R: Number) -> Tuple[fl
     centre_dist = dist_between_point_plane(n, d, p)
 
     # Check to see if the plane and sphere intersect
-    if centre_dist > R:
+    if np.abs(centre_dist) > R:
         raise ValueError('Plane and sphere do not intersect')
 
     # Pythagoras then gives the radius of the circle
-    r = np.sqrt(R**2 - centre_dist**2)
+    r = np.sqrt(max(0.0, R**2 - centre_dist**2))
 
     centre_coords = p + (centre_dist * n) / np.linalg.norm(n)
 
@@ -577,10 +564,7 @@ def cartesian_to_cylindrical(x: Number, y: Number, z: Number) -> Tuple[float, fl
     """Converts Cartesian coordinates to cylindrical polar coordinates"""
 
     rho = np.sqrt(x**2 + y**2)
-    if x >= 0:
-        phi = np.arctan(y / x)
-    else:
-        phi = np.arctan(y / x) + np.pi
+    phi = np.arctan2(y, x)
 
     return (rho, phi, z)
 
@@ -589,11 +573,10 @@ def cartesian_to_spherical(x: Number, y: Number, z: Number) -> Tuple[float, floa
     """Converts Cartesian coordinates to spherical polar coordinates"""
 
     r = np.sqrt(x**2 + y**2 + z**2)
+    if r == 0:
+        raise ValueError("Spherical coordinates are undefined at the origin.")
     theta = np.arccos(z / r)
-    if x >= 0:
-        phi = np.arctan(y / x)
-    else:
-        phi = np.arctan(y / x) + np.pi
+    phi = np.arctan2(y, x)
 
     return (r, theta, phi)
 
@@ -615,6 +598,8 @@ def cylindrical_to_spherical(rho: Number, theta_cyl: Number, z: Number) -> Tuple
     check_positive(rho)
 
     r = np.sqrt(rho**2 + z**2)
+    if r == 0:
+        raise ValueError("Spherical coordinates are undefined at the origin.")
     theta = np.arccos(z / r)
     phi = theta_cyl
 
