@@ -24,6 +24,8 @@ def get_group_pos(groups: GroupBounds, energy: EnergyLike) -> int:
     """
     if not isinstance(groups, (list, tuple, np.ndarray)) or len(groups) == 0:
         raise ValueError("groups must be a non-empty array-like object")
+    if len(groups) < 2:
+        raise ValueError("groups must contain at least two energy boundaries")
 
     try:
         groups = np.asarray(groups, dtype=float)

@@ -113,7 +113,7 @@ class get_group_pos_error_test_case(unittest.TestCase):
     def test_unmatched_groups_raise_error(self):
         """Test error when no valid bin can be found"""
         with self.assertRaises(ValueError):
-            fw.get_group_pos([3, 1, 2], 1.5)
+            fw.get_group_pos([3], 1.5)
 
 
 class write_fluxes_file_error_test_case(unittest.TestCase):

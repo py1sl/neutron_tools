@@ -118,13 +118,13 @@ class filtering_functions_tests(unittest.TestCase):
         with self.assertRaises(ValueError):
             fa.is_nuc_present(inv, "Ta181")
 
-    def test_check_nuclide_oos_missing_other_guard(self):
+    def test_check_nuclide_oos_raises_error_when_other_fallback_missing(self):
         """Test missing fallback OOS value raises helpful error"""
         oos_data = pd.DataFrame({"Nuclide": ["Ta181"], "OOS Level": [1e3]})
         with self.assertRaises(ValueError):
             fa.check_nuclide_oos("W180", 1.0, oos_data)
 
-    def test_check_nuclide_oos_invalid_mass_guard(self):
+    def test_check_nuclide_oos_raises_error_for_non_positive_mass(self):
         """Test non-positive mass is rejected"""
         oos_data = pd.DataFrame({"Nuclide": ["Other"], "OOS Level": [1e3]})
         with self.assertRaises(ValueError):

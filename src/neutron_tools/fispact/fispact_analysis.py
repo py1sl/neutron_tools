@@ -38,7 +38,7 @@ def is_nuc_present(inv: pd.DataFrame, nuc: str) -> bool:
         raise ValueError("inv must be a pandas DataFrame")
     if "nuclide" not in inv.columns:
         raise ValueError("inv DataFrame must contain a 'nuclide' column")
-    return bool((inv["nuclide"] == nuc).any())
+    return nuc in inv["nuclide"].values
 
 
 def remove_stable(inv: pd.DataFrame) -> pd.DataFrame:
