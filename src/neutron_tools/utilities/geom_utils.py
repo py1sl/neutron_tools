@@ -121,10 +121,12 @@ def dist_between_planes(n1: Array, d1: Number, n2: Array, d2: Number) -> float:
         return 0.0
 
     n1_norm = np.linalg.norm(n1)
+    # Convert plane 2 to the normal convention of plane 1:
+    # if n2 = k*n1 then n1.p = d2/k
+    scale = np.dot(n2, n1) / np.dot(n1, n1)
+    d2_equiv = d2 / scale
     # Shortest signed distance FROM PLANE 1 TO PLANE 2
-    # Handle opposite normals by re-orienting d2 to the n1 convention.
-    d2_oriented = -d2 if np.dot(n1, n2) < 0 else d2
-    D = (d2_oriented - d1) / n1_norm
+    D = (d2_equiv - d1) / n1_norm
 
     # Function designed to return signed distance as opposed to magnitude
     # as allows more flexibility in interactions with other functions
