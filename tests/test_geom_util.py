@@ -138,6 +138,8 @@ class geom_conversions_test_case(unittest.TestCase):
         self.assertAlmostEqual(z, 1)
         rho, theta, z = geom_utils.cartesian_to_cylindrical(-1, 1, 1)
         self.assertAlmostEqual(theta, 3 * np.pi / 4)
+        rho, theta, z = geom_utils.cartesian_to_cylindrical(0, 1, 1)
+        self.assertAlmostEqual(theta, np.pi / 2)
 
     def test_cartesian_to_spherical(self):
         r, theta, phi = geom_utils.cartesian_to_spherical(1, 1, 1)
@@ -146,6 +148,9 @@ class geom_conversions_test_case(unittest.TestCase):
         self.assertAlmostEqual(phi, np.pi / 4)
         r, theta, phi = geom_utils.cartesian_to_spherical(-1, 1, 1)
         self.assertAlmostEqual(phi, 3 * np.pi / 4)
+        r, theta, phi = geom_utils.cartesian_to_spherical(0, 1, 1)
+        self.assertAlmostEqual(phi, np.pi / 2)
+        self.assertRaises(ValueError, geom_utils.cartesian_to_spherical, 0, 0, 0)
 
     def test_cylindrical_to_cartesian(self):
         x, y, z = geom_utils.cylindrical_to_cartesian(np.sqrt(2), np.pi / 4, 1)
@@ -163,6 +168,8 @@ class geom_conversions_test_case(unittest.TestCase):
         self.assertAlmostEqual(phi, np.pi / 4)
         self.assertRaises(
             ValueError, geom_utils.cylindrical_to_spherical, -1, np.pi / 4, 1)
+        self.assertRaises(
+            ValueError, geom_utils.cylindrical_to_spherical, 0, np.pi / 4, 0)
 
     def test_spherical_to_cartesian(self):
         x, y, z = geom_utils.spherical_to_cartesian(
@@ -193,6 +200,8 @@ class geom_planes_test_case(unittest.TestCase):
     def test_check_parallel_planes(self):
         self.assertTrue(geom_utils.check_parallel_planes(
             np.array([1.0, 1.0, 1.0]), np.array([2.0, 2.0, 2.0])))
+        self.assertTrue(geom_utils.check_parallel_planes(
+            np.array([1.0, 1.0, 1.0]), np.array([-2.0, -2.0, -2.0])))
         self.assertFalse(geom_utils.check_parallel_planes(
             np.array([1.0, 1.0, 1.0]), np.array([1.0, 2.0, 3.0])))
 
@@ -215,6 +224,8 @@ class geom_planes_test_case(unittest.TestCase):
             np.array([1.0, 0.0, 0.0]), 1.0, np.array([1.0, 0.0, 0.0]), 2.0), 1.0)
         self.assertEqual(geom_utils.dist_between_planes(
             np.array([1.0, 0.0, 0.0]), 2.0, np.array([1.0, 0.0, 0.0]), 1.0), -1.0)
+        self.assertEqual(geom_utils.dist_between_planes(
+            np.array([1.0, 0.0, 0.0]), 1.0, np.array([-1.0, 0.0, 0.0]), -2.0), 1.0)
         self.assertEqual(geom_utils.dist_between_planes(
             np.array([2.0, 4.0, -4.0]), 6.0, np.array([1.0, 2.0, -2.0]), -9.0), -4.0)
         self.assertRaises(ValueError, geom_utils.dist_between_planes, np.array(

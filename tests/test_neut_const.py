@@ -29,8 +29,8 @@ class conversion_test_case(unittest.TestCase):
         self.assertEqual(nc.second_to_shake(1), 1e8)
 
     def test_act_conv(self):
-        self.assertEqual(nc.bq_to_curie(1), 2.703e11)
-        self.assertEqual(nc.curie_to_bq(1), 3.7e-12)
+        self.assertEqual(nc.bq_to_curie(1), 2.703e-11)
+        self.assertEqual(nc.curie_to_bq(1), 3.7e10)
 
     def test_dose_conv(self):
         self.assertEqual(nc.sv_to_rem(1), 100)
