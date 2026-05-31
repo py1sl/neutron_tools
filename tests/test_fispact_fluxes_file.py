@@ -38,7 +38,8 @@ class fluxes_writer_test_case(unittest.TestCase):
     def test_correct_gs_length(self):
         self.assertEqual(len(fw.get_group_struct("709")), 709)
         self.assertEqual(len(fw.get_group_struct("162")), 162)
-        self.assertFalse(fw.get_group_struct("153"))
+        with self.assertRaises(ValueError):
+            fw.get_group_struct("153")
 
     def test_gs_check(self):
         self.assertTrue(fw.check_group_struct("709"))
@@ -108,6 +109,11 @@ class get_group_pos_error_test_case(unittest.TestCase):
         """Test error when energy cannot be converted to float"""
         with self.assertRaises(ValueError):
             fw.get_group_pos([1, 2, 3], "not_a_number")
+
+    def test_unmatched_groups_raise_error(self):
+        """Test error when no valid bin can be found"""
+        with self.assertRaises(ValueError):
+            fw.get_group_pos([3, 1, 2], 1.5)
 
 
 class write_fluxes_file_error_test_case(unittest.TestCase):

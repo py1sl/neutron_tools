@@ -45,12 +45,13 @@ def get_group_pos(groups: GroupBounds, energy: EnergyLike) -> int:
 
     if idx.size > 0:
         return int(idx[0])
-    # just in case it does not fit in the above categories
-    else:
-        return -1
+
+    raise ValueError(
+        f"Could not determine energy bin position for energy {energy} in the provided group structure."
+    )
 
 
-def get_group_struct(gs: str) -> Union[Tuple[float, ...], bool]:
+def get_group_struct(gs: str) -> Tuple[float, ...]:
     """ returns a named group structure bin boundaries """
 
     gs_162 = (1.0000E+9, 9.6000E+8, 9.2000E+8, 8.8000E+8, 8.4000E+8, 8.0000E+8,
@@ -207,7 +208,7 @@ def get_group_struct(gs: str) -> Union[Tuple[float, ...], bool]:
         return gs_162
     else:
         ntlogger.debug("group structure '%s' not found", gs)
-        return False
+        raise ValueError(f"Group structure '{gs}' is not recognised. Valid options are '709' and '162'.")
 
 
 def create_fluxes_data(groups: GroupBounds, epos: int) -> np.ndarray:

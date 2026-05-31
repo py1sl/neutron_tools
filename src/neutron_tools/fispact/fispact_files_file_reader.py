@@ -42,7 +42,7 @@ def process_files_file(lines) -> files_file:
     return files_file_obj
 
 
-def read_fispact_files_file(fpath: str) -> None:
+def read_fispact_files_file(fpath: str) -> list[str]:
     """ reads a fispact files file and returns the data as a list of lines """
     ntlogger.info("reading FISPACT files file %s", fpath)
     if not os.path.exists(fpath):
