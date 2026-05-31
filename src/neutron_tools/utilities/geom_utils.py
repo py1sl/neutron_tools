@@ -189,7 +189,7 @@ def line_segment_plane_intersection(p0: Array, p1: Array, n: Array, d: Number) -
 
     denom = np.dot(p1 - p0, n)
     # Necessary to avoid division by zero
-    if denom == 0:
+    if np.isclose(denom, 0.0):
         raise ValueError(
             'Line segment parallel to plane so does not intersect')
     t = (d - np.dot(p0, n)) / denom
@@ -212,16 +212,21 @@ def plane_sphere_intersect(n: Array, d: Number, p: Array, R: Number) -> Tuple[fl
     # First find the distance between the centre of the sphere and the centre of the circle
     # This is the shortest distance between the centre of the sphere and the
     # plane
+    n_unit = n / np.linalg.norm(n)
     centre_dist = dist_between_point_plane(n, d, p)
 
     # Check to see if the plane and sphere intersect
     if np.abs(centre_dist) > R:
         raise ValueError('Plane and sphere do not intersect')
 
-    # Pythagoras then gives the radius of the circle
-    r = np.sqrt(max(0.0, R**2 - centre_dist**2))
+    # Pythagoras then gives the radius of the circle.
+    # Keep a small tolerance for floating-point roundoff near tangency.
+    rad_sq = R**2 - centre_dist**2
+    if rad_sq < -1e-12:
+        raise ValueError('Plane and sphere do not intersect')
+    r = np.sqrt(max(0.0, rad_sq))
 
-    centre_coords = p + (centre_dist * n) / np.linalg.norm(n)
+    centre_coords = p + centre_dist * n_unit
 
     return r, centre_coords
 
@@ -575,7 +580,7 @@ def cartesian_to_spherical(x: Number, y: Number, z: Number) -> Tuple[float, floa
     """Converts Cartesian coordinates to spherical polar coordinates"""
 
     r = np.sqrt(x**2 + y**2 + z**2)
-    if r == 0:
+    if np.isclose(r, 0.0):
         raise ValueError("Spherical coordinates are undefined at the origin.")
     theta = np.arccos(z / r)
     phi = np.arctan2(y, x)
@@ -600,7 +605,7 @@ def cylindrical_to_spherical(rho: Number, theta_cyl: Number, z: Number) -> Tuple
     check_positive(rho)
 
     r = np.sqrt(rho**2 + z**2)
-    if r == 0:
+    if np.isclose(r, 0.0):
         raise ValueError("Spherical coordinates are undefined at the origin.")
     theta = np.arccos(z / r)
     phi = theta_cyl
