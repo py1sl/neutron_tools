@@ -3,8 +3,8 @@
     "mc_output":"test_output/r2s_1.io",
     "mc_gamma_input":"r2s_1g.i",
     "mc_code":"mcnp",
-    "files_file":"files",
-    "fispact_template":"fis_main.i",
+    "files_file":"test_output/example_files_file",
+    "fispact_template":"test_output/fis_in.i",
     "fispact_path":"fispact",
     "cooling_step":1
     

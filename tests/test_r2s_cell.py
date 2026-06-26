@@ -11,8 +11,8 @@ class json_read_test_case(unittest.TestCase):
         self.assertEqual(inputs.mc_input, "test_output/r2s_1.i")
         self.assertEqual(inputs.mc_output, "test_output/r2s_1.io")
         self.assertEqual(inputs.mc_gamma_input, "r2s_1g.i")
-        self.assertEqual(inputs.files_file, "files")
-        self.assertEqual(inputs.fispact_template, "fis_main.i")
+        self.assertEqual(inputs.files_file, "test_output/example_files_file")
+        self.assertEqual(inputs.fispact_template, "test_output/fis_in.i")
         self.assertEqual(inputs.fispact_path, "fispact")
         self.assertEqual(inputs.cooling_step, 1)
 
@@ -72,7 +72,7 @@ class fispact_inputs_test_case(unittest.TestCase):
 
         # in the check files file function
         with self.assertRaises(FileNotFoundError) as context:
-            r2s_cell.check_files_file(files_file)
+            r2s_cell.check_files_file(files_file, 709)
         self.assertEqual(str(context.exception),
                          f" Files file {files_file} not found")
 

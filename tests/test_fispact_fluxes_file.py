@@ -39,12 +39,12 @@ class fluxes_writer_test_case(unittest.TestCase):
         self.assertEqual(len(fw.get_group_struct("709")), 709)
         self.assertEqual(len(fw.get_group_struct("162")), 162)
         with self.assertRaises(ValueError):
-            fw.get_group_struct("153")
+            fw.get_group_struct(153)
 
     def test_gs_check(self):
-        self.assertTrue(fw.check_group_struct("709"))
-        self.assertTrue(fw.check_group_struct("162"))
-        self.assertFalse(fw.check_group_struct("710"))
+        self.assertTrue(fw.check_group_struct(709))
+        self.assertTrue(fw.check_group_struct(162))
+        self.assertFalse(fw.check_group_struct(710))
 
 
 class create_fluxes_data_test_case(unittest.TestCase):
@@ -77,8 +77,9 @@ class create_fluxes_data_test_case(unittest.TestCase):
         self.assertEqual(data[-1], 1)
         self.assertEqual(data[0], 5)
 
+        # test for not an array like 
         with self.assertRaises(ValueError):
-            fw.convert_mcnp_spect_to_fispact_fluxes_format([1, 1, 4, 3, 5])
+            fw.convert_mcnp_spect_to_fispact_fluxes_format(2)
 
     def test_mcnp_spect_empty(self):
         """Test error handling for empty spectrum"""

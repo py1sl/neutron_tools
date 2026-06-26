@@ -8,7 +8,7 @@ class files_file:
     """Class to represent a FISPACT files file"""
     def __init__(self, fpath: str):
         self.fpath = fpath
-        self.lines = read_fispact_files_file(fpath) if fpath else []
+        self.lines = []
         self.parameters = {}
 
     def __repr__(self):
@@ -42,7 +42,7 @@ def process_files_file(lines) -> files_file:
     return files_file_obj
 
 
-def read_fispact_files_file(fpath: str) -> list[str]:
+def read_fispact_files_file(fpath: str) -> files_file:
     """ reads a fispact files file and returns the data as a list of lines """
     ntlogger.info("reading FISPACT files file %s", fpath)
     if not os.path.exists(fpath):
@@ -57,7 +57,9 @@ def read_fispact_files_file(fpath: str) -> list[str]:
         raise IOError(f"Failed to read FISPACT files file {fpath}: {e}") from e
 
     ntlogger.info("loaded %d lines from FISPACT files file %s", len(lines), fpath)
-    return lines
+
+    files_file = process_files_file(lines)
+    return files_file
 
 if __name__ == "__main__":
-    lines = read_fispact_files_file("path/to/fispact_files_file.txt")
+    ff = read_fispact_files_file("path/to/fispact_files_file.txt")

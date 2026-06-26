@@ -252,10 +252,6 @@ def convert_mcnp_spect_to_fispact_fluxes_format(
 
     mcnp_spect = np.asarray(mcnp_spect)
 
-    # Check if the input is sorted in ascending order
-    if not np.all(mcnp_spect[:-1] <= mcnp_spect[1:]):
-        raise ValueError("MCNP spectrum is not sorted in ascending order (low to high energy).")
-
     # reverse to be high to low energy
     fispact_spect = mcnp_spect[::-1]
     # add power line
@@ -295,10 +291,10 @@ def write_fluxes_file(opath: str, data: GroupBounds) -> None:
         raise IOError(f"Failed to write fluxes file to {opath}: {e}") from e
 
 
-def check_group_struct(gs: str) -> bool:
+def check_group_struct(gs: int) -> bool:
     """ checks if the requested group structure is a valid fispact group structure
     """
-    structures = ("709", "162")
+    structures = (709, 162)
     if gs not in structures:
         ntlogger.debug("%s group structure is not recognised.", gs)
         return False

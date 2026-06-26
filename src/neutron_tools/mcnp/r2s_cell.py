@@ -4,12 +4,16 @@ import pandas as pd
 import os
 import shutil
 from pathlib import Path
+import subprocess
 
 from neutron_tools.mcnp import mcnp_output_reader as mor
 from neutron_tools.mcnp import mcnp_input_reader as mir
 from neutron_tools.fispact import fispact_output_reader as fisor
-from neutron_tools.utilities import neut_utilities as ut
 from neutron_tools.fispact import fispact_fluxes_writer as ffw
+from neutron_tools.fispact import fispact_files_file_reader as ffr
+from neutron_tools.utilities import neut_utilities as ut
+from neutron_tools.utilities import neut_constants as nc
+
 
 
 class usr_inputs:
@@ -25,6 +29,7 @@ class usr_inputs:
         self.cells = None
         self.fispact_path = None
         self.cooling_step = 1
+        self.norm_factor = 1.0
 
 
 def read_config(config_fp):
@@ -57,6 +62,8 @@ def read_config(config_fp):
             inputs.fispact_path = config["fispact_path"]
         elif key == "cooling_step":
             inputs.cooling_step = config["cooling_step"]
+        elif key == "norm_factor":
+            inputs.norm_factor = config["norm_factor"]
         else:
             raise ValueError('input not recognised')
 
@@ -65,25 +72,24 @@ def read_config(config_fp):
 
 def get_cells_mcnp(mcnp_output, particle="neutrons", tallies=None):
     """ reads from mcnp output and gets cell numbers from tallies"""
-    cell_list = []
+    cell_numbers = {}
     tally_data = []
     for tal in mcnp_output.tally_data:
         if tal.tally_type == '4' and tal.particle == particle:
             if tallies is not None:
                 if tal.number in tallies:
-                    cell_list = cell_list + tal.cells
+                    cell_numbers.update({cell: tal.number for cell in tal.cells})
                     tally_data.append(tal)
             else:
-                cell_list = cell_list + tal.cells
+                cell_numbers.update({cell: tal.number for cell in tal.cells})
                 tally_data.append(tal)
 
-    # convert to ints
-    cell_list = [int(i) for i in cell_list]
-    return cell_list, tally_data
+    cell_numbers = {int(k): v for k, v in cell_numbers.items()}
+    return cell_numbers, tally_data
 
 
 def get_cell_data(mc_input, tally_cell_list):
-    """ get the cll material, mass and volume data"""
+    """ get the cell material, mass and volume data"""
     cell_data = []
     for cell_num in tally_cell_list:
         if mir.check_cell_exists(cell_num, mc_input.cells):
@@ -134,9 +140,62 @@ def write_array(path):
     return 0
 
 
-def write_fispact(inputs, cell_data, path):
+def get_z_from_zaid(zaid):
+    """ get the atomic number from a zaid """
+    zaid = zaid.split(".")[0]  # remove any suffixes
+    zaid = int(zaid)
+    z = int(zaid / 1000)
+    return z
+
+
+def convert_comp_to_elements(mat):
+    """ converts the material composition to elements for fispact input """
+    elements = {}
+    # loop over the isotopes in the material composition and convert to elements
+    for iso in mat.composition:
+        z = get_z_from_zaid(iso)
+        z = next((k for k, v in nc.Z_dict().items() if v == z), None)
+        if z not in elements:
+            elements[z] = 0
+        elements[z] += mat.composition[iso]
+    
+    # need to normalise the elements to 100 for fispact input
+    total = sum(elements.values())
+    for z in elements:
+        elements[z] = elements[z] / total * 100
+
+    return elements
+
+
+def write_fispact(inputs, cell_data, material_data, tally_data, path):
     """ writes the main fispact runner """
-    lines = []
+    lines = ut.get_lines(inputs.fispact_template)
+    mat_num = cell_data["material"]
+    mat = material_data[mat_num]
+    print(mat)
+    density = cell_data["density"]
+    density = abs(density)  # make sure density is positive for fispact input
+
+    # extract and normalise the flux
+    cell_result = get_cell_tally_data(cell_data, tally_data)
+    total = cell_result.loc[cell_result["energy"] == "total", "result"].iloc[0]
+
+    # replace the material data in the template with the material from the cell data
+    for i, line in enumerate(lines):
+        if line.lower().startswith("density"):
+            lines[i] = f"density {density}"
+        elif line.lower().startswith("fuel"):
+            raise NotImplementedError("fuel line not implemented yet")
+        elif line.lower().startswith("mass"):
+            lines[i] = f"mass 1.0 {len(mat.elements)}"
+            for j, comp in enumerate(mat.elements):
+                lines.insert(i + j + 1, f"{comp.upper()} {mat.elements[comp]}")
+            lines[i + len(mat.elements) + 1] = "* end of mat"
+        elif line.lower().startswith('flux'):
+            current_flux = float(line. split()[-1])
+            new_flux = current_flux * inputs.norm_factor * total
+            lines[i] = f"FLUX {new_flux}"
+
     ut.write_lines(path, lines)
     return 0
 
@@ -149,17 +208,52 @@ def copy_files_file(inputs, path):
     return 0
 
 
-def write_fluxes(cell_data, path):
+def get_cell_tally_data(cell_data, tally_data):
+    """ """
+    # get the tally number for the current cell
+    tally_number = cell_data["tally_number"]
+    # get the tally data for the current cell
+    tally = next((t for t in tally_data if t.number == tally_number), None)
+    if tally is None:
+        raise ValueError(f"Tally {tally_number} not found in tally data")
+    
+    return tally.result[cell_data["number"]] 
+
+
+def write_fluxes(cell_data, tally_data, path):
     """ write the fluxes file for the current cell"""
-    lines = []
+
+    # process tally data to get the right  spectrum 
+    cell_result = get_cell_tally_data(cell_data, tally_data)
+    
+    # drop the row with column "energy" the equals "total" from the tally result if it exists
+    if "total" in cell_result["energy"].values:
+        cell_result = cell_result[cell_result["energy"] != "total"]
+
+    # extract the result column
+    result_column = cell_result["result"].to_list()
+
+    lines = ffw.convert_mcnp_spect_to_fispact_fluxes_format(result_column)
     ut.write_lines(path, lines)
     return 0
 
 
-def check_files_file(files_file):
+def check_files_file(files_file, ngroups_count):
     """ check the files file matches the data library with the current particle and group structure"""
     if not Path(files_file).exists():
         raise FileNotFoundError(f" Files file {files_file} not found")
+    
+    ff = ffr.read_fispact_files_file(files_file)
+
+    if "xs_endf" not in ff.parameters:
+        raise ValueError(f"Files file {files_file} does not contain xs_endf parameter")
+    elif str(ngroups_count) not in ff.parameters["xs_endf"]:
+        raise ValueError(f"Files file {files_file} does not contain xs_endf parameter for {ngroups_count} groups")
+    
+    if "prob_tab" not in ff.parameters:
+        raise ValueError(f"Files file {files_file} does not contain prob_tab parameter")
+    elif str(ngroups_count) not in ff.parameters["prob_tab"]:
+        raise ValueError(f"Files file {files_file} does not contain prob_tab parameter for {ngroups_count} groups")
 
     return 0
 
@@ -182,11 +276,19 @@ def run_fispact(fispath, path):
     """ run the three fispact runs for a cell """
     # change directory into folder
     # run collapse
+    print(f"running {path}/collapse.i")
+    col_path = path + "/collapse"
+    # result = subprocess.run( [fispath, col_path],
+    #                        capture_output=True, text=True, check=True  )
+
     # check collapse run
     # run array
+    print(f"running {path}/array.i")
     # check array run
 
     # run fispact main
+    print(f"running {path}/{path}.i")
+
     # check main run
 
     # remember to move out of folder
@@ -194,25 +296,37 @@ def run_fispact(fispath, path):
     return 0
 
 
-def fispact_setup(path, inputs, cell_data):
+def fispact_setup(path, inputs, cell_data, tally_data, material_data):
     """ set up the different the parts of the fispact runs for a cell """
     isExist = os.path.exists(path)
     if not isExist:
         # Create a new directory because it does not exist
         os.makedirs(path)
 
-    # TODO: need to get the groups number for the collapse
-    ngroups_count = 175
+    ngroups_count = int(cell_data["ngroups"])
+    print(f"ngroups_count: {ngroups_count}")
     write_collapse(f"{path}/collapse.i", ngroups_count)
     write_array(f"{path}/array.i")
-
-    write_fispact(inputs, cell_data, f"{path}/{path}.i")
+    write_fispact(inputs, cell_data, material_data, tally_data, f"{path}/{path}.i")
     copy_files_file(inputs, path)
-    check_files_file(f"{path}/FILES")
-    write_fluxes(cell_data, f"{path}/fluxes")
+    check_files_file(f"{path}/FILES", ngroups_count)
+    write_fluxes(cell_data, tally_data, f"{path}/fluxes")
 
     return 0
 
+
+def check_tally_energy_bins(tally_data):
+    """ get the number of energy groups for a given tally """
+    # check the energy group structure is allowable for fispact
+    all_ngroups = {}
+    for tal in tally_data:
+        ngroups = len(tal.eng)
+        if not ffw.check_group_struct(ngroups):
+            raise ValueError(f"Tally {tal.number} has an invalid number of energy groups: {ngroups}")
+        all_ngroups[tal.number] = ngroups
+
+    return all_ngroups
+    
 
 def read_data_from_mcnp_output(inputs):
     """ """
@@ -236,12 +350,12 @@ def read_data_from_mcnp_input(inputs, tally_cell_list):
     mc_input = mir.read_mcnp_input(inputs.mc_input)
     cell_data = get_cell_data(mc_input, tally_cell_list)
 
-    material_data = []
+    material_data = {}
 
     for mat_num in set(cell_data["material"]):
 
         mat = mir.read_material_lines(mat_num, mc_input.data_block)
-        material_data.append(mat)
+        material_data[mat_num] = mat
 
     return cell_data, material_data
 
@@ -251,25 +365,31 @@ def main(config_fp):
     # read config
     inputs = read_config(config_fp)
 
-    # read mc output
+    # read mc output and input files
     if inputs.mc_code.upper() == "MCNP":
+        # read mcnp output
         cells, tally_data = read_data_from_mcnp_output(inputs)
-        print(cells)
-    else:
-        raise NotImplementedError()
-
-    # read mc input
-    if inputs.mc_code.upper() == "MCNP":
+        # read mc input
         cell_data, material_data = read_data_from_mcnp_input(inputs, cells)
-        print(cell_data)
     else:
         raise NotImplementedError()
+    
+    # check the tally energy bins
+    ngroups = check_tally_energy_bins(tally_data)
 
-    # generate fispact inputs
-    # TODO: loop over the cell_data object
-    for cell in cells:
+    # add the tally number and ngroups to the cell data dataframe
+    cell_data["tally_number"] = cell_data["number"].map(cells)
+    cell_data["ngroups"] = cell_data["tally_number"].map(ngroups)
+
+    # process materials
+    for mat_num, mat in material_data.items():
+        mat.elements = convert_comp_to_elements(mat)
+
+    # generate fispact inputs and run each one
+    for _, row in cell_data.iterrows():
+        cell = row["number"]
         path = f"cell{cell}"
-        fispact_setup(path, inputs, cell_data)
+        fispact_setup(path, inputs, row, tally_data, material_data)
 
         # run fispact
         fispath = inputs.fispact_path
