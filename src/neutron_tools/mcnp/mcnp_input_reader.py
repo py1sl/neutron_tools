@@ -2,6 +2,7 @@
 MCNP input file reader
 """
 import argparse
+import re
 from neutron_tools.utilities import neut_utilities as ut
 
 
@@ -364,23 +365,35 @@ def process_geom(geom, cell):
     """ processes geometry part of a cell """
     surfaces = []
     cell.geom = geom
-
-    for i, part in enumerate(geom):
-        if "$" in part:
-            part = part.split("$")
-            cell.cell_comment.append(part[-1])
-            part = part[0]
-        if len(part) == 0:
-            continue
-        part = part.strip("()-")
-        if "imp" in part.lower():
-            cell = process_imp(part, cell)
-        elif part[0].isdigit():
-            part = part.split(":")
-            for s in part:
-                surfaces.append(float(s))
-        else:
-            print(f"{part} part not recogninsed")
+    try:
+        for i, part in enumerate(geom):
+            if "$" in part:
+                part = part.split("$")
+                cell.cell_comment.append(part[-1])
+                part = part[0]
+            if len(part) == 0:
+                continue
+            part = re.sub(r"[()]", "", part)  # parens can appear anywhere, not just at the ends
+            if len(part) == 0: # needed to deal with parts that are only ()-
+                continue
+            if "imp" in part.lower():
+                cell = process_imp(part, cell)
+            elif part.lstrip("-")[:1].isdigit():
+                for s in part.split(":"):
+                    if len(s) == 0:
+                        continue
+                    surfaces.append(float(s))
+            else:
+                print(f"{part} part not recognised")
+    except IndexError as err:
+        print(cell)
+        print(f"part index:{i}")
+        raise err
+    except ValueError as err:
+            print(cell)
+            print(f"part index:{i}")
+            print(f"part:{part}")
+            raise err
 
     cell.surfaces = surfaces
 

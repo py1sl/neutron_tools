@@ -154,9 +154,10 @@ def process_tracks(tracks):
         line = tracks[i]
         line = ut.string_cleaner(line)
         line = line.split(" ")
+        print(line)
 
         # check if a new history
-        if len(line) == 2 or len(line) == 3:
+        if len(line) == 2 or len(line) == 3 or len(line) == 4:
             if cur_history:
                 histories.append(cur_history)
             cur_history = history()
