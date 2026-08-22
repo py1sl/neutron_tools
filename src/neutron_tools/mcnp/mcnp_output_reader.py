@@ -1163,7 +1163,11 @@ def read_type_cell(tally_data, lines):
                 except ValueError:
                     cell_end = ut.find_line(" ===", lines, 4)
             else:
-                cell_end = ut.find_line(" ===", lines, 4)
+                try:
+                    cell_end = ut.find_line(" ===", lines, 4)
+                except ValueError:
+                    print(lines[-1])
+                    cell_end = ut.find_line(" there", lines, 6)
 
             # time bins
             if "time" in lines[cell_res_start + 1]:
@@ -1186,6 +1190,11 @@ def read_type_cell(tally_data, lines):
             else:
                 # single value per cell data
                 data_line = lines[cell_res_start + 1]
+
+                # deal with multipler line
+                if "multiplier" in data_line:
+                    data_line = lines[cell_res_start+2]
+
                 data_line = " ".join(data_line.split())
                 data_line = data_line.split(" ")
                 if ("total" in data_line) or data_line[0] == "":

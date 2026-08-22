@@ -62,6 +62,7 @@ class FispactTimeStep:
 
     step_num: int = 1
     step_length: float = 0
+    step_time: float = 0
     flux_amp: float = 0
     is_cooling: bool = False
     num_nuclides: int = 0
@@ -161,6 +162,11 @@ def read_time_step(lines: Lines, i: int) -> FispactTimeStep:
         ts.step_length = float(lines[0][50:60])
     except (ValueError, IndexError) as e:
         raise ValueError(f"Failed to parse step_length from line: {lines[0] if lines else 'empty'}") from e
+
+    if "COOLING" in lines[0]:
+        ts.is_cooling = True
+
+    ts.step_time = lines[0].split("* * *")[3].strip()
 
     ind = ut.find_ind(lines, "TOTAL NUMBER OF NUCLIDES PRINTED IN INVENTORY")
     try:
