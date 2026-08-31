@@ -405,13 +405,19 @@ def tokenize_geometry_text(geometry_text):
             tokens.append(char)
             i += 1
         elif char in "+-" or char.isdigit():
-            end = i + 1
+            sign = ""
+            start = i
             if char in "+-":
-                if end >= len(geometry_text) or not geometry_text[end].isdigit():
-                    raise ValueError(f"Invalid geometry token near '{geometry_text[i:]}'")
+                sign = char
+                i += 1
+                while i < len(geometry_text) and geometry_text[i].isspace():
+                    i += 1
+                if i >= len(geometry_text) or not geometry_text[i].isdigit():
+                    raise ValueError(f"Invalid geometry token near '{geometry_text[start:]}'")
+            end = i
             while end < len(geometry_text) and geometry_text[end].isdigit():
                 end += 1
-            tokens.append(int(geometry_text[i:end]))
+            tokens.append(int(f"{sign}{geometry_text[i:end]}"))
             i = end
         else:
             raise ValueError(f"Unsupported geometry token starting at '{geometry_text[i:]}'")
@@ -538,7 +544,7 @@ def geometry_surface_numbers(geometry):
     return surfaces
 
 
-def process_geom(geom, cell):
+def process_cell_geometry_and_params(geom, cell):
     """process the geometry and trailing parameters for a cell"""
     geometry_text, param_parts = split_cell_geometry_and_params(geom)
     cell.geom = geometry_text
@@ -580,7 +586,7 @@ def process_cell_card(card_lines):
     for continuation in cleaned_lines[1:]:
         geom.extend(continuation.split(" "))
 
-    return process_geom(geom, cell)
+    return process_cell_geometry_and_params(geom, cell)
 
 
 def process_cell_block(bloc):

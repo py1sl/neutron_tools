@@ -509,6 +509,11 @@ class line_tests(unittest.TestCase):
         self.assertEqual(geometry["terms"][0]["term"]["type"], "union")
         self.assertEqual(mcnp_input_reader.geometry_surface_numbers(geometry), [1, 23, 3, 4, 5])
 
+    def test_parse_cell_geometry_with_spaced_positive_sense(self):
+        geometry = mcnp_input_reader.parse_cell_geometry("+ 3 -4")
+        self.assertEqual(geometry["type"], "intersection")
+        self.assertEqual(mcnp_input_reader.geometry_surface_numbers(geometry), [3, 4])
+
 
 class MaterialTests(unittest.TestCase):
     def test_read_material_includes_mt_and_mx(self):
