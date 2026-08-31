@@ -81,6 +81,7 @@ class mcnp_cell():
         self.density = None
         self.imp = {}
         self.geom = ""
+        self.geometry = None
         self.surfaces = []
         self.param_list = []
         self.cell_comment = []
@@ -361,73 +362,252 @@ def process_imp(part, cell):
     return cell
 
 
-def process_geom(geom, cell):
-    """ processes geometry part of a cell """
-    surfaces = []
-    cell.geom = geom
-    try:
-        for i, part in enumerate(geom):
-            if "$" in part:
-                part = part.split("$")
-                cell.cell_comment.append(part[-1])
-                part = part[0]
-            if len(part) == 0:
-                continue
-            part = re.sub(r"[()]", "", part)  # parens can appear anywhere, not just at the ends
-            if len(part) == 0: # needed to deal with parts that are only ()-
-                continue
-            if "imp" in part.lower():
-                cell = process_imp(part, cell)
-            elif part.lstrip("-")[:1].isdigit():
-                for s in part.split(":"):
-                    if len(s) == 0:
-                        continue
-                    surfaces.append(float(s))
-            else:
-                print(f"{part} part not recognised")
-    except IndexError as err:
-        print(cell)
-        print(f"part index:{i}")
-        raise err
-    except ValueError as err:
-            print(cell)
-            print(f"part index:{i}")
-            print(f"part:{part}")
-            raise err
+def is_cell_parameter_token(token):
+    """check if a token marks the start of cell parameters"""
+    token = token.strip().lower()
+    if len(token) == 0:
+        return False
+    if token in ("like", "but"):
+        return True
+    if "=" not in token:
+        return False
+    return bool(re.match(r"^[a-z*][a-z0-9_:*]*=", token))
 
-    cell.surfaces = surfaces
+
+def split_cell_geometry_and_params(parts):
+    """split cell payload into geometry tokens and trailing parameter tokens"""
+    geometry_parts = []
+    param_parts = []
+    reading_params = False
+
+    for part in parts:
+        if len(part) == 0:
+            continue
+        if not reading_params and is_cell_parameter_token(part):
+            reading_params = True
+        if reading_params:
+            param_parts.append(part)
+        else:
+            geometry_parts.append(part)
+
+    return " ".join(geometry_parts), param_parts
+
+
+def tokenize_geometry_text(geometry_text):
+    """tokenize an MCNP cell geometry expression"""
+    tokens = []
+    i = 0
+    while i < len(geometry_text):
+        char = geometry_text[i]
+        if char.isspace():
+            i += 1
+        elif char in "():#":
+            tokens.append(char)
+            i += 1
+        elif char in "+-" or char.isdigit():
+            sign = ""
+            start = i
+            if char in "+-":
+                sign = char
+                i += 1
+                while i < len(geometry_text) and geometry_text[i].isspace():
+                    i += 1
+                if i >= len(geometry_text) or not geometry_text[i].isdigit():
+                    raise ValueError(f"Invalid geometry token near '{geometry_text[start:]}'")
+            end = i
+            while end < len(geometry_text) and geometry_text[end].isdigit():
+                end += 1
+            tokens.append(int(f"{sign}{geometry_text[i:end]}"))
+            i = end
+        else:
+            raise ValueError(f"Unsupported geometry token starting at '{geometry_text[i:]}'")
+
+    return tokens
+
+
+class GeometryParser:
+    """minimal parser for MCNP CSG-style cell geometry"""
+
+    def __init__(self, tokens):
+        self.tokens = tokens
+        self.position = 0
+
+    def current(self):
+        """return the current token"""
+        if self.position >= len(self.tokens):
+            return None
+        return self.tokens[self.position]
+
+    def consume(self):
+        """consume and return the current token"""
+        token = self.current()
+        self.position += 1
+        return token
+
+    def parse(self):
+        """parse a geometry expression"""
+        geometry = self.parse_union()
+        if self.current() is not None:
+            raise ValueError(f"Unexpected geometry token '{self.current()}'")
+        return geometry
+
+    def parse_union(self):
+        """parse union expressions joined by ':'"""
+        terms = [self.parse_intersection()]
+        while self.current() == ":":
+            self.consume()
+            terms.append(self.parse_intersection())
+
+        if len(terms) == 1:
+            return terms[0]
+        return {"type": "union", "terms": terms}
+
+    def parse_intersection(self):
+        """parse implicit intersection expressions"""
+        terms = []
+        while self.current() is not None and self.current() not in (")", ":"):
+            terms.append(self.parse_factor())
+
+        if len(terms) == 0:
+            raise ValueError("Empty geometry sub-expression")
+        if len(terms) == 1:
+            return terms[0]
+        return {"type": "intersection", "terms": terms}
+
+    def parse_factor(self):
+        """parse a geometry factor"""
+        token = self.current()
+        if token == "#":
+            self.consume()
+            next_token = self.current()
+            if isinstance(next_token, int):
+                return {
+                    "type": "complement",
+                    "term": {"type": "cell", "cell": abs(self.consume())}
+                }
+            return {"type": "complement", "term": self.parse_factor()}
+
+        if token == "(":
+            self.consume()
+            group = self.parse_union()
+            if self.current() != ")":
+                raise ValueError("Unbalanced geometry parentheses")
+            self.consume()
+            return {"type": "group", "term": group}
+
+        if isinstance(token, int):
+            token = self.consume()
+            return {
+                "type": "surface",
+                "surface": abs(token),
+                "sense": -1 if token < 0 else 1,
+            }
+
+        raise ValueError(f"Unexpected geometry token '{token}'")
+
+
+def parse_cell_geometry(geometry_text):
+    """parse cell geometry into a structured CSG representation"""
+    if geometry_text is None or len(geometry_text.strip()) == 0:
+        return None
+
+    tokens = tokenize_geometry_text(geometry_text)
+    parser = GeometryParser(tokens)
+    return parser.parse()
+
+
+def geometry_surface_numbers(geometry):
+    """derive the surface numbers referenced by a geometry expression"""
+    surfaces = []
+    seen = set()
+
+    def _visit(node):
+        if node is None:
+            return
+        node_type = node["type"]
+        if node_type == "surface":
+            surface = node["surface"]
+            if surface not in seen:
+                seen.add(surface)
+                surfaces.append(surface)
+        elif node_type in ("intersection", "union"):
+            for term in node["terms"]:
+                _visit(term)
+        elif node_type in ("group", "complement"):
+            _visit(node["term"])
+        elif node_type == "cell":
+            return
+        else:
+            raise ValueError(f"Unsupported geometry node type '{node_type}'")
+
+    _visit(geometry)
+    return surfaces
+
+
+def process_cell_geometry_and_params(geom, cell):
+    """process the geometry and trailing parameters for a cell"""
+    geometry_text, param_parts = split_cell_geometry_and_params(geom)
+    cell.geom = geometry_text
+    cell.geometry = parse_cell_geometry(geometry_text)
+    cell.surfaces = geometry_surface_numbers(cell.geometry)
+
+    for part in param_parts:
+        if part.lower().startswith("imp:"):
+            cell = process_imp(part, cell)
+        else:
+            cell.param_list.append(part)
 
     return cell
+
+
+def process_cell_card(card_lines):
+    """process a single cell card, including continuation lines"""
+    cell = mcnp_cell()
+    cleaned_lines = []
+
+    for line in card_lines:
+        if has_inline_comment(line):
+            comment = get_inline_comment(line)
+            if comment is not None:
+                cell.cell_comment.append(comment.strip())
+        line = ut.string_cleaner(remove_inline_comment(line))
+        if len(line) > 0:
+            cleaned_lines.append(line)
+
+    line = cleaned_lines[0].split(" ")
+    cell.number = int(line[0])
+    cell.mat = int(line[1])
+    geo_start_pos = 2
+    if cell.mat != 0:
+        cell.density = float(line[2])
+        geo_start_pos = 3
+
+    geom = line[geo_start_pos:]
+    for continuation in cleaned_lines[1:]:
+        geom.extend(continuation.split(" "))
+
+    return process_cell_geometry_and_params(geom, cell)
 
 
 def process_cell_block(bloc):
     """ split cell block into cell objects """
     cell_dict = {}
-    cell = None
-    geom = []
+    card_lines = []
     for line in bloc:
+        if len(line.strip()) == 0 or line.lower().startswith("c"):
+            continue
         if line[0].isdigit():
-            if cell is not None:
-                cell = process_geom(geom, cell)
+            if len(card_lines) > 0:
+                cell = process_cell_card(card_lines)
                 cell_dict[cell.number] = cell
-                geom = []
-
-            cell = mcnp_cell()
-            line = ut.string_cleaner(line)
-            line = line.split(" ")
-            cell.number = int(line[0])
-            cell.mat = int(line[1])
-            geo_start_pos = 2
-            if cell.mat != 0:
-                cell.density = float(line[2])
-                geo_start_pos = 3
-            geom = line[geo_start_pos:]
+            card_lines = [line]
         elif is_continue_line(line):
-            geom.append(line)
+            card_lines.append(line)
 
     # add last cell
-    cell = process_geom(geom, cell)
-    cell_dict[cell.number] = cell
+    if len(card_lines) > 0:
+        cell = process_cell_card(card_lines)
+        cell_dict[cell.number] = cell
 
     return cell_dict
 

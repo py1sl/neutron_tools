@@ -31,6 +31,32 @@ class cell_card_tests(unittest.TestCase):
         self.assertEqual(cell.mat, 0)
         self.assertIsNone(cell.density)
 
+    def test_grouped_csg_geometry(self):
+        bloc = ["7 0 (-999 1 2 3 4 5 6) imp:n=1"]
+        cell = mcnp_input_reader.process_cell_block(bloc)[7]
+        self.assertEqual(cell.geom, "(-999 1 2 3 4 5 6)")
+        self.assertEqual(cell.surfaces, [999, 1, 2, 3, 4, 5, 6])
+        self.assertEqual(cell.geometry["type"], "group")
+        self.assertEqual(cell.geometry["term"]["type"], "intersection")
+
+    def test_multiline_geometry_and_parameters(self):
+        bloc = [
+            "7 1 -1 (-999 1 2",
+            "     3 4 5 6) imp:n=1 vol=100",
+        ]
+        cell = mcnp_input_reader.process_cell_block(bloc)[7]
+        self.assertEqual(cell.surfaces, [999, 1, 2, 3, 4, 5, 6])
+        self.assertEqual(cell.imp["n"], 1)
+        self.assertIn("vol=100", cell.param_list)
+
+    def test_cell_complement_is_not_surface_reference(self):
+        bloc = ["8 0 #7 : -3 imp:n=1"]
+        cell = mcnp_input_reader.process_cell_block(bloc)[8]
+        self.assertEqual(cell.surfaces, [3])
+        self.assertEqual(cell.geometry["type"], "union")
+        self.assertEqual(cell.geometry["terms"][0]["type"], "complement")
+        self.assertEqual(cell.geometry["terms"][0]["term"]["type"], "cell")
+
     """
     def test_multiline_mat_cell(self):
         # test multiple line cell
@@ -462,6 +488,31 @@ class line_tests(unittest.TestCase):
         self.assertFalse(mcnp_input_reader.is_continue_line(" " * 4))
         self.assertTrue(mcnp_input_reader.is_continue_line(" " * 5))
         self.assertTrue(mcnp_input_reader.is_continue_line(" " * 10))
+
+    def test_is_cell_parameter_token(self):
+        self.assertTrue(mcnp_input_reader.is_cell_parameter_token("imp:n=1"))
+        self.assertTrue(mcnp_input_reader.is_cell_parameter_token("vol=100"))
+        self.assertFalse(mcnp_input_reader.is_cell_parameter_token("-1:2"))
+        self.assertFalse(mcnp_input_reader.is_cell_parameter_token("(3"))
+
+    def test_split_cell_geometry_and_params(self):
+        geom, params = mcnp_input_reader.split_cell_geometry_and_params(
+            ["(-1:23)", "(3", "4", "-5)", "imp:n=2", "vol=10"]
+        )
+        self.assertEqual(geom, "(-1:23) (3 4 -5)")
+        self.assertEqual(params, ["imp:n=2", "vol=10"])
+
+    def test_parse_cell_geometry(self):
+        geometry = mcnp_input_reader.parse_cell_geometry("(-1:23) (3 4 -5)")
+        self.assertEqual(geometry["type"], "intersection")
+        self.assertEqual(geometry["terms"][0]["type"], "group")
+        self.assertEqual(geometry["terms"][0]["term"]["type"], "union")
+        self.assertEqual(mcnp_input_reader.geometry_surface_numbers(geometry), [1, 23, 3, 4, 5])
+
+    def test_parse_cell_geometry_with_spaced_positive_sense(self):
+        geometry = mcnp_input_reader.parse_cell_geometry("+ 3 -4")
+        self.assertEqual(geometry["type"], "intersection")
+        self.assertEqual(mcnp_input_reader.geometry_surface_numbers(geometry), [3, 4])
 
 
 class MaterialTests(unittest.TestCase):
