@@ -236,7 +236,7 @@ def _apply_errorbars_for_contexts(ax, series_contexts):
                     ecolor=ecol, markeredgewidth=1, capsize=2)
 
 
-def _apply_global_x_limits(ax, all_series_contexts, xlow=None):
+def _apply_global_x_limits(ax, all_series_contexts, xlow=None, xhigh=None):
     """Set global x-limits based on the widest plotted series."""
     if not all_series_contexts:
         return
@@ -257,7 +257,11 @@ def _apply_global_x_limits(ax, all_series_contexts, xlow=None):
 
     widest_energy = widest_ctx["energy"]
     widest_y = widest_ctx["y_vals"]
-    xmax = float(np.max(widest_energy))
+
+    if xhigh is None:
+        xmax = float(np.max(widest_energy))
+    else:
+        xmax = xhigh
 
     if xlow is None:
         non_zero_loc = ut.find_first_non_zero(widest_y)
@@ -350,7 +354,7 @@ def plot_raw_spectra(data, fname, title, sp="proton"):
 
 
 def plot_spectra(data, fname, title, sp="proton", err=False,
-                 xlow=None, legend=None):
+                 xlow=None, xhigh=None, legend=None):
     """ plots spectra from MCNP tally data object, dividing by bin width """
     if not isinstance(data, list):
         data = [data]
@@ -379,7 +383,7 @@ def plot_spectra(data, fname, title, sp="proton", err=False,
         if err is True:
             _apply_errorbars_for_contexts(plt, series_contexts)
 
-    _apply_global_x_limits(plt, all_series_contexts, xlow=xlow)
+    _apply_global_x_limits(plt, all_series_contexts, xlow=xlow, xhigh=xhigh)
 
     if legend is not None:
         plt.legend(legend)
