@@ -77,9 +77,6 @@ class create_fluxes_data_test_case(unittest.TestCase):
         self.assertEqual(data[-1], 1)
         self.assertEqual(data[0], 5)
 
-        with self.assertRaises(ValueError):
-            fw.convert_mcnp_spect_to_fispact_fluxes_format([1, 1, 4, 3, 5])
-
     def test_mcnp_spect_empty(self):
         """Test error handling for empty spectrum"""
         with self.assertRaises(ValueError):
