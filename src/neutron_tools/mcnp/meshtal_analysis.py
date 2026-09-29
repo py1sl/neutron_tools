@@ -319,6 +319,13 @@ def convert_to_df(mesh):
     cols = col_mappings[mesh.ctype]
     data = pd.DataFrame(mesh.data, columns=cols)
 
+    data.replace(
+        r"^[+-]?(?:\d+(?:\.\d*)?|\.\d+)-(?:[1-9]\d{2,})$",
+        "0",
+        regex=True,
+        inplace=True,
+    )
+
     # convert to float
     data["x"] = pd.to_numeric(data["x"], downcast="float")
     data["y"] = pd.to_numeric(data["y"], downcast="float")
