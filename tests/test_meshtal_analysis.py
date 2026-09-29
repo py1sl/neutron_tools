@@ -57,6 +57,20 @@ class convert_to_df_test(unittest.TestCase):
         self.assertEqual(meshtally_test.data['z'].iloc[0], 5.00)
         self.assertEqual(meshtally_test.data['rel_err'].iloc[0], 1.00)
 
+    def test_df_convert_legacy_negative_exponents(self):
+        meshtally_test = ma.meshtally()
+        meshtally_test.ctype = "5col"
+        meshtally_test.data = [
+            ['1.00', '2.00', '3.00', '1.11111-123', '2.22222-100'],
+            ['1.00', '2.00', '3.00', '1.11111E-99', '0.00'],
+        ]
+
+        data = ma.convert_to_df(meshtally_test)
+
+        self.assertEqual(data['value'].iloc[0], 0.00)
+        self.assertEqual(data['rel_err'].iloc[0], 0.00)
+        self.assertEqual(data['value'].iloc[1], 1.11111E-99)
+
 
 class count_zeros_test(unittest.TestCase):
 
