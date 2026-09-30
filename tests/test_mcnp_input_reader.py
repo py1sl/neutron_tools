@@ -665,6 +665,25 @@ class real_file_Tests(unittest.TestCase):
         self.assertFalse(mc_in.is_void)
         self.assertFalse(mc_in.is_ptrac)
 
+    def test_read_other_input_fixtures(self):
+        test_output = os.path.join(os.path.dirname(__file__), 'test_output')
+        input_files = [
+            'multiple.i',
+            'multiple_erg.i',
+            'multiple_et.i',
+            'multiple_t.i',
+            'r2s_1.i',
+            'r2s_2.i',
+            'singles_erg.i',
+            'singles_et.i',
+            'singles_t.i',
+        ]
+
+        for input_file in input_files:
+            with self.subTest(input_file=input_file):
+                path = os.path.join(test_output, input_file)
+                self.assertIsNotNone(mcnp_input_reader.read_mcnp_input(path))
+
 
 class str_method_tests(unittest.TestCase):
     """ tests for __str__ methods of mcnp_input_reader classes """
