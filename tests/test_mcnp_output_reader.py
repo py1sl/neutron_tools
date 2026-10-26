@@ -1152,6 +1152,35 @@ class str_method_tests(unittest.TestCase):
         self.assertIn("1000000", result)
         self.assertIn("Neutron", result)
 
+    def test_read_summary_dataframes(self):
+        path = os.path.join(
+            os.path.dirname(__file__), "test_output", "multiple_erg.io")
+        lines = ut.get_lines(path)
+        summary = mcnp_output_reader.read_summary(lines, "photon", -1)
+
+        self.assertIsInstance(summary, mcnp_output_reader.MCNP_summary_data)
+        self.assertEqual(summary.nps, 1000000)
+        self.assertEqual(summary.particle, "photon")
+        self.assertEqual(summary.creation_data.columns.tolist(),
+                         ["method", "tracks", "weight", "energy"])
+        self.assertEqual(summary.loss_data.columns.tolist(),
+                         ["method", "tracks", "weight", "energy"])
+        self.assertEqual(summary.creation_data.iloc[0]["method"], "source")
+        self.assertEqual(summary.creation_data.iloc[-1]["method"], "total")
+        self.assertEqual(summary.loss_data.iloc[-1]["method"], "total")
+        self.assertGreater(
+            len(summary.creation_data), len(summary.loss_data))
+
+    def test_read_output_file_summary_data(self):
+        path = os.path.join(
+            os.path.dirname(__file__), "test_output", "multiple_erg.io")
+        output = mcnp_output_reader.read_output_file(path)
+
+        self.assertEqual(len(output.summary_data), 1)
+        self.assertEqual(output.summary_data[0].particle, "photon")
+        self.assertEqual(output.summary_data[0].creation_data.iloc[0]["method"],
+                         "source")
+
 
 class process_ang_string_test(unittest.TestCase):
     """ tests for process_ang_string """
