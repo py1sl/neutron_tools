@@ -319,7 +319,6 @@ def _get_summary_section(data, rnum):
 
 
 def _find_summary_header(lines, ptype):
-    header_match = None
     for i, line in enumerate(lines):
         match = re.match(
             r"^\s*(.+?)\s+creation\s+tracks\s+weight\s+energy\s+"
@@ -328,7 +327,6 @@ def _find_summary_header(lines, ptype):
             re.IGNORECASE,
         )
         if match and match.group(1).strip().lower() == str(ptype).lower():
-            header_match = match
             return i, match
     raise ValueError(f"No {ptype} summary table found")
 
