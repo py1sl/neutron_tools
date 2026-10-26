@@ -303,8 +303,7 @@ def process_ang_string(line):
     return ang_float
 
 
-def read_summary(data, ptype, rnum):
-    """Read one particle's creation and loss data from a problem summary."""
+def _get_summary_section(data, rnum):
     summary_indexes = [
         i for i, line in enumerate(data) if "1problem summary" in line
     ]
@@ -313,17 +312,14 @@ def read_summary(data, ptype, rnum):
             start = summary_indexes[rnum]
         except IndexError:
             raise ValueError("Problem summary index is out of range")
-        lines = data[start + 1:]
-        next_summary = next(
-            (i for i, line in enumerate(lines)
-             if "1problem summary" in line), len(lines))
-        lines = lines[:next_summary]
-    else:
-        lines = data
-        start = 0
+        end = next(
+            (i for i in summary_indexes if i > start), len(data))
+        return data[start + 1:end], start + 1
+    return data, 0
 
+
+def _find_summary_header(lines, ptype):
     header_match = None
-    header_index = None
     for i, line in enumerate(lines):
         match = re.match(
             r"^\s*(.+?)\s+creation\s+tracks\s+weight\s+energy\s+"
@@ -333,60 +329,73 @@ def read_summary(data, ptype, rnum):
         )
         if match and match.group(1).strip().lower() == str(ptype).lower():
             header_match = match
-            header_index = i
-            break
-    if header_match is None:
-        raise ValueError(f"No {ptype} summary table found")
+            return i, match
+    raise ValueError(f"No {ptype} summary table found")
 
-    summary = MCNP_summary_data()
-    summary.particle = header_match.group(1).strip()
-    for line in reversed(data[:start]):
+
+def _get_summary_nps(data, end):
+    for line in reversed(data[:end]):
         nps_match = re.search(
             r"run terminated when\s+(\d+)\s+particle histories", line)
         if nps_match:
-            summary.nps = int(nps_match.group(1))
-            break
+            return int(nps_match.group(1))
+    return 1
 
-    split_index = lines[header_index].lower().index(
-        f"{header_match.group(2).strip()} loss".lower())
+
+def _parse_summary_side(side):
+    fields = side.split()
+    if len(fields) < 3:
+        return None
+    try:
+        tracks, weight, energy = [
+            float(value.replace("D", "E").replace("d", "e"))
+            for value in fields[-3:]
+        ]
+    except ValueError:
+        return None
+    method = " ".join(fields[:-3])
+    if not method:
+        return None
+    if tracks.is_integer():
+        tracks = int(tracks)
+    return {
+        "method": method,
+        "tracks": tracks,
+        "weight": weight,
+        "energy": energy,
+    }
+
+
+def _read_summary_rows(lines, split_index):
     creation_rows = []
     loss_rows = []
-
-    def parse_summary_side(side):
-        fields = side.split()
-        if len(fields) < 3:
-            return None
-        try:
-            tracks, weight, energy = [
-                float(value.replace("D", "E").replace("d", "e"))
-                for value in fields[-3:]
-            ]
-        except ValueError:
-            return None
-        method = " ".join(fields[:-3])
-        if not method:
-            return None
-        if tracks.is_integer():
-            tracks = int(tracks)
-        return {
-            "method": method,
-            "tracks": tracks,
-            "weight": weight,
-            "energy": energy,
-        }
-
-    for line in lines[header_index + 1:]:
+    for line in lines:
         if not line.strip():
             continue
-        creation_row = parse_summary_side(line[:split_index])
-        loss_row = parse_summary_side(line[split_index:])
+        creation_row = _parse_summary_side(line[:split_index])
+        loss_row = _parse_summary_side(line[split_index:])
         if creation_row:
             creation_rows.append(creation_row)
         if loss_row:
             loss_rows.append(loss_row)
-        if (creation_row and creation_row["method"].lower() == "total"
-                or loss_row and loss_row["method"].lower() == "total"):
+        if ((creation_row and creation_row["method"].lower() == "total")
+                or (loss_row and loss_row["method"].lower() == "total")):
             break
+    return creation_rows, loss_rows
+
+
+def read_summary(data, ptype, rnum=-1):
+    """Read one particle's creation and loss data from a problem summary."""
+    lines, section_start = _get_summary_section(data, rnum)
+    header_index, header_match = _find_summary_header(lines, ptype)
+    split_index = lines[header_index].lower().index(
+        f"{header_match.group(2).strip()} loss".lower())
+
+    summary = MCNP_summary_data()
+    summary.particle = header_match.group(1).strip()
+    summary.nps = _get_summary_nps(data, section_start + header_index)
+    creation_rows, loss_rows = _read_summary_rows(
+        lines[header_index + 1:], split_index)
 
     columns = ["method", "tracks", "weight", "energy"]
     summary.creation_data = pd.DataFrame(creation_rows, columns=columns)
