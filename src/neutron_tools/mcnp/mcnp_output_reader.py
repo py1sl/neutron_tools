@@ -10,6 +10,25 @@ from collections import defaultdict
 from neutron_tools.utilities import neut_utilities as ut
 
 
+class MCNP_stat_test():
+    """Result for one MCNP tally statistical check."""
+
+    def __init__(self, name, value, passed):
+        self.name = name
+        self.value = value
+        self.passed = passed
+
+
+class MCNP_stat_tests():
+    """Results for the ten MCNP tally statistical checks."""
+
+    def __init__(self, tests):
+        self.tests = tests
+        self.passed_all = len(tests) == 10 and all(
+            test.passed for test in tests
+        )
+
+
 class MCNPOutput():
     """ MCNP output data"""
 
@@ -795,10 +814,7 @@ def read_tally(lines, tnum, rnum=-1):
     else:
         ntlogger.info("Tally type not recognised or supported")
 
-    # get statistical test outcomes
-    # first check not all zeros
-    # if np.array(tally_data.result).any():
-    #    tally_data.stat_tests = read_stat_tests(lines)
+    tally_data.stat_tests = read_stat_tests(lines)
 
     return tally_data
 
@@ -1548,16 +1564,49 @@ def read_type_5(tally_data, lines):
 
 
 def read_stat_tests(lines):
-    """ initial stat test reader"""
-    try:
-        stat_res_line_id = ut.find_line(" passed", lines, 7)
-    except ValueError:
-        return ["no"]
+    """Read the observed values and pass/fail results for MCNP's ten checks."""
+    test_names = (
+        "Mean behavior",
+        "Relative error value",
+        "Relative error decrease",
+        "Relative error decrease rate",
+        "Variance of variance value",
+        "Variance decrease",
+        "Variance decrease rate",
+        "Figure of merit value",
+        "Figure of merit behavior",
+        "PDF slope",
+    )
+    observed_values = None
+    pass_results = None
 
-    stat_line = lines[stat_res_line_id]
-    stat_line = ut.string_clean_and_split(stat_line)[1:]
+    for line in lines:
+        tokens = line.strip().split()
+        if not tokens:
+            continue
+        first_token = tokens[0].lower()
+        if first_token == "observed":
+            observed_values = tokens[1:]
+        elif first_token == "passed?":
+            pass_results = tokens[1:]
 
-    return stat_line
+    if pass_results is None or len(pass_results) != len(test_names):
+        return None
+    if observed_values is not None and len(observed_values) != len(test_names):
+        return None
+    if observed_values is None:
+        observed_values = [None] * len(test_names)
+
+    tests = []
+    for name, value, passed in zip(test_names, observed_values, pass_results):
+        if value is not None:
+            try:
+                value = float(value)
+            except ValueError:
+                pass
+        tests.append(MCNP_stat_test(name, value, passed.lower() == "yes"))
+
+    return MCNP_stat_tests(tests)
 
 
 def get_table_dict(lines):

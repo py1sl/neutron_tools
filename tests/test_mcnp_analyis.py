@@ -407,7 +407,10 @@ class html_output_test(unittest.TestCase):
         tdat.tally_type = "4"
         tdat.eng = None
         tdat.times = None
-        tdat.stat_tests = ["passed"] * 10
+        tdat.stat_tests = mor.read_stat_tests([
+            " observed random 0.02 yes yes 0.01 yes yes constant random 8.52",
+            " passed? yes yes yes yes yes yes yes yes yes yes",
+        ])
         tdat.cells = ['2']
         tdat.vols = ['100.0']
 
@@ -415,6 +418,9 @@ class html_output_test(unittest.TestCase):
 
         output_utilities.html_output(mc_obj, "output.html")
         mock_write_html.assert_called_once()
+        html = "\n".join(mock_write_html.call_args.args[1])
+        self.assertIn("Relative error value</td><td>0.02</td><td>Yes", html)
+        self.assertIn("All tests passed</td><td>Yes", html)
 
 
 class html_f4_tab_out_test(unittest.TestCase):

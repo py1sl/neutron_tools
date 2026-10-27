@@ -17,7 +17,7 @@ class TallyProtocol(Protocol):
     particle: str
     eng: Optional[Sequence[Any]]
     times: Optional[Sequence[Any]]
-    stat_tests: Optional[Sequence[Any]]
+    stat_tests: Any
     tally_type: str
     cells: Sequence[str]
     vols: Sequence[str]
@@ -153,21 +153,37 @@ def html_output(mc_object: MCObjectProtocol, fname: FilePath) -> None:
 
         if tdat.stat_tests:
             hlines.append("Statistical test results")
-            stat_rows = [
-                ("Mean behaviour", tdat.stat_tests[0]),
-                ("Rel err value", tdat.stat_tests[1]),
-                ("rel err behavior", tdat.stat_tests[2]),
-                ("rel err rate", tdat.stat_tests[3]),
-                ("Variance value", tdat.stat_tests[4]),
-                ("Variance behavior", tdat.stat_tests[5]),
-                ("Variance rate", tdat.stat_tests[6]),
-                ("FOM value constant", tdat.stat_tests[7]),
-                ("FOM behavior random", tdat.stat_tests[8]),
-                ("PDF slope", tdat.stat_tests[9]),
-            ]
-            stat_lines = ["<table><tr><th>Test</th><th>Result</th></tr>"]
-            for name, val in stat_rows:
-                stat_lines.append(f"<tr><td>{name}</td><td>{val}</td></tr>")
+            if hasattr(tdat.stat_tests, "tests"):
+                stat_lines = [
+                    "<table><tr><th>Test</th><th>Value</th><th>Passed</th></tr>"
+                ]
+                for test in tdat.stat_tests.tests:
+                    passed = "Yes" if test.passed else "No"
+                    stat_lines.append(
+                        f"<tr><td>{test.name}</td><td>{test.value}</td>"
+                        f"<td>{passed}</td></tr>"
+                    )
+                passed_all = "Yes" if tdat.stat_tests.passed_all else "No"
+                stat_lines.append(
+                    f"<tr><td colspan='2'>All tests passed</td>"
+                    f"<td>{passed_all}</td></tr>"
+                )
+            else:
+                stat_rows = [
+                    ("Mean behaviour", tdat.stat_tests[0]),
+                    ("Rel err value", tdat.stat_tests[1]),
+                    ("rel err behavior", tdat.stat_tests[2]),
+                    ("rel err rate", tdat.stat_tests[3]),
+                    ("Variance value", tdat.stat_tests[4]),
+                    ("Variance behavior", tdat.stat_tests[5]),
+                    ("Variance rate", tdat.stat_tests[6]),
+                    ("FOM value constant", tdat.stat_tests[7]),
+                    ("FOM behavior random", tdat.stat_tests[8]),
+                    ("PDF slope", tdat.stat_tests[9]),
+                ]
+                stat_lines = ["<table><tr><th>Test</th><th>Result</th></tr>"]
+                for name, val in stat_rows:
+                    stat_lines.append(f"<tr><td>{name}</td><td>{val}</td></tr>")
             stat_lines.append("</table>")
             hlines.append("\n".join(stat_lines))
         else:
