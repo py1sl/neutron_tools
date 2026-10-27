@@ -1241,17 +1241,31 @@ class read_stat_tests_test(unittest.TestCase):
     def test_stat_tests_no_passed_line(self):
         lines = ["some tally data", "no stat info here"]
         result = mcnp_output_reader.read_stat_tests(lines)
-        self.assertEqual(result, ["no"])
+        self.assertIsNone(result)
 
     def test_stat_tests_with_passed_line(self):
         lines = [
             "some data",
-            " passed  ok ok ok ok ok ok ok ok ok",
+            " observed random 0.02 yes yes 0.01 yes yes constant random 8.52",
+            " passed? yes yes yes yes yes yes yes yes yes yes",
             "more data",
         ]
         result = mcnp_output_reader.read_stat_tests(lines)
-        self.assertIsInstance(result, list)
-        self.assertGreater(len(result), 0)
+        self.assertIsInstance(result, mcnp_output_reader.MCNP_stat_tests)
+        self.assertEqual(len(result.tests), 10)
+        self.assertEqual(result.tests[1].value, 0.02)
+        self.assertEqual(result.tests[9].value, 8.52)
+        self.assertTrue(result.tests[1].passed)
+        self.assertTrue(result.passed_all)
+
+    def test_stat_tests_reports_failed_check(self):
+        lines = [
+            " observed random 0.02 yes yes 0.01 yes yes constant random 8.52",
+            " passed? yes no yes yes yes yes yes yes yes yes",
+        ]
+        result = mcnp_output_reader.read_stat_tests(lines)
+        self.assertFalse(result.tests[1].passed)
+        self.assertFalse(result.passed_all)
 
 
 class check_fatal_test(unittest.TestCase):
