@@ -500,6 +500,7 @@ def read_meshtally_file(path, mesh_num=None):
         for i, line in enumerate(f):
             if in_data and " Mesh Tally Number" in line:
                 if select_mesh:
+                    mesh.data = convert_to_df(mesh)
                     return mesh
                 else:
                     meshes.append(mesh)
