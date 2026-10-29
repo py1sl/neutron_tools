@@ -478,6 +478,8 @@ class meshes_tests(unittest.TestCase):
     def test_select_mesh(self):
         mesh = ma.read_meshtally_file(meshes_path, 14)
         self.assertEqual(mesh.idnum, 14)
+        self.assertIn("value", mesh.data.columns)
+        self.assertEqual(mesh.data["x"].iloc[0], -20)
 
 
 class slice_tests(unittest.TestCase):
