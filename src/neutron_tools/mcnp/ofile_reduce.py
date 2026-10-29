@@ -19,7 +19,7 @@ def reduce_ofile(infile, ofile):
     # reduce to only the final result set
     try:
         term_line = ut.find_line("      run terminated when", lines, 25)
-    except EOFError as e:
+    except ValueError as e:
         logging.debug(repr(e))
         sys.exit()
 
