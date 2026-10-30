@@ -1022,7 +1022,7 @@ def read_type_surface(tally_data, lines):
 
     if tally_data.tally_type == "1":
         surface_list = get_type1_surface_numbers(lines)
-        tally_data.surfaces = list(set(surface_list))
+        tally_data.surfaces = list(dict.fromkeys(surface_list))
         ntlogger.debug("Tally surface numbers:")
         ntlogger.debug(tally_data.surfaces)
 
