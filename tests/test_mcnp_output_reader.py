@@ -562,8 +562,9 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(len(tn.vols), len(tn.cells))
                 self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), len(tn.cells))
-                self.assertIsInstance(tn.err, dict)
-                self.assertEqual(len(tn.err), len(tn.cells))
+                self.assertFalse(hasattr(tn, "err"))
+                for df in tn.result.values():
+                    self.assertIn("rel_err", df.columns.get_level_values(0))
 
     def test_multiple_value_etbinned_t4_tally(self):
         """ test case - f4 tally with multiple cells with energy and time bins """
@@ -580,8 +581,9 @@ class tally_type4_tests(unittest.TestCase):
                 self.assertEqual(len(tn.vols), 5)
                 self.assertIsInstance(tn.result, dict)
                 self.assertEqual(len(tn.result), len(tn.cells))
-                self.assertIsInstance(tn.err, dict)
-                self.assertEqual(len(tn.err), len(tn.cells))
+                self.assertFalse(hasattr(tn, "err"))
+                for df in tn.result.values():
+                    self.assertIn("rel_err", df.columns.get_level_values(0))
 
     def test_tbinned_t4_tally(self):
         """ test case - f4 tally with a single cell with times bins """
@@ -724,7 +726,8 @@ class tally_type5_tests(unittest.TestCase):
                 res_df = list(tn.result.values())[0]
                 self.assertIsInstance(res_df, pd.DataFrame)
                 self.assertEqual(res_df.shape[0], 14)  # 14 energy rows
-                self.assertEqual(res_df.shape[1], 14)  # 14 time columns
+                self.assertEqual(res_df["result"].shape[1], 14)  # 14 time columns
+                self.assertEqual(res_df["rel_err"].shape, res_df["result"].shape)
                 self.assertEqual(tn.x, 15)
                 self.assertEqual(tn.y, 0.00)
                 self.assertEqual(tn.z, 0.00)
