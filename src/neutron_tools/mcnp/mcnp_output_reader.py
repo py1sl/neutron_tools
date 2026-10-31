@@ -559,6 +559,15 @@ def process_energy_lines(erg_lines):
     return pd.DataFrame({"energy": erg, "result": res, "rel_err": rel_err})
 
 
+def process_single_value_tally(line):
+    """Process one result and relative-error pair into a DataFrame."""
+    values = line.split() if isinstance(line, str) else line
+    return pd.DataFrame({
+        "result": [float(values[0])],
+        "rel_err": [float(values[1])],
+    })
+
+
 def convert_energy_time_data_to_df(data, time_bins, energy_bins):
     """ converts the energy time results into a dataframe """
     try:
@@ -811,12 +820,7 @@ def read_type_8(tally_data, lines):
             # single value result
             ntlogger.debug('tally e bin count = 1')
             line = lines[cell_res_start + 1]
-            line = line.strip()
-            line = line.split(" ")
-            tally_data.result = {
-                cell_id: pd.DataFrame({"result": [float(line[0])],
-                                       "rel_err": [float(line[1])]})
-            }
+            tally_data.result = {cell_id: process_single_value_tally(line)}
 
     if tally_data.eng is not None:
         ntlogger.debug('tally e bin count: %s', len(tally_data.eng))
@@ -911,37 +915,36 @@ def process_energy_angle_tally(tally_data, lines, first_surface_line_id):
     return angle_dfs, angles_bins
 
 
-def process_energy_binned_surface_tally(lines):
-    """ process a surface tally with energy bins.
+def _process_energy_binned_tally(lines, tally_name):
+    """Process a cell or surface tally with energy bins.
 
     Returns
     -------
     dict[int, pd.DataFrame]
-        Mapping of surface id → DataFrame with columns
+        Mapping of cell or surface id → DataFrame with columns
         ``energy``, ``result``, ``rel_err``.  A final row with
-        ``energy == "total"`` is appended for each surface.
+        ``energy == "total"`` is appended for each tally item.
     """
     data_dict = defaultdict(list)
     total_data = {}
 
-    current_surface = None
+    current_item = None
     for line in lines:
         line = line.strip()
 
-        # Detect new surface block
-        surface_match = re.match(r"surface\s+(\d+)", line)
-        if surface_match:
-            current_surface = int(surface_match.group(1))
+        item_match = re.match(rf"{tally_name}\s+(\d+)", line)
+        if item_match:
+            current_item = int(item_match.group(1))
             continue
 
-        if not current_surface:
+        if not current_item:
             continue  # Skip until a surface block is found
 
         # Handle the "total" line
         if line.lower().startswith("total"):
             parts = line.lower().replace("total", "").split()
             if len(parts) == 2:
-                total_data[current_surface] = (float(parts[0]), float(parts[1]))
+                total_data[current_item] = (float(parts[0]), float(parts[1]))
             continue
 
         # Match data lines (starting with a number and having 3 parts)
@@ -950,21 +953,35 @@ def process_energy_binned_surface_tally(lines):
             energy = float(parts[0])
             result = float(parts[1])
             rel_err = float(parts[2])
-            data_dict[current_surface].append([energy, result, rel_err])
+            data_dict[current_item].append([energy, result, rel_err])
 
     # Convert lists to DataFrames and fold in the total row
-    for surface in data_dict:
-        df = pd.DataFrame(data_dict[surface], columns=["energy", "result", "rel_err"])
-        if surface in total_data:
+    for item in data_dict:
+        df = pd.DataFrame(data_dict[item], columns=["energy", "result", "rel_err"])
+        if item in total_data:
             total_row = pd.DataFrame(
-                [{"energy": "total",
-                  "result": total_data[surface][0],
-                  "rel_err": total_data[surface][1]}]
+                [{"energy": "total", "result": total_data[item][0],
+                  "rel_err": total_data[item][1]}]
             )
             df = pd.concat([df, total_row], ignore_index=True)
-        data_dict[surface] = df
+        data_dict[item] = df
 
     return dict(data_dict)
+
+
+def process_energy_binned_surface_tally(lines):
+    """Process a surface tally with energy bins."""
+    return _process_energy_binned_tally(lines, "surface")
+
+
+def read_energy_bin_only_cell_tally(lines):
+    """Read a cell tally output that contains only energy bins."""
+    return _process_energy_binned_tally(lines, "cell")
+
+
+def _energy_bins_from_tally_results(result):
+    first_df = next(iter(result.values()))
+    return first_df.loc[first_df["energy"] != "total", "energy"].tolist()
 
 
 def read_type_surface(tally_data, lines):
@@ -1001,12 +1018,7 @@ def read_type_surface(tally_data, lines):
         ntlogger.debug("energy bins only")
 
         tally_data.result = process_energy_binned_surface_tally(lines)
-        first_key = next(iter(tally_data.result))
-        tally_data.eng = (
-            tally_data.result[first_key]
-            .loc[tally_data.result[first_key]["energy"] != "total", "energy"]
-            .tolist()
-        )
+        tally_data.eng = _energy_bins_from_tally_results(tally_data.result)
 
     elif "angle" in lines[first_surface_line_id + 1]:
         ntlogger.debug("angle bins")
@@ -1089,23 +1101,15 @@ def read_type_surface(tally_data, lines):
             surface_line_id = surface_line_id + loc
             loc = surface_line_id + 1
             line = lines[surface_line_id + 1]
-            line = line.strip()
-            line = line.split(" ")
-            result_dict[int(s)] = pd.DataFrame(
-                {"result": [float(line[0])], "rel_err": [float(line[1])]}
-            )
+            result_dict[int(s)] = process_single_value_tally(line)
         tally_data.result = result_dict
 
     else:
         ntlogger.debug("single value only")
         line = lines[first_surface_line_id + 1]
-        line = line.strip()
-        line = line.split(" ")
         surface_id = int(tally_data.surfaces[0])
         tally_data.result = {
-            surface_id: pd.DataFrame(
-                {"result": [float(line[0])], "rel_err": [float(line[1])]}
-            )
+            surface_id: process_single_value_tally(line)
         }
 
     return tally_data
@@ -1137,57 +1141,6 @@ def get_cell_data(lines, line_id):
     return cells, vols, line_id
 
 
-def read_energy_bin_only_cell_tally(lines):
-    """ Read a cell tally output that contains only energy bins.
-
-    Returns
-    -------
-    dict[int, pd.DataFrame]
-        Mapping of cell id → DataFrame with columns
-        ``energy``, ``result``, ``rel_err``.  A final row with
-        ``energy == "total"`` is appended for each cell.
-    """
-    data_dict = defaultdict(list)
-    total_data = {}
-    current_cell = None
-
-    for line in lines:
-        line = line.strip()
-        cell_match = re.match(r"cell\s+(\d+)", line)
-        if cell_match:
-            current_cell = int(cell_match.group(1))
-        if not current_cell:
-            continue
-        # Handle the "total" line
-        if line.lower().startswith("total"):
-            parts = line.lower().replace("total", "").split()
-            if len(parts) == 2:
-                total_data[current_cell] = (float(parts[0]), float(parts[1]))
-            continue
-
-        # Match data lines (starting with a number and having 3 columns -energy, result and rel err)
-        parts = line.split()
-        if len(parts) == 3 and re.match(r"^\d", parts[0]):
-            energy = float(parts[0])
-            result = float(parts[1])
-            rel_err = float(parts[2])
-            data_dict[current_cell].append([energy, result, rel_err])
-
-    # Convert lists to DataFrames and fold in the total row
-    for cell in data_dict:
-        df = pd.DataFrame(data_dict[cell], columns=["energy", "result", "rel_err"])
-        if cell in total_data:
-            total_row = pd.DataFrame(
-                [{"energy": "total",
-                  "result": total_data[cell][0],
-                  "rel_err": total_data[cell][1]}]
-            )
-            df = pd.concat([df, total_row], ignore_index=True)
-        data_dict[cell] = df
-
-    return dict(data_dict)
-
-
 def read_type_cell(tally_data, lines):
     """ process type 4 or type 6 tally output data """
     ntlogger.debug("Volume tally")
@@ -1210,12 +1163,7 @@ def read_type_cell(tally_data, lines):
     if "energy" in lines[cell_res_start + 1]:
         ntlogger.debug("noticed energy")
         tally_data.result = read_energy_bin_only_cell_tally(lines)
-        first_key = next(iter(tally_data.result))
-        tally_data.eng = (
-            tally_data.result[first_key]
-            .loc[tally_data.result[first_key]["energy"] != "total", "energy"]
-            .tolist()
-        )
+        tally_data.eng = _energy_bins_from_tally_results(tally_data.result)
         tally_read = True
 
     # loop for each cell — handles time-binned and single-value cases
@@ -1268,15 +1216,12 @@ def read_type_cell(tally_data, lines):
                     data_line = lines[cell_res_start+2]
 
                 data_line = " ".join(data_line.split())
-                data_line = data_line.split(" ")
-                if ("total" in data_line) or data_line[0] == "":
+                data_line = data_line.split()
+                if not data_line or "total" in data_line:
                     ntlogger.debug("skipping total line")
                 else:
                     ntlogger.debug(data_line[0])
-                    result_dict[cell_id] = pd.DataFrame(
-                        {"result": [float(data_line[0])],
-                         "rel_err": [float(data_line[1])]}
-                    )
+                    result_dict[cell_id] = process_single_value_tally(data_line)
 
         if result_dict:
             tally_data.result = result_dict
@@ -1471,11 +1416,8 @@ def read_type_5(tally_data, lines):
 
     else:
         # single value and error result
-        res_line = res_line.split(" ")[-2:]
-        tally_data.result = {
-            0: pd.DataFrame({"result": [float(res_line[0])],
-                             "rel_err": [float(res_line[1])]})
-        }
+        res_line = res_line.split()[-2:]
+        tally_data.result = {0: process_single_value_tally(res_line)}
 
     # read uncollided flux
     uncoll_line_id = ut.find_ind(lines, "uncollided")
@@ -1495,10 +1437,8 @@ def read_type_5(tally_data, lines):
         tally_data.uncoll_flux = {0: uncoll_res_df}
     else:
         ntlogger.debug("uncollided single value")
-        uncoll_val_line = uncoll_next_line.split()
         tally_data.uncoll_flux = {
-            0: pd.DataFrame({"result": [float(uncoll_val_line[0])],
-                             "rel_err": [float(uncoll_val_line[1])]})
+            0: process_single_value_tally(uncoll_next_line)
         }
 
     # read detector score diagnostics

@@ -207,6 +207,34 @@ class tally_processing_tests(unittest.TestCase):
         self.assertEqual(df["result"].tolist(), expected_res)
         self.assertEqual(df["rel_err"].tolist(), expected_rel_err)
 
+    def test_process_single_value_tally(self):
+        df = mcnp_output_reader.process_single_value_tally("  10.0   0.05 ")
+
+        self.assertEqual(df["result"].tolist(), [10.0])
+        self.assertEqual(df["rel_err"].tolist(), [0.05])
+
+    def test_process_energy_binned_cell_and_surface_tallies(self):
+        for tally_name, parser in (
+            ("cell", mcnp_output_reader.read_energy_bin_only_cell_tally),
+            ("surface", mcnp_output_reader.process_energy_binned_surface_tally),
+        ):
+            lines = [
+                f"{tally_name} 12",
+                "1.0 10.0 0.1",
+                "total 20.0 0.05",
+                f"{tally_name} 13",
+                "2.0 30.0 0.03",
+            ]
+            result = parser(lines)
+
+            self.assertEqual(list(result), [12, 13])
+            self.assertEqual(result[12]["energy"].tolist(), [1.0, "total"])
+            self.assertEqual(result[12]["result"].tolist(), [10.0, 20.0])
+            self.assertEqual(result[12]["rel_err"].tolist(), [0.1, 0.05])
+            self.assertEqual(
+                mcnp_output_reader._energy_bins_from_tally_results(result), [1.0]
+            )
+
     def test_convert_et_tally_to_df(self):
         """ """
         # test valid data
