@@ -231,6 +231,31 @@ class tally_processing_tests(unittest.TestCase):
 class tally_type1_tests(unittest.TestCase):
     """ tests for type 1 tally """
 
+    def test_multiple_surfaces_preserve_file_order(self):
+        tally_data = mcnp_output_reader.MCNP_surface_tally()
+        tally_data.tally_type = "1"
+        surface_results = [
+            ("20", 1.25),
+            ("10", 2.50),
+            ("40", 3.75),
+            ("30", 5.00),
+            ("60", 6.25),
+            ("50", 7.50),
+            ("80", 8.75),
+            ("70", 10.00),
+        ]
+        lines = ["header"] * 10 + [
+            line
+            for surface, result in surface_results
+            for line in (f" surface {surface}", f"{result} 0.01")
+        ]
+
+        mcnp_output_reader.read_type_surface(tally_data, lines)
+
+        self.assertEqual(tally_data.surfaces, [surface for surface, _ in surface_results])
+        for surface, result in surface_results:
+            self.assertAlmostEqual(tally_data.result[int(surface)]["result"].iloc[0], result)
+
     def test_single_value_t1_tally(self):
         path = os.path.join(os.path.dirname(__file__), 'test_output', 'singles.io')
         single = mcnp_output_reader.read_output_file(path)
