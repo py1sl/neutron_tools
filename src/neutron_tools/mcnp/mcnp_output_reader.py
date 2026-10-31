@@ -55,6 +55,10 @@ class MCNPOutput():
 class MCNP_tally_data():
     """ generic tally object for data common to all tally types """
 
+    str_fields = ()
+    str_count_fields = ()
+    str_flag_fields = ()
+
     def __init__(self):
         # general data all tallies have
         self.number = 1
@@ -67,12 +71,34 @@ class MCNP_tally_data():
         self.times = None
         self.user_bins = None
 
+    def __str__(self):
+        print_list = [
+            f"Tally number: {self.number}",
+            f"Particle: {self.particle}",
+        ]
+        for label, field in self.str_fields:
+            print_list.append(f"{label}: {getattr(self, field)}")
+        for label, field in self.str_count_fields:
+            print_list.append(f"{label}: {len(getattr(self, field))}")
+        flag_fields = [
+            ("Energy Bins", "eng"),
+            ("Time Bins", "times"),
+            *self.str_flag_fields,
+        ]
+        for label, field in flag_fields:
+            print_list.append(
+                f"{label}: {'True' if getattr(self, field) is not None else 'False'}"
+            )
+        return "\n".join(print_list)
+
 
 class MCNP_type5_tally(MCNP_tally_data):
     """ specific tally object for a type 5 point detector tally """
 
+    str_fields = (("X", "x"), ("Y", "y"), ("Z", "z"))
+
     def __init__(self):
-        MCNP_tally_data.__init__(self)
+        super().__init__()
         # for type 5 tallies
         self.x = None
         self.y = None
@@ -85,102 +111,42 @@ class MCNP_type5_tally(MCNP_tally_data):
         self.average_per_history = 0.0
         self.misses = None
 
-    def __str__(self):
-        print_list = []
-        print_list.append(f"Tally number: {self.number}")
-        print_list.append(f"Particle: {self.particle}")
-        print_list.append(f"X: {self.x}")
-        print_list.append(f"Y: {self.y}")
-        print_list.append(f"Z: {self.z}")
-        if self.eng is not None:
-            print_list.append("Energy Bins: True")
-        else:
-            print_list.append("Energy Bins: False")
-        if self.times is not None:
-            print_list.append("Time Bins: True")
-        else:
-            print_list.append("Time Bins: False")
-
-        return "\n".join(print_list)
-
 
 class MCNP_surface_tally(MCNP_tally_data):
     """ specific tally object for a type 1 or 2 surface tally"""
 
+    str_count_fields = (("Number of Surfaces", "surfaces"),)
+    str_flag_fields = (("Angular Bins", "ang_bins"),)
+
     def __init__(self):
-        MCNP_tally_data.__init__(self)
+        super().__init__()
         # for type 1 or 2
         self.surfaces = None
         self.areas = None
         self.ang_bins = None
 
-    def __str__(self):
-        print_list = []
-        print_list.append(f"Tally number: {self.number}")
-        print_list.append(f"Particle: {self.particle}")
-        print_list.append(f"Number of Surfaces: {len(self.surfaces)}")
-        if self.eng is not None:
-            print_list.append("Energy Bins: True")
-        else:
-            print_list.append("Energy Bins: False")
-        if self.times is not None:
-            print_list.append("Time Bins: True")
-        else:
-            print_list.append("Time Bins: False")
-        if self.ang_bins is not None:
-            print_list.append("Angular Bins: True")
-        else:
-            print_list.append("Angular Bins: False")
-        return "\n".join(print_list)
-
 
 class MCNP_cell_tally(MCNP_tally_data):
     """ specific tally object for a type 4 cell tally"""
 
+    str_count_fields = (("Number of Cells", "cells"),)
+
     def __init__(self):
-        MCNP_tally_data.__init__(self)
+        super().__init__()
         # for type 4
         self.cells = None
         self.vols = None
-
-    def __str__(self):
-        print_list = []
-        print_list.append(f"Tally number: {self.number}")
-        print_list.append(f"Particle: {self.particle}")
-        print_list.append(f"Number of Cells: {len(self.cells)}")
-        if self.eng is not None:
-            print_list.append("Energy Bins: True")
-        else:
-            print_list.append("Energy Bins: False")
-        if self.times is not None:
-            print_list.append("Time Bins: True")
-        else:
-            print_list.append("Time Bins: False")
-        return "\n".join(print_list)
 
 
 class MCNP_pulse_tally(MCNP_tally_data):
     """ specific tally object for a type 8 pulse height tally"""
 
+    str_count_fields = (("Number of Cells", "cells"),)
+
     def __init__(self):
-        MCNP_tally_data.__init__(self)
+        super().__init__()
         # for type 8
         self.cells = None
-
-    def __str__(self):
-        print_list = []
-        print_list.append(f"Tally number: {self.number}")
-        print_list.append(f"Particle: {self.particle}")
-        print_list.append(f"Number of Cells: {len(self.cells)}")
-        if self.eng is not None:
-            print_list.append("Energy Bins: True")
-        else:
-            print_list.append("Energy Bins: False")
-        if self.times is not None:
-            print_list.append("Time Bins: True")
-        else:
-            print_list.append("Time Bins: False")
-        return "\n".join(print_list)
 
 
 class MCNP_summary_data():

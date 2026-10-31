@@ -1080,6 +1080,20 @@ class tables_testing(unittest.TestCase):
 class str_method_tests(unittest.TestCase):
     """ tests for __str__ methods on tally classes """
 
+    def test_tally_types_share_base_str(self):
+        tally_classes = (
+            mcnp_output_reader.MCNP_type5_tally,
+            mcnp_output_reader.MCNP_surface_tally,
+            mcnp_output_reader.MCNP_cell_tally,
+            mcnp_output_reader.MCNP_pulse_tally,
+        )
+        for tally_class in tally_classes:
+            with self.subTest(tally_class=tally_class):
+                self.assertIs(
+                    tally_class.__str__,
+                    mcnp_output_reader.MCNP_tally_data.__str__,
+                )
+
     def test_type5_tally_str_no_bins(self):
         t = mcnp_output_reader.MCNP_type5_tally()
         t.number = 5
