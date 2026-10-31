@@ -140,7 +140,6 @@ def _make_surface_tally(tally_type, eng, result_dict, surfaces=None, ang_bins=No
     t.tally_type = tally_type
     t.eng = eng
     t.result = result_dict
-    t.err = [0.01] * len(eng)
     if surfaces is not None:
         t.surfaces = surfaces
     if ang_bins is not None:
@@ -182,7 +181,6 @@ class plot_spectra_additional_test_cases(unittest.TestCase):
             "result": [1e-3, 2e-3, 3e-3, 4e-3],
             "rel_err": [0.01, 0.01, 0.01, 0.01],
         })
-        tally.err = [0.01, 0.01, 0.01, 0.01]
         ma.plot_spectra(tally, "out.png", "test")
         mock_savefig.assert_called_once_with("out.png")
 

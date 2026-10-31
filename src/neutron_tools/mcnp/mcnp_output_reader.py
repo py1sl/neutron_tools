@@ -62,7 +62,6 @@ class MCNP_tally_data():
         self.particle = "neutron"
         self.nps = 1
         self.result = {}
-        self.err = None
         self.eng = None
         self.stat_tests = None
         self.times = None
@@ -80,7 +79,6 @@ class MCNP_type5_tally(MCNP_tally_data):
         self.z = None
         self.cell_scores = None
         self.uncoll_flux = None
-        self.uncoll_err = None
         self.diagnostics = None
         self.largest_score = 0.0
         self.largest_score_nps = 0.0
@@ -619,11 +617,12 @@ def process_e_t_userbin(lines):
 
     Returns
     -------
-    tuple[pd.DataFrame, pd.DataFrame]
-        ``(value_df, uncert_df)`` where both DataFrames have energy bin
-        boundaries as the row index and time bin boundaries as column
-        names.  Use ``value_df.index.tolist()`` for energy bins and
-        ``value_df.columns.tolist()`` for time bins.
+    pd.DataFrame
+        DataFrame with energy bin boundaries as the row index and
+        two-level columns ``(quantity, time)`` where ``quantity`` is
+        ``"result"`` or ``"rel_err"`` and ``time`` is the time bin
+        boundary.  Use ``df.index.tolist()`` for energy bins and
+        ``df["result"].columns.tolist()`` for time bins.
     """
     has_energy_header = any(l.strip().startswith('energy') for l in lines)
 
@@ -694,7 +693,7 @@ def process_e_t_userbin(lines):
     value_df = pd.DataFrame(values_combined, index=energy_arr, columns=time_arr)
     uncert_df = pd.DataFrame(uncerts_combined, index=energy_arr, columns=time_arr)
 
-    return value_df, uncert_df
+    return pd.concat({"result": value_df, "rel_err": uncert_df}, axis=1)
 
 
 def find_term_line(lines):
@@ -1064,7 +1063,6 @@ def read_type_surface(tally_data, lines):
             ntlogger.debug("energy & time bins")
             if len(tally_data.surfaces) > 1:
                 res_dict = {}
-                err_dict = {}
                 for sur in tally_data.surfaces:
                     # needs more work here change - try except to use the fact that it will be the last surface block,
                     # check via enumerate(tally_data.surfaces)
@@ -1073,27 +1071,24 @@ def read_type_surface(tally_data, lines):
                                                     first_surface_line_id + 1:], 9) + first_surface_line_id + 1
                     except:
                         end_surface_block_line_id = -1
-                    res_df, err_df = process_e_t_userbin(
+                    res_df = process_e_t_userbin(
                         lines[first_surface_line_id + 1:end_surface_block_line_id])
 
                     first_surface_line_id = end_surface_block_line_id
 
                     res_dict[int(sur)] = res_df
-                    err_dict[int(sur)] = err_df
                 first_val_df = next(iter(res_dict.values()))
-                tally_data.times = first_val_df.columns.tolist()
+                tally_data.times = first_val_df["result"].columns.tolist()
                 tally_data.eng = first_val_df.index.tolist()
                 tally_data.result = res_dict
-                tally_data.err = err_dict
             else:
                 # energy and time bins only one surface
-                res_df, err_df = process_e_t_userbin(
+                res_df = process_e_t_userbin(
                     lines[first_surface_line_id + 1:end_line_id])
                 surface_id = int(tally_data.surfaces[0])
-                tally_data.times = res_df.columns.tolist()
+                tally_data.times = res_df["result"].columns.tolist()
                 tally_data.eng = res_df.index.tolist()
                 tally_data.result = {surface_id: res_df}
-                tally_data.err = {surface_id: err_df}
         elif len(tally_data.surfaces) > 1:
             # time bins multiple surfaces
             ntlogger.debug("time bins and multiple surfaces")
@@ -1260,7 +1255,6 @@ def read_type_cell(tally_data, lines):
     # loop for each cell — handles time-binned and single-value cases
     if not tally_read:
         result_dict = {}
-        err_dict = {}
         for i, cell in enumerate(tally_data.cells):
             cell_id = int(cell)
             cell_res_start = ut.find_ind(lines, " " + cell + " ")
@@ -1287,10 +1281,9 @@ def read_type_cell(tally_data, lines):
                 # check if energy bins as well as time
                 if "energy" in lines[cell_res_start + 2]:
                     ntlogger.debug("energy & time bins")
-                    res_df, err_df = process_e_t_userbin(
+                    res_df = process_e_t_userbin(
                         lines[cell_res_start + 1:cell_end])
                     result_dict[cell_id] = res_df
-                    err_dict[cell_id] = err_df
                 else:
                     # just time bins
                     ntlogger.debug("time bins only")
@@ -1326,8 +1319,7 @@ def read_type_cell(tally_data, lines):
             if hasattr(first_df, 'index') and hasattr(first_df, 'columns') and \
                     not isinstance(first_df.index, pd.RangeIndex):
                 tally_data.eng = first_df.index.tolist()
-                tally_data.times = first_df.columns.tolist()
-                tally_data.err = err_dict if err_dict else None
+                tally_data.times = first_df["result"].columns.tolist()
             elif "time" in first_df.columns:
                 tally_data.times = first_df["time"].tolist()
 
@@ -1471,12 +1463,11 @@ def read_type_5(tally_data, lines):
     elif "time" in res_line:
         ntlogger.debug("found time")
         end_line_id = ut.find_line(" det", lines[loc_line_id+1:], 4)
-        res_df, err_df = process_e_t_userbin(
+        res_df = process_e_t_userbin(
             lines[loc_line_id+1:loc_line_id+1+end_line_id])
-        tally_data.times = res_df.columns.tolist()
+        tally_data.times = res_df["result"].columns.tolist()
         tally_data.eng = res_df.index.tolist()
         tally_data.result = {0: res_df}
-        tally_data.err = {0: err_df}
 
         # TODO: sort out f5 time dep tally
 
@@ -1502,18 +1493,15 @@ def read_type_5(tally_data, lines):
 
         bin_data = lines[loc_line_id + 1:]
         result_dict = {}
-        err_dict = {}
         i = 0
         while i < len(user_bin_locs) - 1:
             ubin_data = bin_data[user_bin_locs[i]:user_bin_locs[i + 1]]
-            res_df, err_df = process_e_t_userbin(ubin_data)
+            res_df = process_e_t_userbin(ubin_data)
             result_dict[i] = res_df
-            err_dict[i] = err_df
-            tally_data.times = res_df.columns.tolist()
+            tally_data.times = res_df["result"].columns.tolist()
             tally_data.eng = res_df.index.tolist()
             i = i + 1
         tally_data.result = result_dict
-        tally_data.err = err_dict
 
     else:
         # single value and error result
@@ -1536,10 +1524,9 @@ def read_type_5(tally_data, lines):
     elif "time" in uncoll_next_line:
         ntlogger.debug("uncollided time bins")
         end_line_id = ut.find_line(" det", lines[uncoll_line_id + 1:], 4)
-        uncoll_res_df, uncoll_err_df = process_e_t_userbin(
+        uncoll_res_df = process_e_t_userbin(
             lines[uncoll_line_id + 1:uncoll_line_id + 1 + end_line_id])
         tally_data.uncoll_flux = {0: uncoll_res_df}
-        tally_data.uncoll_err = {0: uncoll_err_df}
     else:
         ntlogger.debug("uncollided single value")
         uncoll_val_line = uncoll_next_line.split()

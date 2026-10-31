@@ -104,7 +104,7 @@ def _first_result_df(result_obj):
     raise TypeError("Unsupported tally result container; expected DataFrame or dict")
 
 
-def _extract_series_rel_err(df, tally, series_key, expected_len):
+def _extract_series_rel_err(df, expected_len):
     """Get per-series relative error array for a plotted line when available."""
     rel_err = None
 
@@ -120,30 +120,7 @@ def _extract_series_rel_err(df, tally, series_key, expected_len):
         if len(rel_arr) == expected_len:
             rel_err = rel_arr
 
-    if rel_err is not None:
-        return rel_err
-
-    if not hasattr(tally, "err") or tally.err is None:
-        return None
-
-    if isinstance(tally.err, dict):
-        if series_key not in tally.err:
-            return None
-        err_obj = tally.err[series_key]
-        if isinstance(err_obj, pd.DataFrame):
-            if "rel_err" in err_obj.columns:
-                err_vals = pd.to_numeric(err_obj["rel_err"], errors="coerce").dropna()
-                err_arr = err_vals.to_numpy(dtype=float)
-            else:
-                return None
-        else:
-            err_arr = np.asarray(err_obj, dtype=float)
-    else:
-        err_arr = np.asarray(tally.err, dtype=float)
-
-    if len(err_arr) != expected_len:
-        return None
-    return err_arr
+    return rel_err
 
 
 def _plot_energy_series(ax, tally, series_key, df, label=None):
@@ -153,7 +130,7 @@ def _plot_energy_series(ax, tally, series_key, df, label=None):
     y_vals = result / bw
     splot = ax.step(energy, y_vals, label=label)
 
-    rel_err = _extract_series_rel_err(df, tally, series_key, len(y_vals))
+    rel_err = _extract_series_rel_err(df, len(y_vals))
     return {
         "energy": energy,
         "y_vals": y_vals,
@@ -280,7 +257,7 @@ def _unpack_et_df(et_input):
     Parameters
     ----------
     et_input : pd.DataFrame
-        The ``value_df`` returned by :func:`process_e_t_userbin`, with energy
+        The DataFrame returned by :func:`process_e_t_userbin`, with energy
         as row index and time bin boundaries as column names.
 
     Returns
@@ -289,6 +266,8 @@ def _unpack_et_df(et_input):
         ``(energy_arr, time_arr, value_matrix)``
     """
     if isinstance(et_input, pd.DataFrame):
+        if isinstance(et_input.columns, pd.MultiIndex):
+            et_input = et_input["result"]
         energy_arr = et_input.index.to_numpy(dtype=float)
         time_arr = et_input.columns.to_numpy(dtype=float)
         value_matrix = et_input.values
