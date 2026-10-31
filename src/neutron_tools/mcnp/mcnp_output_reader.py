@@ -1035,7 +1035,7 @@ def read_type_surface(tally_data, lines):
                     try:
                         end_surface_block_line_id = ut.find_line(" surface ", lines[
                                                     first_surface_line_id + 1:], 9) + first_surface_line_id + 1
-                    except:
+                    except ValueError:
                         end_surface_block_line_id = -1
                     res_df = process_e_t_userbin(
                         lines[first_surface_line_id + 1:end_surface_block_line_id])
